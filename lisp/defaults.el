@@ -25,3 +25,6 @@
 --strict-tofu --priority='SECURE192:+SECURE128:-VERS-ALL:+VERS-TLS1.2:+VERS-TLS1.3' %h"
                     ;; compatibility fallbacks
                     "gnutls-cli -p %p %h"))
+
+;;; built-in packages
+(setq eldoc-echo-area-use-multiline-p nil)

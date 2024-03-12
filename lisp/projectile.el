@@ -2,4 +2,5 @@
 
 (use-package projectile
   :straight t
-  :commands projectile-switch-project)
+  :config
+  (projectile-mode 1))

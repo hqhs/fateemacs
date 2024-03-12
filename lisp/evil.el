@@ -18,3 +18,10 @@
 (use-package evil-collection
   :straight t
   :commands evil-collection-init)
+
+(use-package evil-escape
+  :straight t
+  :init
+  (setq evil-escape-excluded-states '(normal visual multiedit emacs motion))
+  :config
+  (evil-escape-mode))

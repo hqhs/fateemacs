@@ -11,3 +11,9 @@
   :config
   (vertico-mode)
   (evil-collection-init 'vertico))
+
+(use-package orderless
+  :straight t
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-overrides '((file (styles +vertico-basic-remote orderless partial-completion)))))
