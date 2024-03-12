@@ -13,6 +13,7 @@
 ;; packages loaded lazily
 (load (expand-file-name "magit.el" fate-lisp-dir))
 (load (expand-file-name "projectile.el" fate-lisp-dir))
+(load (expand-file-name "lsp.el" fate-lisp-dir))
 
 ;;
 (load (expand-file-name "completion.el" fate-lisp-dir))
