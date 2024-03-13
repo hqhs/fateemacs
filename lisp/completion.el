@@ -16,7 +16,8 @@
   :straight t
   :custom
   (completion-styles '(orderless basic))
-  (completion-category-overrides '((file (styles +vertico-basic-remote orderless partial-completion)))))
+  ;; TODO: better configuration for remote editing
+  (completion-category-overrides '((file (styles orderless partial-completion)))))
 
 (use-package marginalia
   :straight t
@@ -37,4 +38,3 @@
 	company-backends '(company-capf))
   :config
   (global-company-mode))
-  

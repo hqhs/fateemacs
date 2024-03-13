@@ -5,6 +5,7 @@
   :init
   (setq doom-modeline-github nil
         doom-modeline-minor-modes nil
+	doom-modeline-modal-icon nil
         doom-modeline-major-mode-icon nil)
   :config
   (doom-modeline-mode))
