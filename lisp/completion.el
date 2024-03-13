@@ -17,3 +17,24 @@
   :custom
   (completion-styles '(orderless basic))
   (completion-category-overrides '((file (styles +vertico-basic-remote orderless partial-completion)))))
+
+(use-package marginalia
+  :straight t
+  :init
+  (marginalia-mode))
+
+(use-package consult
+  :straight t
+  :defer t)
+
+(use-package company
+  :straight t
+  :commands (company-complete-common)
+  :init
+  (setq company-minimum-prefix-length 2
+	company-tooltip-limit 14
+	company-require-match 'never
+	company-backends '(company-capf))
+  :config
+  (global-company-mode))
+  

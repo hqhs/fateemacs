@@ -1,6 +1,30 @@
 ;; -*- lexical-binding: t -*-
 ;; better values for emacs out-of-the-box configuration options
 
+;; set PATH from shell
+(setq-default exec-path
+              (append (split-string (getenv "PATH") path-separator t)
+                      (list exec-directory)))
+
+;; Don't generate backups or lockfiles. While auto-save maintains a copy so long
+;; as a buffer is unsaved, backups create copies once, when the file is first
+;; written, and never again until it is killed and reopened. This is better
+;; suited to version control, and I don't want world-readable copies of
+;; potentially sensitive material floating around our filesystem.
+(setq create-lockfiles nil
+      make-backup-files nil)
+
+;; But turn on auto-save, so we have a fallback in case of crashes or lost data.
+;; Use `recover-file' or `recover-session' to recover them.
+(setq auto-save-default t
+      ;; Don't auto-disable auto-save after deleting big chunks. This defeats
+      ;; the purpose of a failsafe. This adds the risk of losing the data we
+      ;; just deleted, but I believe that's VCS's jurisdiction, not ours.
+      auto-save-include-big-deletions t
+      ;; Keep it out of `doom-emacs-dir' or the local directory.
+      auto-save-list-file-prefix (concat fate-cache-dir "autosave/")
+      tramp-auto-save-directory  (concat fate-cache-dir "tramp-autosave/"))
+
 ;;; Runtime optimizations
 
 ;; PERF: A second, case-insensitive pass over `auto-mode-alist' is time wasted.
@@ -95,3 +119,6 @@
 
 ;;; built-in packages
 (setq eldoc-echo-area-use-multiline-p nil)
+;; always use short y-or-n questions,
+;; (defalias 'yes-or-no-p 'y-or-n-p) ;; Until Emacs 28
+(setopt use-short-answers t)

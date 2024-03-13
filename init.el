@@ -4,26 +4,46 @@
   "The path to the currently loaded .emacs.d directory. Must end with a slash.")
 
 (defvar fate-lisp-dir (expand-file-name "lisp/" fate-emacs-dir)
-  "the root directory of lisp files. Must end with a slash")
+  "the root directory of lisp files. Must end with a slash.")
 
-(load (expand-file-name "defaults.el" fate-lisp-dir))
-(load (expand-file-name "straight.el" fate-lisp-dir))
-(load (expand-file-name "evil.el" fate-lisp-dir))
+(defvar fate-cache-dir (expand-file-name "cache/" fate-emacs-dir)
+  "The root to store runtime data, such as autosave files.")
+
+(defun +fate-load-lisp (file)
+  (load (expand-file-name file fate-lisp-dir)))
+
+(+fate-load-lisp "defaults.el")
+(+fate-load-lisp "straight.el")
+(+fate-load-lisp "evil.el")
 
 ;; packages loaded lazily
-(load (expand-file-name "magit.el" fate-lisp-dir))
-(load (expand-file-name "projectile.el" fate-lisp-dir))
-(load (expand-file-name "lsp.el" fate-lisp-dir))
+(+fate-load-lisp "magit.el")
+(+fate-load-lisp "projectile.el")
+(+fate-load-lisp "lsp.el")
 
-;;
-(load (expand-file-name "completion.el" fate-lisp-dir))
-(load (expand-file-name "keybindings.el" fate-lisp-dir))
-(load (expand-file-name "ui.el" fate-lisp-dir))
+(+fate-load-lisp "completion.el")
+(+fate-load-lisp "editor.el")
+(+fate-load-lisp "keybindings.el")
+(+fate-load-lisp "ui.el")
+(+fate-load-lisp "snippets.el")
 
 (defvar fate-lang-dir (expand-file-name "lang/" fate-emacs-dir)
   "the root directory of lisp files. Must end with a slash")
 
-(load (expand-file-name "rust.el" fate-lang-dir))
+(defun +fate-load-lang (file)
+  (load (expand-file-name file fate-lang-dir)))
+
+(+fate-load-lang "rust.el")
+(+fate-load-lang "python.el")
+(+fate-load-lang "cc.el")
+(+fate-load-lang "wgsl.el")
+(+fate-load-lang "elisp.el")
+(+fate-load-lang "markdown.el")
+(+fate-load-lang "javascript.el")
+
+(+fate-load-lang "html.el")
+(+fate-load-lang "json.el")
+(+fate-load-lang "yaml.el")
 
 ;; packages I've not yet figured out where to put
 (use-package gcmh
@@ -38,14 +58,6 @@
         gcmh-auto-idle-delay-factor 10
         gcmh-high-cons-threshold (* 16 1024 1024))  ; 16mb
   :config (gcmh-mode 1))
-
-(use-package tree-sitter-langs
-  :straight t)
-
-(use-package tree-sitter
-  :straight t
-  :config
-  (require 'tree-sitter-langs))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.

@@ -1,3 +1,8 @@
 straight/*
 transient/*
 auto-save-list/*
+cache/*
+
+projectile-bookmarks.eld
+projectile.cache
+projects
