@@ -8,6 +8,17 @@
 > 
 > Let god be my witness; if I ever encounter something working only half the time without any conceivable reason, I would burn this config to the ground and move to the neovim instead.
 
+To try:
+```bash
+git clone git@github.com:hqhs/fateemacs.git ${EMACS_INSTALLATION}
+emacs -nw --init-directory ${EMACS_INSTALLATION}
+```
+To install: 
+```bash
+git clone git@github.com:hqhs/fateemacs.git ~/.emacs.d
+emacs -nw
+```
+
 ### Fate emacs
 
 This is my attempt to provide sane default config there I try to disable as much as possible and still provide enought features for muscle memory to work.
@@ -25,7 +36,13 @@ I recommed to use Alacritty as a separate window. Funny enough, it's also feels 
 ### Differences from other popular emacs configurations
 
 #### startup time optimizations is (mostly) not worth it
+
+E.g. doom emacs employs various hacks to provide separate elisp binary to manage emacs installation outside of the emacs to pre-build packages for faster startup time. Although smart, it doesn't feel like "emacs way" of doing things. This config does the simplest thing to provide comparable startup time: `use-package` with `straight.el` integration.
+
 #### org-mode is powerful, but only limited to emacs. I use markdown for notes instead.
+
+I don't want to be limited to single tool to manage my notes. Pure text files is the most popular data format. There are hordes of software supporting markdown. 
+
 #### minimum amount of lisp code
 
 
