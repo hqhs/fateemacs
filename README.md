@@ -1,12 +1,12 @@
 ![Supports Emacs 27.1 - 29.2](https://img.shields.io/badge/Supports-Emacs_27.1--29.2-blueviolet.svg?style=flat-square&logo=GNU%20Emacs&logoColor=white) 
- 
-> Emacs was a mistake
+
+> Emacs was a mistake.
 > 
-> If I could travel back in time and prevent myself from spending countless hours spent on configuring and constantly fixing this wonderful 30+ years old piece of software and do something fun instead, I would. 
+> If I could travel back in time and prevent myself from spending countless hours configuring and constantly fixing this wonderful 30+ years old piece of software and do something fun instead, I would.
 > 
-> It's hard to call this time "wasted", because lisp is still a wonderful language and emacs provides opportunity to properly learn it. I also think that configuring & debugging 30+ year old piece of software is much closer to "real engineering" than using something comparabely new, "shiny" and in line with whatever programming trend is popular right now. But still, it's hundreds of hours...
+> It's hard to call this time "wasted" because Lisp is still an excellent language, and emacs provide an opportunity to learn it properly. I also think configuring & debugging a 30+-year-old piece of software is much closer to "real engineering" than using something comparably new, "shiny," and in line with whatever programming trend is popular. But still, it's hundreds of hours...
 > 
-> Let the god be my witness, if I ever encounter something working only half of the time without any conceivable reason, I would burn this config to the ground and move to the neovim instead.
+> Let god be my witness; if I ever encounter something working only half the time without any conceivable reason, I would burn this config to the ground and move to the neovim instead.
 
 ### Fate emacs
 

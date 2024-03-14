@@ -106,6 +106,10 @@
 ;; Emacs is essentially one huge security vulnerability, what with all the
 ;; dependencies it pulls in from all corners of the globe. Let's try to be a
 ;; *little* more discerning.
+
+(setq user-full-name "John Doe"
+      user-mail-address "john@doe.com")
+
 (setq gnutls-verify-error noninteractive
       gnutls-algorithm-priority
       (when (boundp 'libgnutls-version)
