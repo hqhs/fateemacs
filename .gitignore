@@ -2,6 +2,7 @@ straight/*
 transient/*
 auto-save-list/*
 cache/*
+.local/*
 
 projectile-bookmarks.eld
 projectile.cache
