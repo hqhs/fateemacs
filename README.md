@@ -45,6 +45,10 @@ Org-mode is powerful, but only limited to emacs. Markdown is fine. I don't want 
 
 #### Lots of "IDE" features are missing
 
+I want a text editor with minimal amount of features, but still usable for active developement. 
+
 #### minimum amount of lisp code
+
+I believe that to fully utilize Emacs one should become guru of lisp developement, testing and debugging. It's not really achievable with using someones' else config.
 
 
