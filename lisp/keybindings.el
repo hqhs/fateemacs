@@ -14,7 +14,9 @@
   ;; search
   (kbd "<leader>si") #'consult-imenu
   (kbd "<leader>sp") #'consult-ripgrep
+  (kbd "<leader>sb") #'consult-line
   (kbd "<leader>*")  #'+fate/search-project-for-symbol-at-point
+  (kbd "<leader>'")  #'vertico-repeat
   ;; magit
   (kbd "<leader>gg") #'magit-status
   (kbd "<leader>gb") #'magit-blame

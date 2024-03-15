@@ -10,7 +10,8 @@
         vertico-cycle t)
   :config
   (vertico-mode)
-  (evil-collection-init 'vertico))
+  (evil-collection-init 'vertico)
+  (add-hook 'minibuffer-setup-hook #'vertico-repeat-save))
 
 (use-package orderless
   :straight t
@@ -37,4 +38,5 @@
 	company-require-match 'never
 	company-backends '(company-capf))
   :config
-  (global-company-mode))
+  (global-company-mode)
+  (define-key company-active-map (kbd "C-w") nil t))

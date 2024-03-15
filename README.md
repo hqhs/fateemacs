@@ -39,9 +39,11 @@ I recommed to use Alacritty as a separate window. Funny enough, it's also feels 
 
 E.g. doom emacs employs various hacks to provide separate elisp binary to manage emacs installation outside of the emacs to pre-build packages for faster startup time. Although smart, it doesn't feel like "emacs way" of doing things. This config does the simplest thing to provide comparable startup time: `use-package` with `straight.el` integration.
 
-#### org-mode is powerful, but only limited to emacs. I use markdown for notes instead.
+#### No org-mode 
 
-I don't want to be limited to single tool to manage my notes. Pure text files is the most popular data format. There are hordes of software supporting markdown. 
+Org-mode is powerful, but only limited to emacs. Markdown is fine. I don't want to be limited to single tool to manage my notes. Pure text files is the most popular data format. There are hordes of software supporting markdown. Another reason is that I want note tracking process to be as simple as possible to not get distructed by it.
+
+#### Lots of "IDE" features are missing
 
 #### minimum amount of lisp code
 
