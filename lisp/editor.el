@@ -31,3 +31,7 @@
   (setq ws-butler-keep-whitespace-before-point nil)
   :config
   (ws-butler-global-mode))
+
+(use-package pcre2el
+  :straight t
+  :commands (rxt-quote-pcre))

@@ -12,6 +12,7 @@
 (defun +fate-load-lisp (file)
   (load (expand-file-name file fate-lisp-dir)))
 
+(+fate-load-lisp "autoloads.el")
 (+fate-load-lisp "defaults.el")
 (+fate-load-lisp "straight.el")
 (+fate-load-lisp "evil.el")
@@ -39,9 +40,8 @@
 (+fate-load-lang "wgsl.el")
 (+fate-load-lang "elisp.el")
 (+fate-load-lang "markdown.el")
-(+fate-load-lang "javascript.el")
-
-(+fate-load-lang "html.el")
+(+fate-load-lang "javascript.el") ;; typescript and every other possible flavor
+(+fate-load-lang "web.el")
 (+fate-load-lang "json.el")
 (+fate-load-lang "yaml.el")
 

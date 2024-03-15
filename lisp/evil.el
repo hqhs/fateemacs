@@ -43,7 +43,6 @@
 
 (use-package evil-snipe
   :straight t
-  :commands (evil-snipe-local-mode evil-snipe-override-local-mode)
   :init
   (setq evil-snipe-smart-case t
         evil-snipe-scope 'line

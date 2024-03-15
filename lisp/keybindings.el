@@ -1,14 +1,20 @@
 ;; -*- lexical-binding: t -*-
 
+(evil-ex-define-cmd "W[rite]" #'evil-write) ;; fix for common error
+
 (evil-set-leader 'normal (kbd "SPC"))
 (evil-set-leader 'visual (kbd "SPC"))
 
 (evil-define-key '(normal visual operator) 'global
+  (kbd "#") #'+fate/search-symbol-backward
+  (kbd "*") #'+fate/search-symbol-forward
+  ;;
   (kbd "<leader>,") #'consult-buffer
   (kbd "<leader>.") #'find-file
   ;; search
   (kbd "<leader>si") #'consult-imenu
   (kbd "<leader>sp") #'consult-ripgrep
+  (kbd "<leader>*")  #'+fate/search-project-for-symbol-at-point
   ;; magit
   (kbd "<leader>gg") #'magit-status
   (kbd "<leader>gb") #'magit-blame
