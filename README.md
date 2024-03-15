@@ -49,6 +49,8 @@ I want a text editor with minimal amount of features, but still usable for activ
 
 #### minimum amount of lisp code
 
-I believe that to fully utilize Emacs one should become guru of lisp developement, testing and debugging. It's not really achievable with using someones' else config.
+I believe that to fully utilize Emacs one should become guru of lisp developement, testing and debugging. It's not really achievable with using someones' else config. "Know your tools" produces much more powerful approach than "use the most capable tools available without understanding them."
+
+[Here's a good "Introduction to Programming in Emacs Lisp"](https://www.gnu.org/software/emacs/manual/html_node/eintr/)
 
 
