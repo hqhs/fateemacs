@@ -4,15 +4,15 @@
   :straight t
   :init
   (setq evil-want-keybinding nil
-        evil-want-C-u-scroll t
-        evil-want-C-u-delete t
-        evil-want-C-w-delete t
-        evil-normal-state-cursor 'box
-        evil-insert-state-cursor 'box
-        evil-visual-state-cursor 'box
-        evil-ex-interactive-search-highlight 'selected-window
-        evil-undo-system 'undo-redo)
-  (setq evil-normal-state-tag   (propertize "[NORMAL]" 'face '((:background "green" :foreground "black")))
+	evil-want-C-u-scroll t
+	evil-want-C-u-delete t
+	evil-want-C-w-delete t
+	evil-normal-state-cursor 'box
+	evil-insert-state-cursor 'box
+	evil-visual-state-cursor 'box
+	evil-ex-interactive-search-highlight 'selected-window
+	evil-undo-system 'undo-redo
+	evil-normal-state-tag   (propertize "[NORMAL]" 'face '((:background "green" :foreground "black")))
 	evil-emacs-state-tag    (propertize "[EMACS]" 'face '((:background "orange" :foreground "black")))
 	evil-insert-state-tag   (propertize "[INSERT]" 'face '((:background "red") :foreground "white"))
 	evil-motion-state-tag   (propertize "[MOTION]" 'face '((:background "blue") :foreground "white"))
