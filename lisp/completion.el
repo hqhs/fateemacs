@@ -27,7 +27,9 @@
 
 (use-package consult
   :straight t
-  :defer t)
+  :defer t
+  :init
+  (setq consult-narrow-key "<"))
 
 (use-package company
   :straight t
