@@ -5,6 +5,9 @@
 (evil-set-leader 'normal (kbd "SPC"))
 (evil-set-leader 'visual (kbd "SPC"))
 
+(evil-define-key 'normal 'global
+  (kbd "K") #'eldoc)
+
 (evil-define-key '(normal visual operator) 'global
   (kbd "#") #'+fate/search-symbol-backward
   (kbd "*") #'+fate/search-symbol-forward

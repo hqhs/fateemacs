@@ -3,7 +3,8 @@
 (use-package evil
   :straight t
   :init
-  (setq evil-want-keybinding nil
+  (setq ;; evil-lookup-func #'eldoc ;; doesn't work, rebind maybe?
+	evil-want-keybinding nil
 	evil-want-C-u-scroll t
 	evil-want-C-u-delete t
 	evil-want-C-w-delete t
