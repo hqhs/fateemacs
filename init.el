@@ -37,7 +37,7 @@
 (+fate-load-lang "rust.el")
 (+fate-load-lang "python.el")
 (+fate-load-lang "cc.el")
-(+fate-load-lang "wgsl.el")
+(+fate-load-lang "shaders.el")
 (+fate-load-lang "elisp.el")
 (+fate-load-lang "markdown.el")
 (+fate-load-lang "javascript.el") ;; typescript and every other possible flavor
