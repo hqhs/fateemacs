@@ -131,8 +131,6 @@
                     ;; compatibility fallbacks
                     "gnutls-cli -p %p %h"))
 
-;;; built-in packages
-(setq eldoc-echo-area-use-multiline-p nil)
 ;; always use short y-or-n questions,
 ;; (defalias 'yes-or-no-p 'y-or-n-p) ;; Until Emacs 28
 (setopt use-short-answers t)
