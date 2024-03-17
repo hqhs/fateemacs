@@ -7,6 +7,7 @@
 	evil-want-C-u-scroll t
 	evil-want-C-u-delete t
 	evil-want-C-w-delete t
+	;; alacritty sets the color instead, I believe
 	evil-normal-state-cursor 'box
 	evil-insert-state-cursor 'box
 	evil-visual-state-cursor 'box
@@ -23,9 +24,13 @@
 
 (use-package evil-collection
   :straight t
-  :commands evil-collection-init
   :init
-  (add-hook 'compilation-mode-hook (lambda () (evil-collection-init 'compile))))
+  (setq evil-collection-key-blacklist '("SPC")) ;; don't bind leader
+  (with-eval-after-load 'compile
+    (evil-collection-compile-setup))
+  (with-eval-after-load 'dired
+    (evil-collection-dired-setup))
+  )
 
 (use-package evil-escape
   :straight t
