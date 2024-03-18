@@ -44,6 +44,7 @@
 (+fate-load-lang "web.el")
 (+fate-load-lang "json.el")
 (+fate-load-lang "yaml.el")
+(+fate-load-lang "docker.el")
 
 ;; packages I've not yet figured out where to put
 (use-package gcmh
