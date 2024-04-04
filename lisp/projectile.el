@@ -4,9 +4,11 @@
   "Return non-nil if temporary file or a straight package."
   (unless (file-remote-p project-root)
     (let ((cargo-dir (expand-file-name "~/.cargo"))
-	  (straight-dir (expand-file-name "straight/" fate-emacs-dir)))
+	  (straight-dir (expand-file-name "straight/" fate-emacs-dir))
+	  (rustup-dir (expand-file-name "~/.rustup")))
       (or (file-in-directory-p project-root cargo-dir)
-	  (file-in-directory-p project-root straight-dir)))))
+	  (file-in-directory-p project-root straight-dir)
+	  (file-in-directory-p project-root rustup-dir)))))
 
 (use-package projectile
   :straight t

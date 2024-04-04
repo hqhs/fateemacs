@@ -1,7 +1,8 @@
 ;; -*- lexical-binding: t -*-
 
 (defun +fate/c-mode-common-hook ()
-  (progn (eglot-ensure)))
+  (progn (eglot-ensure)
+	 (yas-minor-mode-on)))
 
 (use-package cc-mode
   :init

@@ -1,0 +1,13 @@
+# -*- mode: snippet -*-
+# name: Generic container class
+# key: template_container
+# --
+
+template <typename T> class Container {
+private:
+    T* ptr;
+    int size;
+
+public:
+    Array(T arr[], int s);
+};
