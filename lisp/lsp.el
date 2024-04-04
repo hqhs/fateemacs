@@ -13,6 +13,7 @@
   :straight t
   :init
   (setq eglot-autoshutdown t
+	eglot-ignored-server-capabilities '(:documentOnTypeFormattingProvider)
         ;; NOTE This setting disable the eglot-events-buffer enabling more
         ;;      consistent performance on long running emacs instance.
         ;;      Default is 2000000 lines. After each new event the whole buffer

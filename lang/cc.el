@@ -1,11 +1,13 @@
 ;; -*- lexical-binding: t -*-
 
 (defun +fate/c-mode-common-hook ()
-  (progn (eglot-ensure)
-	 (tree-sitter-mode)
-	 (tree-sitter-hl-mode)))
+  (progn (eglot-ensure)))
 
 (use-package cc-mode
+  :init
+  (setq c-basic-offset 4
+	c-indentation-style "user"
+	c-syntactic-indentation nil)
   :config
   (add-hook 'c-mode-hook '+fate/c-mode-common-hook)
   (add-hook 'c++-mode-hook '+fate/c-mode-common-hook))
