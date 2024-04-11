@@ -27,6 +27,8 @@
   (kbd "<leader>SPC")      #'projectile-find-file
   (kbd "<leader>pp")       #'projectile-switch-project
   (kbd "<leader>pi")       #'projectile-invalidate-cache
+  (kbd "<leader>pc")       #'projectile-compile-project
+  (kbd "<leader>pk")       #'projectile-kill-buffers
   ;; buffers
   (kbd "<leader>br") #'revert-buffer 
 
