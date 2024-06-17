@@ -12,8 +12,14 @@
   (kbd "#") #'+fate/search-symbol-backward
   (kbd "*") #'+fate/search-symbol-forward
   ;;
+  ;; to narrow buffers, use 'consult-narrow-key (currently defined as "<")
   (kbd "<leader>,") #'consult-buffer
+  (kbd "<leader><") #'consult-project-buffer
   (kbd "<leader>.") #'find-file
+
+  (kbd "<leader>bb") #'consult-buffer
+  (kbd "<leader>bp") #'consult-project-buffer
+  (kbd "<leader>bo") #'consult-buffer-other-window
   ;; search
   (kbd "<leader>si") #'consult-imenu
   (kbd "<leader>sp") #'consult-ripgrep
