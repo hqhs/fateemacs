@@ -19,6 +19,8 @@
   (kbd "<leader>sp") #'consult-ripgrep
   (kbd "<leader>sb") #'consult-line
   (kbd "<leader>*")  #'+fate/search-project-for-symbol-at-point
+  (kbd "<leader>sd") #'+fate/search-cwd
+  (kbd "<leader>sD") #'+fate/search-other-cwd
   (kbd "<leader>'")  #'vertico-repeat
   ;; magit
   (kbd "<leader>gg") #'magit-status
