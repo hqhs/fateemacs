@@ -17,6 +17,7 @@
   ;; search
   (kbd "<leader>si") #'consult-imenu
   (kbd "<leader>sp") #'consult-ripgrep
+  (kbd "<leader>sP") #'+fate/search-other-project
   (kbd "<leader>sb") #'consult-line
   (kbd "<leader>*")  #'+fate/search-project-for-symbol-at-point
   (kbd "<leader>sd") #'+fate/search-cwd

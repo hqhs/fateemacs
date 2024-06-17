@@ -109,3 +109,25 @@ If prefix ARG is set, prompt for a directory to search from."
   "Conduct a text search in another directory."
   (interactive)
   (+default/search-cwd 'other))
+
+;;;###autoload
+(defun +fate/search-project (&optional arg)
+  "Conduct a text search in the current project root.
+If prefix ARG is set, include ignored/hidden files."
+  (interactive "P")
+  (let* ((projectile-project-root nil)
+         (disabled-command-function nil)
+         (current-prefix-arg (unless (eq arg 'other) arg))
+         (default-directory
+           (if (eq arg 'other)
+               (if-let (projects (projectile-relevant-known-projects))
+                   (completing-read "Search project: " projects nil t)
+                 (user-error "There are no known projects"))
+             default-directory)))
+    (call-interactively #'+vertico/project-search #'consult-ripgrep)))
+
+;;;###autoload
+(defun +fate/search-other-project ()
+  "Conduct a text search in a known project."
+  (interactive)
+  (+fate/search-project 'other))
