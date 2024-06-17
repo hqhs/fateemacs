@@ -55,8 +55,8 @@
          (prompt (if (stringp prompt) (string-trim prompt) "Search"))
          (query (or query
                     (when (+fate/region-active-p)
-                      (regexp-quote (doom-thing-at-point-or-region)))))
-         (consult-async-split-style consult-async-split-style)
+		      (regexp-quote (buffer-substring-no-properties (region-beginning) (region-end))))))
+	 (consult-async-split-style consult-async-split-style)
          (consult-async-split-styles-alist consult-async-split-styles-alist))
     ;; Change the split style if the initial query contains the separator.
     (when query
