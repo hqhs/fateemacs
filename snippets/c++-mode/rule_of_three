@@ -1,0 +1,47 @@
+# -*- mode: snippet -*-
+# name: ruleofthree
+# key: ruleofthree
+# --
+
+class $1
+{
+    char* cstring; // raw pointer used as a handle to a
+                   // dynamically-allocated memory block
+
+    $1(const char* s, std::size_t n) // to avoid counting twice
+        : cstring(new char[n]) // allocate
+    {
+        std::memcpy(cstring, s, n); // populate
+    }
+
+public:
+    explicit $1(const char* s = "")
+        : $1(s, std::strlen(s) + 1) {}
+
+    ~$1() // I. destructor
+    {
+        delete[] cstring; // deallocate
+    }
+
+    $1(const $1& other) // II. copy constructor
+        : $1(other.cstring) {}
+
+    $1& operator=(const $1& other) // III. copy assignment
+    {
+        if (this == &other)
+            return *this;
+
+        std::size_t n{std::strlen(other.cstring) + 1};
+        char* new_cstring = new char[n];            // allocate
+        std::memcpy(new_cstring, other.cstring, n); // populate
+        delete[] cstring;                           // deallocate
+        cstring = new_cstring;
+
+        return *this;
+    }
+
+    operator const char* () const // accessor
+    {
+        return cstring;
+    }
+};

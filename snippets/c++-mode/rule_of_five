@@ -1,0 +1,49 @@
+# -*- mode: snippet -*-
+# name: ruleoffive
+# key: ruleoffive
+# --
+
+class $1
+{
+    char* cstring; // raw pointer used as a handle to a
+                   // dynamically-allocated memory block
+public:
+    explicit $1(const char* s = "") : cstring(nullptr)
+    {
+        if (s)
+        {
+            std::size_t n = std::strlen(s) + 1;
+            cstring = new char[n];      // allocate
+            std::memcpy(cstring, s, n); // populate
+        }
+    }
+
+    ~$1()
+    {
+        delete[] cstring; // deallocate
+    }
+
+    $1(const $1& other) // copy constructor
+        : $1(other.cstring) {}
+
+    $1($1&& other) noexcept // move constructor
+        : cstring(std::exchange(other.cstring, nullptr)) {}
+
+    $1& operator=(const $1& other) // copy assignment
+    {
+        return *this = $1(other);
+    }
+
+    $1& operator=($1&& other) noexcept // move assignment
+    {
+        std::swap(cstring, other.cstring);
+        return *this;
+    }
+
+// alternatively, replace both assignment operators with
+//  $1& operator=($1 other) noexcept
+//  {
+//      std::swap(cstring, other.cstring);
+//      return *this;
+//  }
+};
