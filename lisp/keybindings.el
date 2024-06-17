@@ -20,6 +20,10 @@
   (kbd "<leader>bb") #'consult-buffer
   (kbd "<leader>bp") #'consult-project-buffer
   (kbd "<leader>bo") #'consult-buffer-other-window
+  ;; code
+  (kbd "<leader>ca") #'xref-find-apropos
+  (kbd "<leader>cd") #'xref-find-definitions
+  (kbd "<leader>cr") #'xref-find-references
   ;; search
   (kbd "<leader>si") #'consult-imenu
   (kbd "<leader>sp") #'consult-ripgrep

@@ -42,3 +42,7 @@
   :config
   (global-company-mode)
   (define-key company-active-map (kbd "C-w") nil t))
+
+(use-package xref
+  :config
+  (evil-collection-init 'xref))
