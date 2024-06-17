@@ -2,7 +2,9 @@
 
 (defun +fate/c-mode-common-hook ()
   (progn (eglot-ensure)
-	 (yas-minor-mode-on)))
+	 (yas-minor-mode-on)
+	 (tree-sitter-mode)
+	 (tree-sitter-hl-mode)))
 
 (use-package cc-mode
   :init

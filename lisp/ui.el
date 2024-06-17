@@ -14,3 +14,7 @@
   :straight t
   :init
   (load-theme 'doom-one t))
+
+(use-package hl-line
+  :config
+  (global-hl-line-mode 1))

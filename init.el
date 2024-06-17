@@ -1,5 +1,7 @@
 ;; -*- lexical-binding: t -*-
 
+(use-package cl-lib) ;; TODO(hqhs): where should it live?..
+
 (defvar fate-emacs-dir user-emacs-directory
   "The path to the currently loaded .emacs.d directory. Must end with a slash.")
 
