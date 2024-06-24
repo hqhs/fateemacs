@@ -40,9 +40,11 @@
 (+fate-load-lang "python.el")
 (+fate-load-lang "cc.el")
 (+fate-load-lang "shaders.el")
+(+fate-load-lang "org.el")
 (+fate-load-lang "elisp.el")
 (+fate-load-lang "markdown.el")
 (+fate-load-lang "javascript.el") ;; typescript and every other possible flavor
+(+fate-load-lang "gdscript.el")
 (+fate-load-lang "web.el")
 (+fate-load-lang "json.el")
 (+fate-load-lang "yaml.el")
