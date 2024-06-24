@@ -20,6 +20,7 @@
   (kbd "<leader>bb") #'consult-buffer
   (kbd "<leader>bp") #'consult-project-buffer
   (kbd "<leader>bo") #'consult-buffer-other-window
+  (kbd "<leader>bn") #'evil-buffer-new
   ;; code
   (kbd "<leader>ca") #'xref-find-apropos
   (kbd "<leader>cd") #'xref-find-definitions
@@ -49,6 +50,8 @@
   (kbd "zx") 'kill-current-buffer)
 
 (evil-define-key 'insert 'global
+  (kbd "C-a") #'move-beginning-of-line
+  (kbd "C-e") #'move-end-of-line
   (kbd "C-@") #'company-complete-common)
 
 (evil-define-key* '(insert replace visual operator) 'global
