@@ -21,6 +21,9 @@
   (kbd "<leader>bp") #'consult-project-buffer
   (kbd "<leader>bo") #'consult-buffer-other-window
   (kbd "<leader>bn") #'evil-buffer-new
+  ;; outline!
+  (kbd "<leader>oa") #'outline-show-all
+  (kbd "<leader>oh") #'outline-hide-sublevels
   ;; code
   (kbd "<leader>ca") #'xref-find-apropos
   (kbd "<leader>cd") #'xref-find-definitions
