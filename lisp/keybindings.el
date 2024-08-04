@@ -50,7 +50,9 @@
   (kbd "<leader>br") #'revert-buffer 
 
   ;; remappings
-  (kbd "zx") 'kill-current-buffer)
+  (kbd "zx") 'kill-current-buffer
+  (kbd "zo") 'evil-toggle-fold
+  (kbd "za") 'evil-open-fold)
 
 (evil-define-key 'insert 'global
   (kbd "C-a") #'move-beginning-of-line
