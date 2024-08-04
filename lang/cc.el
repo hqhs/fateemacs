@@ -4,7 +4,8 @@
   (progn (eglot-ensure)
 	 (yas-minor-mode-on)
 	 (tree-sitter-mode)
-	 (tree-sitter-hl-mode)))
+	 (tree-sitter-hl-mode)
+	 (outline-minor-mode)))
 
 (defun +fate/add-clang-format-on-save ()
   (add-hook 'before-save-hook
