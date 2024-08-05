@@ -24,6 +24,7 @@
         ;;      CPU is spent on pretty priting and Emacs GC is put under high pressure
         eglot-events-buffer-size 0)
 
+  :config
   ;; replace
   (setq eglot-server-programs
 	(cons '(c++-mode . ("clangd" "--header-insertion=never"))
@@ -35,7 +36,6 @@
   (push '(c-mode . ("clangd" "--header-insertion=never"))
 	eglot-server-programs)
 
-  :config
   (add-hook 'eglot-managed-mode-hook (lambda () (eglot-inlay-hints-mode -1)))
   (add-hook 'eglot-managed-mode-hook
    (lambda ()
