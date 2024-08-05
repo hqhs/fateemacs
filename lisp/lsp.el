@@ -13,6 +13,9 @@
   :straight t
   :init
   (setq eglot-autoshutdown t
+
+	;; to view capabilities:
+	;; (kill-new (format "%S" (eglot--capabilities (eglot--current-server-or-lose))))
 	eglot-ignored-server-capabilities '(:documentOnTypeFormattingProvider)
         ;; NOTE This setting disable the eglot-events-buffer enabling more
         ;;      consistent performance on long running emacs instance.
@@ -20,6 +23,18 @@
         ;;      is pretty printed which causes steady performance decrease over time.
         ;;      CPU is spent on pretty priting and Emacs GC is put under high pressure
         eglot-events-buffer-size 0)
+
+  ;; replace
+  (setq eglot-server-programs
+	(cons '(c++-mode . ("clangd" "--header-insertion=never"))
+	      (cl-remove-if (lambda (entry)
+			      (and (listp (car entry))
+				   (member 'c++-mode (car entry))))
+			    eglot-server-programs)))
+  ;; add
+  (push '(c-mode . ("clangd" "--header-insertion=never"))
+	eglot-server-programs)
+
   :config
   (add-hook 'eglot-managed-mode-hook (lambda () (eglot-inlay-hints-mode -1)))
   (add-hook 'eglot-managed-mode-hook
