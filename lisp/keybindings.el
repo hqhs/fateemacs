@@ -11,6 +11,8 @@
 (evil-define-key '(normal visual operator) 'global
   (kbd "#") #'+fate/search-symbol-backward
   (kbd "*") #'+fate/search-symbol-forward
+  ;; UI
+  (kbd "<leader>ub") #'+fate/toggle-background-transparency
   ;;
   ;; to narrow buffers, use 'consult-narrow-key (currently defined as "<")
   (kbd "<leader>,") #'consult-buffer
