@@ -12,6 +12,7 @@
 	 (yas-minor-mode-on)
 	 (tree-sitter-mode)
 	 (tree-sitter-hl-mode)
+	 ;; NOTE(hqhs): FOLDING CONFIGURED HERE
 	 (outline-minor-mode)
 	 (+fate/add-clang-format-on-save)))
 
