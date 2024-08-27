@@ -40,6 +40,7 @@
 (+fate-load-lang "python.el")
 (+fate-load-lang "cc.el")
 (+fate-load-lang "go.el")
+(+fate-load-lang "mdesk.el")
 (+fate-load-lang "shaders.el")
 (+fate-load-lang "org.el")
 (+fate-load-lang "elisp.el")
