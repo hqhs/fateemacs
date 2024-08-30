@@ -9,4 +9,5 @@
    '(("@\\(table\\|gen\\|expand\\|c_file\\)" . font-lock-keyword-face)
      ("\\${\\([^}]+\\)}" . font-lock-variable-name-face))))
 
-(add-to-list 'auto-mode-alist '("\\.mdesk\\'" . mdesk-mode))
+;; FIXME(hqhs): enabled all hooks for C mode, which is undesired
+;; (add-to-list 'auto-mode-alist '("\\.mdesk\\'" . mdesk-mode))
