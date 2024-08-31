@@ -1,5 +1,17 @@
 ;; -*- lexical-binding: t -*-
 
+(defun +fate/sp-c-mode-arrow-condition (id action context)
+  "Custom condition to insert -> only after a word in C mode."
+  (and (eq action 'insert)
+       (save-excursion
+         (backward-char 1)
+         (looking-back "\\w" 1))))
+
+(defun +fate/sp-c-mode-arrow-post-handler (_id action _context)
+  "Move cursor after inserting ->."
+  (when (eq action 'insert)
+    (forward-char 1)))
+
 (defun +fate/add-clang-format-on-save ()
   (add-hook 'before-save-hook
 	    (lambda () (clang-format-buffer))
@@ -24,6 +36,12 @@
   :config
   (add-hook 'c-mode-hook '+fate/c-mode-common-hook)
   (add-hook 'c++-mode-hook '+fate/c-mode-common-hook)
+  ;;
+  (sp-local-pair 'c-mode "-" ">"
+               :when '(+fate/sp-c-mode-arrow-condition)
+               :unless '(sp-in-comment-p sp-in-string-p)
+               :actions '(insert)
+               :post-handlers '(+fate/sp-c-mode-arrow-post-handler))
   )
 
 (use-package clang-format
