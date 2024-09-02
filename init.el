@@ -1,26 +1,6 @@
 ;; -*- lexical-binding: t -*-
 
-;; straight.el bootstrap section
-
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name
-        "straight/repos/straight.el/bootstrap.el"
-        (or (bound-and-true-p straight-base-dir)
-            user-emacs-directory)))
-      (bootstrap-version 7))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
-
 ;;
-
-(use-package cl-lib) ;; TODO(hqhs): where should it live?..
 
 (defvar fate-emacs-dir user-emacs-directory
   "The path to the currently loaded .emacs.d directory. Must end with a slash.")
@@ -38,6 +18,9 @@
 (+fate-load-lisp "defaults.el")
 (+fate-load-lisp "straight.el")
 (+fate-load-lisp "evil.el")
+
+;; requiring it before straight is loaded breaks clean installation
+(use-package cl-lib) ;; TODO(hqhs): where should it live?..
 
 ;; packages loaded lazily
 (+fate-load-lisp "magit.el")

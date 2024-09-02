@@ -2,7 +2,6 @@
 
 ;;; load package manager of choice: straight.el
 
-
 (defvar bootstrap-version)
 (let ((bootstrap-file
        (expand-file-name
@@ -20,3 +19,7 @@
   (load bootstrap-file nil 'nomessage))
 
 (straight-use-package 'use-package)
+
+;; Configure use-package to use straight.el by default
+;;(use-package straight
+  ;;:custom (straight-use-package-by-default t))
