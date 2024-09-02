@@ -34,3 +34,15 @@
   (add-hook 'go-mode-hook '+fate/go-mode-hook)
   (add-hook 'before-save-hook 'gofmt-before-save)
   )
+
+(use-package mmm-mode
+  :straight t
+  :config
+  (mmm-add-mode-ext-class 'go-mode nil 'go-sql)
+  (mmm-add-classes
+   '((go-sql
+      :submode sql-mode
+      :face mmm-code-submode-face
+      :front "\\(\"\\|`\\)[\\n[:space:]]*\\(SELECT\\|INSERT\\|UPDATE\\|DELETE\\|CREATE\\|ALTER\\|DROP\\)"
+      :back "\\(\"\\|`\\);")))
+  )

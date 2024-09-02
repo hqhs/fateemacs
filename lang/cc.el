@@ -24,6 +24,7 @@
 	 (yas-minor-mode-on)
 	 (tree-sitter-mode)
 	 (tree-sitter-hl-mode)
+	 (display-fill-column-indicator-mode)
 	 ;; NOTE(hqhs): FOLDING CONFIGURED HERE
 	 (outline-minor-mode)
 	 (+fate/add-clang-format-on-save)))
@@ -37,11 +38,15 @@
   (add-hook 'c-mode-hook '+fate/c-mode-common-hook)
   (add-hook 'c++-mode-hook '+fate/c-mode-common-hook)
   ;;
-  (sp-local-pair 'c-mode "-" ">"
-               :when '(+fate/sp-c-mode-arrow-condition)
-               :unless '(sp-in-comment-p sp-in-string-p)
-               :actions '(insert)
-               :post-handlers '(+fate/sp-c-mode-arrow-post-handler))
+  ;; Ensure smartparens is loaded before configuring local pairs
+  (with-eval-after-load 'smartparens
+    (dolist (mode '(c-mode c++-mode))
+      (sp-local-pair mode "-" ">"
+		     :when '(+fate/sp-c-mode-arrow-condition)
+		     :unless '(sp-in-comment-p sp-in-string-p)
+		     :actions '(insert)
+		     :post-handlers '(+fate/sp-c-mode-arrow-post-handler)))
+    )
   )
 
 (use-package clang-format

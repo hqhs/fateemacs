@@ -1,7 +1,24 @@
 ;; -*- lexical-binding: t -*-
 
+(defun +fate/treesit-install-grammars ()
+  ;; emacs segfails on macos using "goto definition" with treesit enabled
+  ;; debug, maybe?
+  "Install Tree-sitter grammars if they are absent."
+  (interactive)
+  (dolist (grammar
+	   '((c . ("https://github.com/tree-sitter/tree-sitter-c" "v0.20.0"))
+	     (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
+	     ))
+    (add-to-list 'treesit-language-source-alist grammar)
+    ;; Only install `grammar' if we don't already have it
+    ;; installed. However, if you want to *update* a grammar then
+    ;; this obviously prevents that from happening.
+    (unless (treesit-language-available-p (car grammar))
+      (treesit-install-language-grammar (car grammar)))))
+
 (use-package tree-sitter-langs
-  :straight t)
+  :straight t
+  )
 
 (use-package tree-sitter
   :straight t
@@ -46,6 +63,13 @@
   :config
   (ws-butler-global-mode))
 
+(defun +fate/sp-escape-and-evil-escape (&rest _)
+  "Execute evil-escape after sp-remove-active-pair-overlay is called."
+  (when (and (bound-and-true-p evil-mode)
+             (bound-and-true-p evil-escape-mode)
+             (eq evil-state 'insert))
+    (evil-escape)))
+
 (use-package smartparens
   :straight t
   :hook (prog-mode text-mode markdown-mode) ;; add `smartparens-mode` to these hooks
@@ -68,6 +92,11 @@
   ;; quote pairs, which lisps doesn't use for strings:
   (sp-local-pair '(minibuffer-mode minibuffer-inactive-mode) "'" nil :actions nil)
   (sp-local-pair '(minibuffer-mode minibuffer-inactive-mode) "`" nil :actions nil)
+
+  ;; if inside a pair, smartparens remaps C-g to 'sp-remove-active-pair-overlay
+  ;; forcing the user to press C-g twice to exit insert mode, which is annoying.
+  ;; the following line fixes that.
+  (advice-add 'sp-remove-active-pair-overlay :after #'+fate/sp-escape-and-evil-escape)
 
   (defvar fate-buffer-smartparens-mode nil)
   (add-hook 'evil-replace-state-exit-hook
