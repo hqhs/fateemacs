@@ -99,7 +99,7 @@
   ;; if inside a pair, smartparens remaps C-g to 'sp-remove-active-pair-overlay
   ;; forcing the user to press C-g twice to exit insert mode, which is annoying.
   ;; the following line fixes that.
-  (define-key sp-pair-overlay-keymap (kbd "C-g") #'fate/sp-escape-and-remove-overlay)
+  (define-key sp-pair-overlay-keymap (kbd "C-g") #'+fate/sp-escape-and-remove-overlay)
   ;; (advice-add 'sp-remove-active-pair-overlay :after #'+fate/sp-escape-and-evil-escape)
 
   (defvar fate-buffer-smartparens-mode nil)
