@@ -131,6 +131,8 @@
                     ;; compatibility fallbacks
                     "gnutls-cli -p %p %h"))
 
-;; always use short y-or-n questions,
-;; (defalias 'yes-or-no-p 'y-or-n-p) ;; Until Emacs 28
-(setopt use-short-answers t)
+;; Typing yes/no is obnoxious when y/n will do
+(if (boundp 'use-short-answers)
+    (setq use-short-answers t)
+  ;; DEPRECATED: wemove when we drop 28.x support
+  (advice-add #'yes-or-no-p :override #'y-or-n-p))
