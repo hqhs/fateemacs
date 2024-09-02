@@ -63,8 +63,10 @@
   :config
   (ws-butler-global-mode))
 
-(defun +fate/sp-escape-and-evil-escape (&rest _)
-  "Execute evil-escape after sp-remove-active-pair-overlay is called."
+(defun +fate/sp-escape-and-remove-overlay ()
+  "Combine sp-remove-active-pair-overlay and +fate/sp-escape-and-evil-escape."
+  (interactive)
+  (sp-remove-active-pair-overlay)
   (when (and (bound-and-true-p evil-mode)
              (bound-and-true-p evil-escape-mode)
              (eq evil-state 'insert))
@@ -72,8 +74,9 @@
 
 (use-package smartparens
   :straight t
-  :hook (prog-mode text-mode markdown-mode) ;; add `smartparens-mode` to these hooks
+  ;; :hook (prog-mode text-mode markdown-mode) ;; add `smartparens-mode` to these hooks
   :config
+  (smartparens-global-mode)
   ;; Load default smartparens rules for various languages
   (require 'smartparens-config)
   ;; Overlays are too distracting and not terribly helpful. show-parens does
@@ -96,7 +99,8 @@
   ;; if inside a pair, smartparens remaps C-g to 'sp-remove-active-pair-overlay
   ;; forcing the user to press C-g twice to exit insert mode, which is annoying.
   ;; the following line fixes that.
-  (advice-add 'sp-remove-active-pair-overlay :after #'+fate/sp-escape-and-evil-escape)
+  (define-key sp-pair-overlay-keymap (kbd "C-g") #'fate/sp-escape-and-remove-overlay)
+  ;; (advice-add 'sp-remove-active-pair-overlay :after #'+fate/sp-escape-and-evil-escape)
 
   (defvar fate-buffer-smartparens-mode nil)
   (add-hook 'evil-replace-state-exit-hook
