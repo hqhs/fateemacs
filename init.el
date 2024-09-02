@@ -14,13 +14,13 @@
 (defun +fate-load-lisp (file)
   (load (expand-file-name file fate-lisp-dir)))
 
-(+fate-load-lisp "autoloads.el")
-(+fate-load-lisp "defaults.el")
 (+fate-load-lisp "straight.el")
-(+fate-load-lisp "evil.el")
-
 ;; requiring it before straight is loaded breaks clean installation
 (use-package cl-lib) ;; TODO(hqhs): where should it live?..
+
+(+fate-load-lisp "autoloads.el")
+(+fate-load-lisp "defaults.el")
+(+fate-load-lisp "evil.el")
 
 ;; packages loaded lazily
 (+fate-load-lisp "magit.el")
