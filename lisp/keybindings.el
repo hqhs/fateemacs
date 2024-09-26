@@ -1,5 +1,7 @@
 ;; -*- lexical-binding: t -*-
 
+;; C-c C-c comment region
+
 (evil-ex-define-cmd "W[rite]" #'evil-write) ;; fix for common error
 
 (evil-set-leader 'normal (kbd "SPC"))
@@ -62,7 +64,7 @@
   (kbd "C-@") #'company-complete-common)
 
 (evil-define-key* '(insert replace visual operator) 'global
-  (kbd "\C-g") #'evil-escape)
+  (kbd "<escape>") #'evil-escape)
 
 (define-key minibuffer-mode-map (kbd "C-j") 'next-line)
 (define-key minibuffer-mode-map (kbd "C-k") 'previous-line)

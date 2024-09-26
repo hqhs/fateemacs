@@ -45,6 +45,9 @@
   :commands (evilem-create evilem-default-keybindings)
   :init
   ;; TODO: document default keybindings here
+  ;; w/W -- jump word
+  ;; j/k -- jump line up/down
+  ;; f/F -- jump to char forward/beckward
   (evilem-default-keybindings "gs"))
 
 (use-package evil-snipe
