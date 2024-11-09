@@ -2,7 +2,7 @@
 
 (setq-default display-fill-column-indicator-column 80)
 (setq-default display-line-numbers-type 'relative)
-(global-display-line-numbers-mode)
+;; (global-display-line-numbers-mode)
 
 (defvar +fate/original-background nil
   "Stores the original background color.")
