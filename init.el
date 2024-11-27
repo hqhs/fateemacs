@@ -41,6 +41,7 @@
 
 (+fate-load-lang "rust.el")
 (+fate-load-lang "python.el")
+(+fate-load-lang "gn.el")
 (+fate-load-lang "cc.el")
 (+fate-load-lang "meson.el")
 (+fate-load-lang "go.el")
