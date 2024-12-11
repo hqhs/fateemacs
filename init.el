@@ -1,6 +1,11 @@
 ;; -*- lexical-binding: t -*-
 
 ;;
+(set-face-attribute 'default nil
+                    :family "JetBrains Mono"
+                    :height 150
+                    :weight 'normal
+                    :width 'normal)
 
 (defvar fate-emacs-dir user-emacs-directory
   "The path to the currently loaded .emacs.d directory. Must end with a slash.")
