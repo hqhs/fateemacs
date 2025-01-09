@@ -10,7 +10,8 @@
 
 (use-package eglot
   :commands (eglot eglot-ensure)
-  :straight t
+  ;; eglot comes with emacs starting from 30.0
+  ;; :straight t
   :init
   (setq eglot-autoshutdown t
 

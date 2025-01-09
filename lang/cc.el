@@ -20,7 +20,7 @@
 	    t))
 
 (defun +fate/c-mode-common-hook ()
-  (progn (eglot-ensure)
+  (progn (eglot-ensure) ;; FIXME(hqhs): fails after update to emacs 30.0
 	 (yas-minor-mode-on)
 	 (tree-sitter-mode)
 	 (tree-sitter-hl-mode)

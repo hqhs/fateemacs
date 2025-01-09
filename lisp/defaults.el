@@ -6,6 +6,20 @@
               (append (split-string (getenv "PATH") path-separator t)
                       (list exec-directory)))
 
+;; security:
+
+;; Only allow safe local variables
+(setq enable-local-variables :safe)
+;; Disable local variables in files owned by others
+(setq enable-local-eval nil)
+;; Ask before following symbolic links to version controlled files
+(setq vc-follow-symlinks nil)
+;; Confirm before visiting symbolic links to files
+(setq find-file-visit-truename t)
+
+;; Warn when opening files bigger than 5MB
+(setq large-file-warning-threshold (* 5 1024 1024))
+
 ;; This was a widespread practice in the days of typewriters. I actually prefer
 ;; it when writing prose with monospace fonts, but it is obsolete otherwise.
 (setq sentence-end-double-space nil)

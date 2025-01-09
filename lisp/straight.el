@@ -20,6 +20,11 @@
 
 (straight-use-package 'use-package)
 
+;; Verify package signatures when possible
+(setq straight-check-for-modifications '(check-on-save find-when-checking))
+;; Use HTTPS for package downloads
+(setq straight-recipes-gnu-elpa-use-mirror t)
+
 ;; Configure use-package to use straight.el by default
 ;;(use-package straight
   ;;:custom (straight-use-package-by-default t))
