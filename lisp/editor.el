@@ -113,3 +113,5 @@
 (use-package pcre2el
   :straight t
   :commands (rxt-quote-pcre))
+
+;; TODO: multiple cursors support

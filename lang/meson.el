@@ -7,7 +7,6 @@
          ("meson\\.build\\'" . meson-mode)
          ("meson_options\\.txt\\'" . meson-mode))
   :hook ((meson-mode . company-mode)
-         (meson-mode . flycheck-mode)
          (meson-mode . eldoc-mode))
   :config
   ;; Set up compilation commands

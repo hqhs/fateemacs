@@ -31,9 +31,28 @@
 
 (use-package cc-mode
   :init
-  (setq c-basic-offset 4
-	c-indentation-style "user"
-	c-syntactic-indentation nil)
+  ;; Basic indentation settings
+  (setq-default tab-width 2)
+  (setq-default c-basic-offset 2)  ; Equivalent to tabstop/shiftwidth
+  (setq-default indent-tabs-mode nil)  ; Use spaces instead of tabs
+
+  ;; Custom indentation rules equivalent to cinoptions
+  (c-add-style "custom-style"
+               '((c-offsets-alist . ((case-label . 1)        ; l1
+                                    (statement-case-intro . 1) ; j1
+                                    (case-label . 1)          ; J1
+                                    (access-label . 0)        ; g0
+                                    (innamespace . 0)         ; N-s
+                                    (topmost-intro . 0)       ; t0
+                                    (arglist-intro . +)       ; (0
+                                    (arglist-cont-nonempty . +) ; w1
+                                    (arglist-close . 0)       ; u0
+                                    ))))
+
+  (setq c-default-style '((c-mode . "custom-style")
+                          (c++-mode . "custom-style"))
+        c-syntactic-indentation t)
+
   :config
   (add-hook 'c-mode-hook '+fate/c-mode-common-hook)
   (add-hook 'c++-mode-hook '+fate/c-mode-common-hook)

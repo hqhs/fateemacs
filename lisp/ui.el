@@ -36,7 +36,7 @@
 (use-package doom-themes
   :straight t
   :init
-  (load-theme 'doom-dracula t))
+  (load-theme 'doom-monokai-classic t))
 
 (use-package hl-line
   :config
