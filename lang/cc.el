@@ -38,16 +38,18 @@
 
   ;; Custom indentation rules equivalent to cinoptions
   (c-add-style "custom-style"
-               '((c-offsets-alist . ((case-label . 1)        ; l1
-                                    (statement-case-intro . 1) ; j1
-                                    (case-label . 1)          ; J1
-                                    (access-label . 0)        ; g0
-                                    (innamespace . 0)         ; N-s
-                                    (topmost-intro . 0)       ; t0
-                                    (arglist-intro . +)       ; (0
-                                    (arglist-cont-nonempty . +) ; w1
-                                    (arglist-close . 0)       ; u0
-                                    ))))
+               '((c-basic-offset . 1)
+                 (c-offsets-alist . ((case-label . 0)
+                                     (statement-case-intro . +)
+                                     (access-label . -)
+                                     (innamespace . +)
+                                     (arglist-intro . +)
+                                     (arglist-cont . c-lineup-gcc-asm-reg) ; keep original
+                                     (arglist-cont-nonempty . c-lineup-arglist) ; keep original
+                                     (arglist-close . c-lineup-close-paren) ; keep original
+                                     (func-decl-cont . +)
+                                     ))))
+
 
   (setq c-default-style '((c-mode . "custom-style")
                           (c++-mode . "custom-style"))

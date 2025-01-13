@@ -1,5 +1,20 @@
 ;; -*- lexical-binding: t -*-
 
+;; disable some warnings
+
+(setq byte-compile-warnings
+      '(not free-vars
+            unresolved
+            callargs
+            redefine
+            obsolete
+            noruntime
+            cl-functions
+            interactive-only
+            make-local
+            mapcar
+            docstrings))
+
 ;; disallow some packages from loading completely
 
 (setq package-load-list '(all))
@@ -17,7 +32,7 @@
 ;;
 (set-face-attribute 'default nil
                     :family "JetBrains Mono"
-                    :height 150
+                    :height 145
                     :weight 'normal
                     :width 'normal)
 
