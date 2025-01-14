@@ -47,11 +47,6 @@
   :config
   (global-hl-line-mode 1))
 
-(use-package minimap
-  :straight t
-  :config
-  (setq minimap-window-location 'right))
-
 (use-package ligature
   :straight t
   :config
