@@ -26,7 +26,7 @@
   :after evil
   :init
   (setq evil-collection-key-blacklist '("SPC")  ; Don't bind leader key
-        evil-collection-setup-minibuffer t
+        ;; evil-collection-setup-minibuffer t
         evil-collection-mode-list    ; Explicitly list modes we want to configure
         '(xref
           dired
@@ -34,7 +34,7 @@
           (corfu :defer t)     ; Only load when corfu is loaded
           vertico
           consult
-          minibuffer
+          ;; minibuffer
           compile
           buff-menu
           custom
