@@ -54,7 +54,7 @@
 (+fate-load-lisp "project.el") ;; built-in and lighter alternative to projectile
 (+fate-load-lisp "lsp.el")
 (+fate-load-lisp "completion.el")
-(+fate-load-lisp "editor.el")
+(+fate-load-lisp "prog-config.el") ;; prog-mode is "base" configuration for toher major modes like rust, cc, go, etc.
 (+fate-load-lisp "keybindings.el")
 (+fate-load-lisp "ui.el")
 (+fate-load-lisp "snippets.el")

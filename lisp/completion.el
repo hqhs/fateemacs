@@ -1,28 +1,18 @@
 ;; -*- lexical-binding: t -*-
 
-;; (Vertico, Marginalia, Orderless, Consult, Embark).
+;; Basic setup
 
-(use-package vertico
-  :straight t
-  :init
-  (setq vertico-resize nil
-        vertico-count 17
-        vertico-cycle t)
-  :config
-  (vertico-mode)
-  (add-hook 'minibuffer-setup-hook #'vertico-repeat-save))
+(fido-vertical-mode 1)
 
-(use-package orderless
-  :straight t
-  :custom
-  (completion-styles '(orderless basic))
-  ;; TODO: better configuration for remote editing
-  (completion-category-overrides '((file (styles orderless partial-completion)))))
+;; NOTE(hqhs): fido ("fake ido" uses icomplete settings under the hood)
+(setq icomplete-prospects-height 15)
 
-(use-package marginalia
-  :straight t
-  :init
-  (marginalia-mode))
+;; Evil integration
+(with-eval-after-load 'evil
+  (define-key minibuffer-local-map (kbd "C-j") 'next-line)
+  (define-key minibuffer-local-map (kbd "C-k") 'previous-line)
+  (define-key minibuffer-local-map (kbd "C-n") 'next-line)
+  (define-key minibuffer-local-map (kbd "C-p") 'previous-line))
 
 (use-package consult
   :straight t
