@@ -1,12 +1,7 @@
 ;; -*- lexical-binding: t -*-
 
-(use-package rust-mode
-  :straight t
-  :init
-  (setq rust-format-on-save t)
-  :config
-  (add-hook 'rust-mode-hook 'eglot-ensure)
-  (add-hook 'rust-mode-hook 'dtrt-indent-mode)
-  (add-hook 'rust-mode-hook 'tree-sitter-mode)
-  (add-hook 'rust-mode-hook 'tree-sitter-hl-mode)
-  )
+;; New version:
+(use-package rust-ts-mode
+  :mode "\\.rs\\'"
+  :hook ((rust-ts-mode . eglot-ensure)
+         (rust-ts-mode . dtrt-indent-mode)))

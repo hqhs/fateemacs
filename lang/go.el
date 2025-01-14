@@ -42,15 +42,13 @@
     (add-hook 'after-save-hook '+fate/go-after-save-hook nil t)
     ))
 
-(use-package go-mode
-  :straight t
-  :init
+;; New version using go-ts-mode
+(use-package go-ts-mode
+  :hook ((go-ts-mode . eglot-ensure)
+         (go-ts-mode . yas-minor-mode-on))
   :config
-  (add-hook 'go-mode-hook '+fate/go-after-save-hook)
-  (add-hook 'go-mode-hook '+fate/go-mode-hook)
-
-  (add-hook 'before-save-hook 'gofmt-before-save)
-  )
+  ;; Your existing go-specific functions can stay
+  (add-hook 'go-ts-mode-hook '+fate/go-after-save-hook))
 
 (use-package mmm-mode
   :straight t

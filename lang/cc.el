@@ -29,7 +29,15 @@
 	 (outline-minor-mode)
 	 (+fate/add-clang-format-on-save)))
 
-(use-package cc-mode
+(use-package c-ts-mode
+  :mode (("\\.c\\'" . c-ts-mode)
+         ("\\.h\\'" . c-ts-mode)
+         ("\\.cpp\\'" . c++-ts-mode)
+         ("\\.hpp\\'" . c++-ts-mode))
+  :hook ((c-ts-mode . eglot-ensure)
+         (c++-ts-mode . eglot-ensure)
+         (c-ts-mode . yas-minor-mode-on)
+         (c++-ts-mode . yas-minor-mode-on))
   :init
   ;; Basic indentation settings
   (setq-default tab-width 2)

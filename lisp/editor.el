@@ -1,29 +1,83 @@
 ;; -*- lexical-binding: t -*-
 
-(defun +fate/treesit-install-grammars ()
-  ;; emacs segfails on macos using "goto definition" with treesit enabled
-  ;; debug, maybe?
-  "Install Tree-sitter grammars if they are absent."
+;; Basic treesit setup
+(setq treesit-language-source-alist
+   '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+     (c "https://github.com/tree-sitter/tree-sitter-c")
+     ;; (c++ "https://github.com/tree-sitter/tree-sitter-cpp" "v0.23.4" nil "c++")
+     (rust "https://github.com/tree-sitter/tree-sitter-rust")
+     (go "https://github.com/tree-sitter/tree-sitter-go")
+     (python "https://github.com/tree-sitter/tree-sitter-python")
+     (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+     (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+     (toml "https://github.com/tree-sitter/tree-sitter-toml")
+     ;; (yaml "https://github.com/tree-sitter/tree-sitter-yaml")
+     (json "https://github.com/tree-sitter/tree-sitter-json")))
+
+(defun +fate/treesit-manual-install ()
+  "Manually install C++ grammar for tree-sitter on macOS."
   (interactive)
-  (dolist (grammar
-	   '((c . ("https://github.com/tree-sitter/tree-sitter-c" "v0.20.0"))
-	     (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
-	     ))
-    (add-to-list 'treesit-language-source-alist grammar)
-    ;; Only install `grammar' if we don't already have it
-    ;; installed. However, if you want to *update* a grammar then
-    ;; this obviously prevents that from happening.
-    (unless (treesit-language-available-p (car grammar))
-      (treesit-install-language-grammar (car grammar)))))
+  (let* ((default-directory "~/.emacs.d/tree-sitter/")
+         (cpp-dir (expand-file-name "cpp-grammar"))
+         (process-environment
+          (append process-environment
+                  (list "CC=cc"
+                        "CXX=c++"
+                        ;; These flags are important for macOS compilation
+                        "CFLAGS=-fPIC -std=c11"
+                        "CXXFLAGS=-fPIC -std=c++11"))))
 
-(use-package tree-sitter-langs
-  :straight t
-  )
+    ;; Create directory
+    (make-directory cpp-dir t)
 
-(use-package tree-sitter
-  :straight t
-  :config
-  (require 'tree-sitter-langs))
+    ;; Clone repo if needed
+    (unless (file-exists-p (expand-file-name ".git" cpp-dir))
+      (call-process "git" nil t t "clone"
+                   "https://github.com/tree-sitter/tree-sitter-cpp.git"
+                   cpp-dir))
+
+    (let ((default-directory cpp-dir))
+      ;; On macOS, we need to:
+      ;; 1. Compile scanner.c with C11 standard
+      ;; 2. Compile parser.c
+      ;; 3. Link everything into a dylib
+      (shell-command
+       (concat
+        "cc -fPIC -std=c11 -c -I./src/ ./src/scanner.c && "
+        "cc -fPIC -std=c11 -c -I./src/ ./src/parser.c && "
+        "c++ -fPIC -std=c++11 -dynamiclib *.o -o ../libtree-sitter-cpp.dylib")))))
+
+;; Installation helper
+(defun +fate/ensure-treesit-languages ()
+  "Ensure all tree-sitter language grammars are installed."
+  (interactive)
+  (dolist (grammar treesit-language-source-alist)
+    (let ((lang (car grammar)))
+      (message "Checking grammar for %s" lang)
+      (unless (treesit-language-available-p lang)
+        (message "Installing grammar for %s" lang)
+        (treesit-install-language-grammar lang)))))
+
+;; Language mode remapping
+(setq major-mode-remap-alist
+      '((c-mode          . c-ts-mode)
+        (c++-mode        . c++-ts-mode)
+        (python-mode     . python-ts-mode)
+        (javascript-mode . js-ts-mode)
+        (js-mode         . js-ts-mode)
+        (js2-mode        . js-ts-mode)
+        (typescript-mode . typescript-ts-mode)
+        (json-mode       . json-ts-mode)
+        (yaml-mode       . yaml-ts-mode)
+        (rust-mode       . rust-ts-mode)
+        (go-mode         . go-ts-mode)))
+
+;; Configure indent offset for different modes
+(setq c-ts-mode-indent-offset 2
+      c++-ts-mode-indent-offset 2
+      python-ts-mode-indent-offset 4
+      typescript-ts-mode-indent-offset 2
+      js-ts-mode-indent-offset 2)
 
 (use-package editorconfig
   :straight t

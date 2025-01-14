@@ -53,12 +53,15 @@
 (+fate-load-lisp "magit.el")
 (+fate-load-lisp "project.el") ;; built-in and lighter alternative to projectile
 (+fate-load-lisp "lsp.el")
-
 (+fate-load-lisp "completion.el")
 (+fate-load-lisp "editor.el")
 (+fate-load-lisp "keybindings.el")
 (+fate-load-lisp "ui.el")
 (+fate-load-lisp "snippets.el")
+
+;; After loading treesit config
+(with-eval-after-load 'treesit
+  (+fate/ensure-treesit-languages))
 
 (defvar fate-lang-dir (expand-file-name "lang/" fate-emacs-dir)
   "the root directory of lisp files. Must end with a slash")

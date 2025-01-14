@@ -2,8 +2,7 @@ straight/*
 transient/*
 auto-save-list/*
 cache/*
+tree-sitter/*
 .local/*
 
-projectile-bookmarks.eld
-projectile.cache
 projects
