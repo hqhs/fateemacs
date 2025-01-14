@@ -3,38 +3,51 @@
 (use-package evil
   :straight t
   :init
-  (setq ;; evil-lookup-func #'eldoc ;; doesn't work, rebind maybe?
-	evil-want-keybinding nil
-	evil-want-C-u-scroll t
-	evil-want-C-u-delete t
-	evil-want-C-w-delete t
-	;; alacritty sets the color instead, I believe
-	evil-normal-state-cursor 'box
-	evil-insert-state-cursor 'box
-	evil-visual-state-cursor 'box
-	evil-ex-interactive-search-highlight 'selected-window
-	evil-undo-system 'undo-redo
-	evil-normal-state-tag   (propertize "[NORMAL]" 'face '((:background "green" :foreground "black")))
-	evil-emacs-state-tag    (propertize "[EMACS]" 'face '((:background "orange" :foreground "black")))
-	evil-insert-state-tag   (propertize "[INSERT]" 'face '((:background "red") :foreground "white"))
-	evil-motion-state-tag   (propertize "[MOTION]" 'face '((:background "blue") :foreground "white"))
-	evil-visual-state-tag   (propertize "[VISUAL]" 'face '((:background "grey80" :foreground "black")))
-	evil-operator-state-tag (propertize "[OPERATOR]" 'face '((:background "purple"))))
+  (setq evil-want-keybinding nil  ; Disable evil-keybindings as evil-collection handles this
+        evil-want-C-u-scroll t
+        evil-want-C-u-delete t
+        evil-want-C-w-delete t
+        evil-normal-state-cursor 'box
+        evil-insert-state-cursor 'box
+        evil-visual-state-cursor 'box
+        evil-ex-interactive-search-highlight 'selected-window
+        evil-undo-system 'undo-redo
+        evil-normal-state-tag   (propertize "[NORMAL]" 'face '((:background "green" :foreground "black")))
+        evil-emacs-state-tag    (propertize "[EMACS]" 'face '((:background "orange" :foreground "black")))
+        evil-insert-state-tag   (propertize "[INSERT]" 'face '((:background "red") :foreground "white"))
+        evil-motion-state-tag   (propertize "[MOTION]" 'face '((:background "blue") :foreground "white"))
+        evil-visual-state-tag   (propertize "[VISUAL]" 'face '((:background "grey80" :foreground "black")))
+        evil-operator-state-tag (propertize "[OPERATOR]" 'face '((:background "purple"))))
   :config
   (evil-mode 1))
 
 (use-package evil-collection
   :straight t
+  :after evil
   :init
-  (setq evil-collection-key-blacklist '("SPC")) ;; don't bind leader
-  (with-eval-after-load 'compile
-    (evil-collection-compile-setup))
-  (with-eval-after-load 'dired
-    (evil-collection-dired-setup))
-  )
+  (setq evil-collection-key-blacklist '("SPC")  ; Don't bind leader key
+        evil-collection-setup-minibuffer t
+        evil-collection-mode-list    ; Explicitly list modes we want to configure
+        '(xref
+          dired
+          magit
+          (corfu :defer t)     ; Only load when corfu is loaded
+          vertico
+          consult
+          minibuffer
+          compile
+          buff-menu
+          custom
+          (org :after org)     ; Only after org is loaded
+          help
+          info
+          which-key))
+  :config
+  (evil-collection-init))
 
 (use-package evil-escape
   :straight t
+  :after evil
   :init
   (setq evil-escape-excluded-states '(normal visual multiedit emacs motion))
   :config
@@ -42,6 +55,7 @@
 
 (use-package evil-easymotion
   :straight t
+  :after evil
   :commands (evilem-create evilem-default-keybindings)
   :init
   ;; TODO: document default keybindings here
@@ -52,6 +66,7 @@
 
 (use-package evil-snipe
   :straight t
+  :after evil
   :init
   (setq evil-snipe-smart-case t
         evil-snipe-scope 'line
@@ -63,5 +78,6 @@
 
 (use-package evil-surround
   :straight t
+  :after evil
   :config
   (global-evil-surround-mode 1))

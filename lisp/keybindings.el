@@ -79,7 +79,3 @@
 
 (evil-define-key* '(insert replace visual operator) 'global
   (kbd "<escape>") #'evil-escape)
-
-(define-key minibuffer-mode-map (kbd "C-j") 'next-line)
-(define-key minibuffer-mode-map (kbd "C-k") 'previous-line)
-(define-key minibuffer-mode-map (kbd "C-w") 'backward-kill-word)
