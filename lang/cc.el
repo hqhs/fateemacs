@@ -1,16 +1,14 @@
 ;; -*- lexical-binding: t -*-
 
-(defun +fate/sp-c-mode-arrow-condition (id action context)
-  "Custom condition to insert -> only after a word in C mode."
-  (and (eq action 'insert)
-       (save-excursion
-         (backward-char 1)
-         (looking-back "\\w" 1))))
-
-(defun +fate/sp-c-mode-arrow-post-handler (_id action _context)
-  "Move cursor after inserting ->."
-  (when (eq action 'insert)
-    (forward-char 1)))
+;; C/C++ arrow insertion using electric-pair-mode
+(defun +fate/c-electric-arrow ()
+  "Insert -> if - is typed after a word character."
+  (interactive)
+  (if (and (eq last-command-event ?-)
+           (looking-back "\\w" 1)
+           (not (nth 4 (syntax-ppss)))) ; not in comment
+      (insert "->")
+    (insert "-")))
 
 (defun +fate/add-clang-format-on-save ()
   (add-hook 'before-save-hook
@@ -29,6 +27,9 @@
          (c-ts-mode . yas-minor-mode-on)
          (c++-ts-mode . yas-minor-mode-on))
   :init
+  ;; insert '->' after '-' in c/c++
+  (dolist (mode '(c-ts-mode-map c++-ts-mode-map))
+    (define-key (symbol-value mode) (kbd "-") '+fate/c-electric-arrow))
   ;; Basic indentation settings
   (setq-default tab-width 2)
   (setq-default c-basic-offset 2)  ; Equivalent to tabstop/shiftwidth
