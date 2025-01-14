@@ -45,15 +45,15 @@
         (:eval (cond (buffer-read-only "RO ")
                     ((buffer-modified-p) "** ")
                     (t "-- ")))
+        ;; Project info
+        (:eval (when-let ((project (project-current)))
+                (format " [%s]" (project-name project))))
         ;; Directory and file name
         (:eval (let ((dir (+fate/mode-line-directory))
                      (name (buffer-name)))
                  (if dir
                      (propertize (concat dir "/" name) 'face 'bold)
                    (propertize name 'face 'bold))))
-        ;; Project info
-        (:eval (when-let ((project (project-current)))
-                (format " [%s]" (project-name project))))
         ;; Version control
         (:eval (when-let ((branch (vc-git-mode-line-string buffer-file-name)))
                  (format " (%s)" branch)))
