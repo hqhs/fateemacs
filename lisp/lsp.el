@@ -13,8 +13,14 @@
   :init
   (setq eglot-autoshutdown t
         eglot-events-buffer-size 0
-        eglot-ignored-server-capabilities '(:documentOnTypeFormattingProvider))
-
+        eglot-stay-out-of '(flymake)
+        eglot-ignored-server-capabilities '(:hoverProvider
+                                            :documentHighlightProvider
+                                            :documentFormattingProvider
+                                            :documentRangeFormattingProvider
+                                            :documentOnTypeFormattingProvider
+                                            :colorProvider
+                                            :foldingRangeProvider))
   :config
   ;; Define server programs with all options preserved
   (setq eglot-server-programs
@@ -36,10 +42,7 @@
         (eglot-inlay-hints-mode -1)
         ;; Disable automatic eldoc but keep eglot's eldoc setup
         ;; This preserves the ability to manually trigger docs with eldoc
-        (eldoc-mode -1)))
-   ;; Stay out of flymake
-   (after-init . (lambda ()
-                   (add-to-list 'eglot-stay-out-of 'flymake))))
+        (eldoc-mode -1))))
 
   ;; Optional: Add any additional customization
   :custom
