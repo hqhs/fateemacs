@@ -29,13 +29,6 @@
   (flymake-mode -1))
 (push '(flymake nil) package-load-list)
 
-;;
-(set-face-attribute 'default nil
-                    :family "JetBrains Mono"
-                    :height 145
-                    :weight 'normal
-                    :width 'normal)
-
 (defvar fate-emacs-dir user-emacs-directory
   "The path to the currently loaded .emacs.d directory. Must end with a slash.")
 

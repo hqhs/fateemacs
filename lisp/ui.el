@@ -36,7 +36,12 @@
 (use-package doom-themes
   :straight t
   :init
-  (load-theme 'doom-monokai-classic t))
+  (load-theme 'doom-monokai-classic t)
+  (set-face-attribute 'default nil
+                      :family "JetBrains Mono"
+                      :height 145
+                      :weight 'normal
+                      :width 'normal))
 
 (use-package hl-line
   :config
