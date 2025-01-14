@@ -20,63 +20,31 @@
       (setq +fate/original-background (face-background 'default))
       (set-face-background 'default "rgba:0000/0000/0000/7500"))))
 
-
-;; (add-hook 'after-init-hook 'set-background-for-terminal)
-
-(defun +fate/shorten-directory (dir max-length)
-  "Show up to MAX-LENGTH characters of a directory name DIR."
-  (let ((path (reverse (split-string (abbreviate-file-name dir) "/"))))
-    (let ((path (nreverse
-                 (cons (car path)
-                       (mapcar #'(lambda (x) (substring x 0 1))
-                              (cdr path))))))
-      (string-join path "/"))))
-
-(defun +fate/mode-line-directory ()
-  "Return directory for mode-line."
-  (when default-directory
-    (+fate/shorten-directory default-directory 20)))
-
 ;; Custom mode-line format
 (setq-default mode-line-format
-      '(;; Position info
-        " %l:%c "
-        ;; Buffer status
-        (:eval (cond (buffer-read-only "RO ")
-                    ((buffer-modified-p) "** ")
-                    (t "-- ")))
-        ;; Project info
-        (:eval (when-let ((project (project-current)))
-                (format " [%s]" (project-name project))))
-        ;; Directory and file name
-        (:eval (let ((dir (+fate/mode-line-directory))
-                     (name (buffer-name)))
-                 (if dir
-                     (propertize (concat dir "/" name) 'face 'bold)
-                   (propertize name 'face 'bold))))
-        ;; Version control
-        (:eval (when-let ((branch (vc-git-mode-line-string buffer-file-name)))
-                 (format " (%s)" branch)))
-        ;; Major mode
-        " %m"
-        ;; Evil state
-        (:eval (when (bound-and-true-p evil-mode)
-                (let ((state (evil-state-property evil-state :tag t)))
-                  (when state
-                    (format " [%s]" state)))))
-        ;; Process status
-        " "
-        mode-line-process))
+      '("%e"
+        mode-line-front-space
+        mode-line-mule-info
+        mode-line-client
+        mode-line-modified
+        mode-line-remote
+        mode-line-frame-identification
+        mode-line-buffer-identification
+        "   "
+        mode-line-position
+        (vc-mode vc-mode)
+        "  "
+        mode-line-modes
+        mode-line-misc-info
+        mode-line-end-spaces))
 
-(use-package doom-themes
-  :straight t
-  :init
-  (load-theme 'doom-monokai-classic t)
-  (set-face-attribute 'default nil
+;; theme, font
+(load-theme 'monokai t)
+(set-face-attribute 'default nil
                       :family "JetBrains Mono"
                       :height 145
                       :weight 'normal
-                      :width 'normal))
+                      :width 'normal)
 
 (use-package hl-line
   :config

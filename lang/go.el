@@ -35,10 +35,7 @@
   (setq-local company-indent-offset 2)
   (progn
     (eglot-ensure)
-    (tree-sitter-mode)
-    (tree-sitter-hl-mode)
     (yas-minor-mode-on)
-    (hs-minor-mode)
     (add-hook 'after-save-hook '+fate/go-after-save-hook nil t)
     ))
 

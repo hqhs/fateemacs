@@ -45,6 +45,7 @@
 ;; requiring it before straight is loaded breaks clean installation
 (use-package cl-lib) ;; TODO(hqhs): where should it live?..
 
+(+fate-load-lisp "monokai-theme.el")
 (+fate-load-lisp "autoloads.el")
 (+fate-load-lisp "defaults.el")
 (+fate-load-lisp "evil.el")
@@ -54,7 +55,7 @@
 (+fate-load-lisp "project.el") ;; built-in and lighter alternative to projectile
 (+fate-load-lisp "lsp.el")
 (+fate-load-lisp "completion.el")
-(+fate-load-lisp "prog-config.el") ;; prog-mode is "base" configuration for toher major modes like rust, cc, go, etc.
+(+fate-load-lisp "prog-conf.el") ;; prog-mode is "base" configuration for toher major modes like rust, cc, go, etc.
 (+fate-load-lisp "keybindings.el")
 (+fate-load-lisp "ui.el")
 (+fate-load-lisp "snippets.el")
@@ -108,7 +109,8 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-   '("a9abd706a4183711ffcca0d6da3808ec0f59be0e8336868669dc3b10381afb6f"
+   '("2918f362c1418488daa9ea3beaa32df0cb928f2be5a746b09535320fae96badc"
+     "a9abd706a4183711ffcca0d6da3808ec0f59be0e8336868669dc3b10381afb6f"
      "8d8207a39e18e2cc95ebddf62f841442d36fcba01a2a9451773d4ed30b632443"
      "37b6695bae243145fa2dfb41440c204cd22833c25cd1993b0f258905b9e65577"
      "b54376ec363568656d54578d28b95382854f62b74c32077821fdfd604268616a"
@@ -138,16 +140,38 @@
      (eglot-connect-timeout . 120)
      (eglot-server-programs
       (c-mode "clangd" "--background-index" "--clang-tidy"
-	      "--header-insertion=never" "--completion-style=detailed"
-	      "--function-arg-placeholders" "--fallback-style=llvm")
+              "--header-insertion=never" "--completion-style=detailed"
+              "--function-arg-placeholders" "--fallback-style=llvm")
       (c++-mode "clangd" "--background-index" "--clang-tidy"
-		"--header-insertion=never"
-		"--completion-style=detailed"
-		"--function-arg-placeholders" "--fallback-style=llvm"))
+                "--header-insertion=never"
+                "--completion-style=detailed"
+                "--function-arg-placeholders" "--fallback-style=llvm"))
      (eglot-ignored-server-capabilities . t) (apheleia-inhibit . t))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(tree-sitter-hl-face:attribute ((t (:inherit font-lock-preprocessor-face :slant italic))))
+ '(tree-sitter-hl-face:comment ((t (:inherit font-lock-comment-face))))
+ '(tree-sitter-hl-face:constant ((t (:inherit font-lock-constant-face))))
+ '(tree-sitter-hl-face:constant.builtin ((t (:inherit font-lock-builtin-face :weight bold))))
+ '(tree-sitter-hl-face:constructor ((t (:inherit tree-sitter-hl-face:function.call :weight bold))))
+ '(tree-sitter-hl-face:doc ((t (:inherit font-lock-doc-face))))
+ '(tree-sitter-hl-face:embedded ((t (:inherit font-lock-variable-name-face :background "#232531"))))
+ '(tree-sitter-hl-face:function.call ((t (:inherit font-lock-function-name-face :weight normal))))
+ '(tree-sitter-hl-face:function.method.call ((t (:inherit tree-sitter-hl-face:function.call))))
+ '(tree-sitter-hl-face:keyword ((t (:inherit font-lock-keyword-face :weight bold))))
+ '(tree-sitter-hl-face:label ((t (:inherit font-lock-property-face :weight bold))))
+ '(tree-sitter-hl-face:operator ((t (:inherit font-lock-operator-face :weight bold))))
+ '(tree-sitter-hl-face:property ((t (:inherit font-lock-constant-face :slant normal))))
+ '(tree-sitter-hl-face:punctuation.bracket ((t (:inherit font-lock-bracket-face :weight normal))))
+ '(tree-sitter-hl-face:punctuation.delimiter ((t (:inherit font-lock-delimiter-face :weight normal))))
+ '(tree-sitter-hl-face:string ((t (:inherit font-lock-string-face))))
+ '(tree-sitter-hl-face:string.special ((t (:inherit tree-sitter-hl-face:string :weight bold))))
+ '(tree-sitter-hl-face:tag ((t (:inherit font-lock-function-name-face :weight bold))))
+ '(tree-sitter-hl-face:type ((t (:inherit font-lock-type-face :weight bold))))
+ '(tree-sitter-hl-face:type.argument ((t (:inherit tree-sitter-hl-face:type :weight normal))))
+ '(tree-sitter-hl-face:type.parameter ((t (:inherit tree-sitter-hl-face:type :weight normal :slant italic))))
+ '(tree-sitter-hl-face:variable ((t (:inherit font-lock-variable-name-face))))
+ '(tree-sitter-hl-face:variable.parameter ((t (:inherit tree-sitter-hl-face:variable :slant italic)))))

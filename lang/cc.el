@@ -19,16 +19,6 @@
 	    ;; buffer local hook
 	    t))
 
-(defun +fate/c-mode-common-hook ()
-  (progn (eglot-ensure) ;; FIXME(hqhs): fails after update to emacs 30.0
-	 (yas-minor-mode-on)
-	 (tree-sitter-mode)
-	 (tree-sitter-hl-mode)
-	 (display-fill-column-indicator-mode)
-	 ;; NOTE(hqhs): FOLDING CONFIGURED HERE
-	 (outline-minor-mode)
-	 (+fate/add-clang-format-on-save)))
-
 (use-package c-ts-mode
   :mode (("\\.c\\'" . c-ts-mode)
          ("\\.h\\'" . c-ts-mode)
@@ -62,20 +52,6 @@
   (setq c-default-style '((c-mode . "custom-style")
                           (c++-mode . "custom-style"))
         c-syntactic-indentation t)
-
-  :config
-  (add-hook 'c-mode-hook '+fate/c-mode-common-hook)
-  (add-hook 'c++-mode-hook '+fate/c-mode-common-hook)
-  ;;
-  ;; Ensure smartparens is loaded before configuring local pairs
-  (with-eval-after-load 'smartparens
-    (dolist (mode '(c-mode c++-mode))
-      (sp-local-pair mode "-" ">"
-		     :when '(+fate/sp-c-mode-arrow-condition)
-		     :unless '(sp-in-comment-p sp-in-string-p)
-		     :actions '(insert)
-		     :post-handlers '(+fate/sp-c-mode-arrow-post-handler)))
-    )
   )
 
 (use-package clang-format

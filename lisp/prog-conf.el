@@ -72,12 +72,178 @@
         (rust-mode       . rust-ts-mode)
         (go-mode         . go-ts-mode)))
 
+;; Tree-sitter face customization
+(defun +setup-treesit-faces ()
+  "Setup enhanced tree-sitter highlighting faces."
+  (custom-set-faces
+   ;; Function and method declarations
+   '(tree-sitter-hl-face:function.call ((t (:inherit font-lock-function-name-face :weight normal))))
+   '(tree-sitter-hl-face:function.method.call ((t (:inherit tree-sitter-hl-face:function.call))))
+   '(tree-sitter-hl-face:constructor ((t (:inherit tree-sitter-hl-face:function.call :weight bold))))
+
+   ;; Variables and properties
+   '(tree-sitter-hl-face:property ((t (:inherit font-lock-constant-face :slant normal))))
+   '(tree-sitter-hl-face:variable ((t (:inherit font-lock-variable-name-face))))
+   '(tree-sitter-hl-face:variable.parameter ((t (:inherit tree-sitter-hl-face:variable :slant italic))))
+
+   ;; Types and attributes
+   '(tree-sitter-hl-face:type ((t (:inherit font-lock-type-face :weight bold))))
+   '(tree-sitter-hl-face:type.argument ((t (:inherit tree-sitter-hl-face:type :weight normal))))
+   '(tree-sitter-hl-face:type.parameter ((t (:inherit tree-sitter-hl-face:type :weight normal :slant italic))))
+   '(tree-sitter-hl-face:attribute ((t (:inherit font-lock-preprocessor-face :slant italic))))
+
+   ;; Keywords and operators
+   '(tree-sitter-hl-face:keyword ((t (:inherit font-lock-keyword-face :weight bold))))
+   '(tree-sitter-hl-face:operator ((t (:inherit font-lock-operator-face :weight bold))))
+
+   ;; Constants and literals
+   '(tree-sitter-hl-face:constant ((t (:inherit font-lock-constant-face))))
+   '(tree-sitter-hl-face:constant.builtin ((t (:inherit font-lock-builtin-face :weight bold))))
+   '(tree-sitter-hl-face:string ((t (:inherit font-lock-string-face))))
+   '(tree-sitter-hl-face:string.special ((t (:inherit tree-sitter-hl-face:string :weight bold))))
+   '(tree-sitter-hl-face:embedded ((t (:inherit font-lock-variable-name-face :background "#232531"))))
+
+   ;; Comments and documentation
+   '(tree-sitter-hl-face:comment ((t (:inherit font-lock-comment-face))))
+   '(tree-sitter-hl-face:doc ((t (:inherit font-lock-doc-face))))
+
+   ;; Punctuation and brackets
+   '(tree-sitter-hl-face:punctuation.bracket ((t (:inherit font-lock-bracket-face :weight normal))))
+   '(tree-sitter-hl-face:punctuation.delimiter ((t (:inherit font-lock-delimiter-face :weight normal))))
+
+   ;; Labels and tags
+   '(tree-sitter-hl-face:label ((t (:inherit font-lock-property-face :weight bold))))
+   '(tree-sitter-hl-face:tag ((t (:inherit font-lock-function-name-face :weight bold)))))
+
+  ;; Set up general tree-sitter configuration
+  (setq treesit-font-lock-level 4)  ; Maximum highlighting level
+  )
+
 ;; Configure indent offset for different modes
 (setq c-ts-mode-indent-offset 2
       c++-ts-mode-indent-offset 2
       python-ts-mode-indent-offset 4
       typescript-ts-mode-indent-offset 2
       js-ts-mode-indent-offset 2)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; configure 'prog-mode
+
+;; Add tree-sitter setup to prog-mode-hook
+(add-hook 'prog-mode-hook #'+setup-treesit-faces)
+
+;; Basic programming defaults
+(setq-default indent-tabs-mode nil          ; Use spaces instead of tabs
+              tab-width 4                   ; Default tab width
+              truncate-lines t              ; Don't wrap lines
+              scroll-margin 3               ; Keep 3 lines of context when scrolling
+              scroll-conservatively 101     ; Avoid recentering when scrolling far
+              scroll-preserve-screen-position t) ; Preserve screen position when scrolling
+
+;; Show matching parentheses
+(setq show-paren-delay 0.1
+      show-paren-highlight-openparen t
+      show-paren-when-point-inside-paren t
+      show-paren-when-point-in-periphery t)
+(show-paren-mode 1)
+
+;; Column indicator and line numbers setup
+(setq-default display-fill-column-indicator-column 80)
+(add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
+(add-hook 'prog-mode-hook #'display-line-numbers-mode)
+; Line number display configuration
+(setq-default display-line-numbers-width 1
+              display-line-numbers-width-start nil
+              display-line-numbers-grow-only nil
+              display-line-numbers-type 'relative)
+(add-hook 'prog-mode-hook #'display-line-numbers-mode)
+
+;; Electric pair mode (alternative to smartparens for basic needs)
+(electric-pair-mode 1)
+(setq electric-pair-preserve-balance t
+      electric-pair-delete-adjacent-pairs t
+      electric-pair-open-newline-between-pairs nil)
+
+;; Highlight TODO/FIXME/NOTE/HACK keywords
+(defface +prog-todo-face
+  '((t (:inherit font-lock-warning-face :weight bold)))
+  "Face for TODO keywords.")
+
+(defface +prog-note-face
+  '((t (:inherit font-lock-doc-face :weight bold)))
+  "Face for NOTE keywords.")
+
+(defun +setup-todo-highlighting ()
+  "Add highlighting for TODO keywords."
+  (font-lock-add-keywords
+   nil
+   '(("\\<\\(FIXME\\|TODO\\|BUG\\):" 1 '+prog-todo-face t)
+     ("\\<\\(NOTE\\|HACK\\|XXX\\):" 1 '+prog-note-face t))))
+
+;; Code folding setup with hideshow and outline
+(defun +setup-code-folding ()
+  "Setup hideshow and outline minor mode."
+  (hs-minor-mode 1)
+  (outline-minor-mode 1)
+  ;; Define outline regex patterns for common programming constructs
+  (setq-local outline-regexp "\\(^\\s-*\\(class\\|public\\|private\\|protected\\|def\\|function\\|if\\|while\\|for\\|do\\)\\)\\|\\(^.*{\\)")
+  ;; Make sure evil folding works with hideshow
+  (when (boundp 'evil-fold-list)
+    (push `((hs-minor-mode)
+            :open-all hs-show-all
+            :close-all hs-hide-all
+            :toggle hs-toggle-hiding
+            :open hs-show-block
+            :open-rec nil
+            :close hs-hide-block)
+          evil-fold-list)))
+
+;; Which function mode setup
+(defun +setup-which-function ()
+  "Setup which-function-mode with better defaults."
+  (which-function-mode 1)
+  (setq which-func-unknown "⊥") ; Show this when function is unknown
+  ;; Only show which-function in mode-line when it's available
+  (setq mode-line-misc-info
+        (delete (assoc 'which-function-mode
+                      mode-line-misc-info) mode-line-misc-info))
+  (setq mode-line-misc-info
+        (append mode-line-misc-info
+                '((which-function-mode ("" which-func-format))))))
+
+;; Compilation settings
+(setq compilation-scroll-output 'first-error ; Scroll to first error
+      compilation-skip-threshold 2           ; Skip less important messages
+      compilation-auto-jump-to-first-error t ; Jump to first error
+      compilation-scroll-output t)           ; Scroll compilation buffer
+
+;; Trailing whitespace handling
+(setq-default show-trailing-whitespace nil)  ; Disable globally
+(add-hook 'prog-mode-hook (lambda ()
+                           (setq show-trailing-whitespace t))) ; Enable in prog-mode
+
+;; Main prog-mode hook
+(defun +setup-prog-mode ()
+  "Setup common programming mode features."
+  (electric-indent-mode 1)        ; Electric indentation
+  (+setup-todo-highlighting)      ; Highlight TODO keywords
+  (+setup-code-folding)          ; Setup code folding
+  (+setup-which-function)        ; Show current function in mode-line
+  ;; Enable useful minor modes
+  (subword-mode 1)               ; Treat camelCase as separate words
+  (show-paren-mode 1))           ; Show matching parentheses
+
+;; Add our setup to prog-mode-hook
+(add-hook 'prog-mode-hook #'+setup-prog-mode)
+
+;; Additional useful settings
+(setq-default indent-line-function 'indent-relative-first-indent-point)
+(setq-default comment-column 40)
+(setq-default comment-fill-column 80)
+
+;; Provide better electric indent behavior
+(electric-indent-mode 1)
+(setq-default electric-indent-chars '(?\n ?\} ?\) ?\]))
 
 (use-package editorconfig
   :straight t
@@ -126,46 +292,10 @@
              (eq evil-state 'insert))
     (evil-escape)))
 
-(use-package smartparens
-  :straight t
-  ;; :hook (prog-mode text-mode markdown-mode) ;; add `smartparens-mode` to these hooks
-  :config
-  (smartparens-global-mode)
-  ;; Load default smartparens rules for various languages
-  (require 'smartparens-config)
-  ;; Overlays are too distracting and not terribly helpful. show-parens does
-  ;; this for us already (and is faster), so...
-  (setq sp-highlight-pair-overlay nil
-        sp-highlight-wrap-overlay nil
-        sp-highlight-wrap-tag-overlay nil)
-  ;; The default is 100, because smartparen's scans are relatively expensive
-  ;; (especially with large pair lists for some modes), we reduce it, as a
-  ;; better compromise between performance and accuracy.
-  (setq sp-max-prefix-length 25)
-  ;; No pair has any business being longer than 4 characters; if they must, set
-  ;; it buffer-locally. It's less work for smartparens.
-  (setq sp-max-pair-length 4)
-  ;; You're likely writing lisp in the minibuffer, therefore, disable these
-  ;; quote pairs, which lisps doesn't use for strings:
-  (sp-local-pair '(minibuffer-mode minibuffer-inactive-mode) "'" nil :actions nil)
-  (sp-local-pair '(minibuffer-mode minibuffer-inactive-mode) "`" nil :actions nil)
-
-  (defvar fate-buffer-smartparens-mode nil)
-  (add-hook 'evil-replace-state-exit-hook
-	     (defun fate-enable-smartparens-mode-maybe-h ()
-	       (when fate-buffer-smartparens-mode
-		 (turn-on-smartparens-mode)
-		 (kill-local-variable 'fate-buffer-smartparens-mode))))
-  (add-hook 'evil-replace-state-entry-hook
-	     (defun fate-disable-smartparens-mode-maybe-h ()
-	       (when smartparens-mode
-		 (setq-local fate-buffer-smartparens-mode t)
-		 (turn-off-smartparens-mode))))
-  )
-
-
 (use-package pcre2el
   :straight t
   :commands (rxt-quote-pcre))
 
 ;; TODO: multiple cursors support
+
+(provide 'prog-conf)
