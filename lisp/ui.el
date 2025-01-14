@@ -23,15 +23,50 @@
 
 ;; (add-hook 'after-init-hook 'set-background-for-terminal)
 
-(use-package doom-modeline
-  :straight t
-  :init
-  (setq doom-modeline-github nil
-        doom-modeline-minor-modes nil
-	doom-modeline-modal-icon nil
-        doom-modeline-major-mode-icon nil)
-  :config
-  (doom-modeline-mode))
+(defun +fate/shorten-directory (dir max-length)
+  "Show up to MAX-LENGTH characters of a directory name DIR."
+  (let ((path (reverse (split-string (abbreviate-file-name dir) "/"))))
+    (let ((path (nreverse
+                 (cons (car path)
+                       (mapcar #'(lambda (x) (substring x 0 1))
+                              (cdr path))))))
+      (string-join path "/"))))
+
+(defun +fate/mode-line-directory ()
+  "Return directory for mode-line."
+  (when default-directory
+    (+fate/shorten-directory default-directory 20)))
+
+;; Custom mode-line format
+(setq-default mode-line-format
+      '(;; Position info
+        " %l:%c "
+        ;; Buffer status
+        (:eval (cond (buffer-read-only "RO ")
+                    ((buffer-modified-p) "** ")
+                    (t "-- ")))
+        ;; Directory and file name
+        (:eval (let ((dir (+fate/mode-line-directory))
+                     (name (buffer-name)))
+                 (if dir
+                     (propertize (concat dir "/" name) 'face 'bold)
+                   (propertize name 'face 'bold))))
+        ;; Project info
+        (:eval (when-let ((project (project-current)))
+                (format " [%s]" (project-name project))))
+        ;; Version control
+        (:eval (when-let ((branch (vc-git-mode-line-string buffer-file-name)))
+                 (format " (%s)" branch)))
+        ;; Major mode
+        " %m"
+        ;; Evil state
+        (:eval (when (bound-and-true-p evil-mode)
+                (let ((state (evil-state-property evil-state :tag t)))
+                  (when state
+                    (format " [%s]" state)))))
+        ;; Process status
+        " "
+        mode-line-process))
 
 (use-package doom-themes
   :straight t
