@@ -21,37 +21,51 @@
   (kbd "<leader><") #'consult-project-buffer
   (kbd "<leader>.") #'find-file
 
-  (kbd "<leader>bb") #'consult-buffer
-  (kbd "<leader>bp") #'consult-project-buffer
-  (kbd "<leader>bo") #'consult-buffer-other-window
-  (kbd "<leader>bn") #'evil-buffer-new
+  ;; "buffers" in emacs lingo, but configured as "file" prefix since
+  ;; "f" is easier to type
+  (kbd "<leader>ff") #'consult-buffer ;; also "find file"
+  (kbd "<leader>fp") #'consult-project-buffer ;; // same as <leader>pf
+  (kbd "<leader>fo") #'consult-buffer-other-window
+  (kbd "<leader>fn") #'evil-buffer-new
+  (kbd "<leader>fr") #'revert-buffer
+
+  ;; bookmarks (another reason to prefix "buffers" as files)
+  ;; also prefixed with C-x r
+
+  (kbd "<leader>bb") #'bookmark-jump
+  (kbd "<leader>bl") #'list-bookmarks
+  (kbd "<leader>bm") #'bookmark-set
+
   ;; outline!
   (kbd "<leader>oa") #'outline-show-all
   (kbd "<leader>oh") #'outline-hide-sublevels
+
   ;; code
   (kbd "<leader>ca") #'xref-find-apropos
   (kbd "<leader>cd") #'xref-find-definitions
   (kbd "<leader>cr") #'xref-find-references
+
   ;; search
   (kbd "<leader>si") #'consult-imenu
   (kbd "<leader>sp") #'consult-ripgrep
   (kbd "<leader>sP") #'+fate/search-other-project
-  (kbd "<leader>sb") #'consult-line
+  (kbd "<leader>sf") #'consult-line
   (kbd "<leader>*")  #'+fate/search-project-for-symbol-at-point
   (kbd "<leader>sd") #'+fate/search-cwd
   (kbd "<leader>sD") #'+fate/search-other-cwd
   (kbd "<leader>'")  #'vertico-repeat
+
   ;; magit
   (kbd "<leader>gg") #'magit-status
   (kbd "<leader>gb") #'magit-blame
+
   ;; projectile
   (kbd "<leader>SPC")      #'projectile-find-file
   (kbd "<leader>pp")       #'projectile-switch-project
+  (kbd "<leader>pf")       #'consult-project-file
   (kbd "<leader>pi")       #'projectile-invalidate-cache
   (kbd "<leader>pc")       #'projectile-compile-project
   (kbd "<leader>pk")       #'projectile-kill-buffers
-  ;; buffers
-  (kbd "<leader>br") #'revert-buffer 
 
   ;; remappings
   (kbd "zx") 'kill-current-buffer
