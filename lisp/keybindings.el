@@ -59,13 +59,18 @@
   (kbd "<leader>gg") #'magit-status
   (kbd "<leader>gb") #'magit-blame
 
-  ;; projectile
-  (kbd "<leader>SPC")      #'projectile-find-file
-  (kbd "<leader>pp")       #'projectile-switch-project
-  (kbd "<leader>pf")       #'consult-project-file
-  (kbd "<leader>pi")       #'projectile-invalidate-cache
-  (kbd "<leader>pc")       #'projectile-compile-project
-  (kbd "<leader>pk")       #'projectile-kill-buffers
+  ;; project
+  (kbd "<leader>SPC") #'project-find-file
+  (kbd "<leader>pp")  #'project-switch-project
+  (kbd "<leader>pc")  #'project-compile
+  (kbd "<leader>pk")  #'project-kill-buffers
+  ;; Additional useful bindings
+  (kbd "<leader>pd")  #'project-dired
+  (kbd "<leader>ps")  #'project-shell
+  (kbd "<leader>pg")  #'project-find-regexp
+  (kbd "<leader>pr")  #'project-query-replace-regexp
+  (kbd "<leader>p!")  #'project-shell-command
+  (kbd "<leader>p&")  #'project-async-shell-command
 
   ;; remappings
   (kbd "zx") 'kill-current-buffer
@@ -79,3 +84,7 @@
 
 (evil-define-key* '(insert replace visual operator) 'global
   (kbd "<escape>") #'evil-escape)
+
+(define-key minibuffer-mode-map (kbd "C-j") 'next-line)
+(define-key minibuffer-mode-map (kbd "C-k") 'previous-line)
+(define-key minibuffer-mode-map (kbd "C-w") 'backward-kill-word)

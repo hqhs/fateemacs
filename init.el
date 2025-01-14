@@ -51,7 +51,7 @@
 
 ;; packages loaded lazily
 (+fate-load-lisp "magit.el")
-(+fate-load-lisp "projectile.el")
+(+fate-load-lisp "project.el") ;; built-in and lighter alternative to projectile
 (+fate-load-lisp "lsp.el")
 
 (+fate-load-lisp "completion.el")
