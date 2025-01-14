@@ -30,11 +30,12 @@
         mode-line-remote
         mode-line-frame-identification
         mode-line-buffer-identification
-        "   "
+        "  "
         mode-line-position
         (vc-mode vc-mode)
         "  "
-        mode-line-modes
+        "  "
+        (:propertize mode-name) ; This shows only the major mode name
         mode-line-misc-info
         mode-line-end-spaces))
 

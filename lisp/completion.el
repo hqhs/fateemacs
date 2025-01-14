@@ -7,13 +7,6 @@
 ;; NOTE(hqhs): fido ("fake ido" uses icomplete settings under the hood)
 (setq icomplete-prospects-height 15)
 
-;; Evil integration
-(with-eval-after-load 'evil
-  (define-key minibuffer-local-map (kbd "C-j") 'next-line)
-  (define-key minibuffer-local-map (kbd "C-k") 'previous-line)
-  (define-key minibuffer-local-map (kbd "C-n") 'next-line)
-  (define-key minibuffer-local-map (kbd "C-p") 'previous-line))
-
 (use-package consult
   :straight t
   :defer t

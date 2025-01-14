@@ -28,17 +28,6 @@
   (when +fate/go-fold-nil-checks
     (+fate/hs-hide-go-error-checks)))
 
-(defun +fate/go-mode-hook ()
-  ;; Use tabs for indentation
-  (setq indent-tabs-mode t)
-  (setq tab-width 2) ;; since it's tabs, nobody really cares
-  (setq-local company-indent-offset 2)
-  (progn
-    (eglot-ensure)
-    (yas-minor-mode-on)
-    (add-hook 'after-save-hook '+fate/go-after-save-hook nil t)
-    ))
-
 ;; New version using go-ts-mode
 (use-package go-ts-mode
   :hook ((go-ts-mode . eglot-ensure)

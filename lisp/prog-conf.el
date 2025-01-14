@@ -6,7 +6,7 @@
      (c "https://github.com/tree-sitter/tree-sitter-c")
      ;; (c++ "https://github.com/tree-sitter/tree-sitter-cpp" "v0.23.4" nil "c++")
      (rust "https://github.com/tree-sitter/tree-sitter-rust")
-     (go "https://github.com/tree-sitter/tree-sitter-go")
+     (go "https://github.com/tree-sitter/tree-sitter-go" "master" nil "go")
      (python "https://github.com/tree-sitter/tree-sitter-python")
      (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
      (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
@@ -150,13 +150,13 @@
 ;; Column indicator and line numbers setup
 (setq-default display-fill-column-indicator-column 80)
 (add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
-(add-hook 'prog-mode-hook #'display-line-numbers-mode)
 ; Line number display configuration
 (setq-default display-line-numbers-width 1
               display-line-numbers-width-start nil
               display-line-numbers-grow-only nil
               display-line-numbers-type 'relative)
-(add-hook 'prog-mode-hook #'display-line-numbers-mode)
+;; I use evilem motions instead
+;; (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 
 ;; Electric pair mode (alternative to smartparens for basic needs)
 (electric-pair-mode 1)
@@ -260,8 +260,8 @@
                "\\.\\(zip\\|\\(doc\\|xls\\|ppt\\)x\\)\\'"))
 
 (use-package dtrt-indent
-  :commands dtrt-indent-mode
   :straight t
+  :commands dtrt-indent-mode
   :config
   ;; TODO: what is smie mode?
   ;; Enable dtrt-indent even in smie modes so that it can update `tab-width',

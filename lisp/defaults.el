@@ -150,3 +150,11 @@
     (setq use-short-answers t)
   ;; DEPRECATED: wemove when we drop 28.x support
   (advice-add #'yes-or-no-p :override #'y-or-n-p))
+
+(use-package autorevert
+  :init
+  (global-auto-revert-mode 1))
+
+(use-package uniquify
+  :init
+  (setq uniquify-buffer-name-style 'forward))

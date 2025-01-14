@@ -27,9 +27,6 @@
          (c-ts-mode . yas-minor-mode-on)
          (c++-ts-mode . yas-minor-mode-on))
   :init
-  ;; insert '->' after '-' in c/c++
-  (dolist (mode '(c-ts-mode-map c++-ts-mode-map))
-    (define-key (symbol-value mode) (kbd "-") '+fate/c-electric-arrow))
   ;; Basic indentation settings
   (setq-default tab-width 2)
   (setq-default c-basic-offset 2)  ; Equivalent to tabstop/shiftwidth
@@ -53,6 +50,10 @@
   (setq c-default-style '((c-mode . "custom-style")
                           (c++-mode . "custom-style"))
         c-syntactic-indentation t)
+  :config
+   ;; insert '->' after '-' in c/c++
+  (dolist (mode '(c-ts-mode-map c++-ts-mode-map))
+    (define-key (symbol-value mode) (kbd "-") '+fate/c-electric-arrow))
   )
 
 (use-package clang-format

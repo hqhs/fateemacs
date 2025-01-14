@@ -25,8 +25,4 @@
 
   (add-to-list 'yas-snippet-dirs '+snippets-dir)
 
-  (with-eval-after-load 'smartparens
-    ;; tell smartparens overlays not to interfere with yasnippet keybinds
-    (advice-add #'yas-expand :before #'sp-remove-active-pair-overlay))
-
   (yas-global-mode +1))
