@@ -51,7 +51,23 @@
   :init
   (setq evil-escape-excluded-states '(normal visual multiedit emacs motion))
   :config
-  (evil-escape-mode))
+  (evil-escape-mode)
+
+  ;; First remove the global C-g binding
+  (global-unset-key (kbd "C-g"))
+
+  ;; Make C-g work like escape, but fall back to keyboard-quit when not in evil states
+  (global-set-key (kbd "C-g")
+                  (lambda ()
+                    (interactive)
+                    (cond
+                     ((or (evil-insert-state-p)
+                          (evil-replace-state-p)
+                          (evil-visual-state-p)
+                          (evil-operator-state-p))
+                      (evil-escape))
+                     (t
+                      (keyboard-quit))))))
 
 (use-package evil-easymotion
   :straight t

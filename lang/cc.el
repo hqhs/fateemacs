@@ -58,6 +58,22 @@
 
 (use-package clang-format
   :straight t
-  :init
-  (setq clang-format-style "file"
-	clang-format-fallback-style "webkit"))
+  :after c-ts-mode
+  :hook ((c-ts-mode . (lambda ()
+                        (add-hook 'before-save-hook #'clang-format-buffer nil t)))
+         (c++-ts-mode . (lambda ()
+                         (add-hook 'before-save-hook #'clang-format-buffer nil t))))
+  :custom
+  (clang-format-style "file")
+  (clang-format-fallback-style "webkit")
+  :config
+  ;; Optionally, you can define a function to toggle format-on-save
+  (defun +fate/toggle-clang-format-on-save ()
+    "Toggle clang-format-on-save for the current buffer."
+    (interactive)
+    (if (member #'clang-format-buffer before-save-hook)
+        (progn
+          (remove-hook 'before-save-hook #'clang-format-buffer t)
+          (message "Disabled clang-format-on-save"))
+      (add-hook 'before-save-hook #'clang-format-buffer nil t)
+      (message "Enabled clang-format-on-save"))))

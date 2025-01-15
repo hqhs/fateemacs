@@ -71,9 +71,12 @@
 (setq create-lockfiles nil
       make-backup-files nil)
 
+(make-directory (concat fate-cache-dir "autosave/") t)
+(make-directory (concat fate-cache-dir "tramp-autosave/") t)
+
 ;; But turn on auto-save, so we have a fallback in case of crashes or lost data.
 ;; Use `recover-file' or `recover-session' to recover them.
-(setq auto-save-default t
+(setq auto-save-default nil ; FIXME(hqhs): doesn't work
       ;; Don't auto-disable auto-save after deleting big chunks. This defeats
       ;; the purpose of a failsafe. This adds the risk of losing the data we
       ;; just deleted, but I believe that's VCS's jurisdiction, not ours.

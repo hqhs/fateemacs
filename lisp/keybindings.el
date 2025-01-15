@@ -1,5 +1,10 @@
 ;; -*- lexical-binding: t -*-
 
+(global-unset-key (kbd "C-<wheel-up>"))   ;; Text scale increase
+(global-unset-key (kbd "C-<wheel-down>")) ;; Text scale decrease
+(global-unset-key (kbd "C-<wheel-left>"))
+(global-unset-key (kbd "C-<wheel-right>"))
+
 ;; C-c C-c comment region
 
 (evil-ex-define-cmd "W[rite]" #'evil-write) ;; fix for common error
@@ -105,8 +110,8 @@
   (kbd "C-e") #'move-end-of-line
   (kbd "C-SPC") #'company-complete-common)
 
-(evil-define-key* '(insert replace visual operator) 'global
-  (kbd "<escape>") #'evil-escape)
+;; (evil-define-key* '(insert replace visual operator) 'global
+;;   (kbd "<escape>") #'evil-escape)
 
 (define-key minibuffer-mode-map (kbd "C-j") 'next-line)
 (define-key minibuffer-mode-map (kbd "C-k") 'previous-line)
