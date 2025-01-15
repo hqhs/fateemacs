@@ -303,10 +303,6 @@
              (eq evil-state 'insert))
     (evil-escape)))
 
-(use-package pcre2el
-  :straight t
-  :commands (rxt-quote-pcre))
-
 ;; TODO: multiple cursors support
 
 (provide 'prog-conf)

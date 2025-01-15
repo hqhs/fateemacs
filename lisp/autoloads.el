@@ -1,6 +1,18 @@
 ;; -*- lexical-binding: t -*-
 
 ;;;###autoload
+(defun +fate/copy-file-path ()
+  "Copy the current buffer's file path to kill ring."
+  (interactive)
+  (if-let* ((file-path (or (buffer-file-name) default-directory))
+            (project-root (project-root (project-current t)))
+            (relative-path (file-relative-name file-path project-root)))
+      (progn
+        (kill-new relative-path)
+        (message "Copied: %s" relative-path))
+    (message "No file associated with buffer")))
+
+;;;###autoload
 (defun +fate/search-project-for-symbol-at-point (symbol)
   "Searches the current project using ripgrep"
   (interactive (list (rxt-quote-pcre (thing-at-point 'symbol t))))

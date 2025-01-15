@@ -41,6 +41,12 @@
   (flymake-mode -1))
 (push '(flymake nil) package-load-list)
 
+;; enhance security
+
+(setq network-security-level 'high
+      gnutls-verify-error t
+      gnutls-min-prime-bits 3072)
+
 (defvar fate-emacs-dir user-emacs-directory
   "The path to the currently loaded .emacs.d directory. Must end with a slash.")
 
@@ -49,6 +55,9 @@
 
 (defvar fate-cache-dir (expand-file-name "cache/" fate-emacs-dir)
   "The root to store runtime data, such as autosave files.")
+
+(setq auto-save-file-name-transforms
+      `((".*" ,(concat fate-cache-dir "auto-save/") t)))
 
 (defun +fate-load-lisp (file)
   (load (expand-file-name file fate-lisp-dir)))

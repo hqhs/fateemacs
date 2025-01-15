@@ -185,3 +185,10 @@
   (repeat-mode 1)
   (repeat-exit-key (kbd "RET"))
   (repeat-exit-timeout 2))
+
+(use-package dired
+  :ensure nil
+  :custom
+  (dired-dwim-target t)
+  (dired-recursive-copies 'always)
+  (dired-recursive-deletes 'top))

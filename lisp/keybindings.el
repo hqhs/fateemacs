@@ -28,6 +28,11 @@
   (kbd "<leader>fo") #'consult-buffer-other-window
   (kbd "<leader>fn") #'evil-buffer-new
   (kbd "<leader>fr") #'revert-buffer
+  (kbd "<leader>fy") #'+fate/copy-file-path ; Add this helper function
+  (kbd "<leader>fs") #'save-buffer
+  (kbd "<leader>fS") #'write-file           ; Save as
+  (kbd "<leader>fD") #'delete-file
+  (kbd "<leader>fR") #'rename-file
 
   ;; bookmarks (another reason to prefix "buffers" as files)
   ;; also prefixed with C-x r
@@ -40,21 +45,37 @@
   (kbd "<leader>oa") #'outline-show-all
   (kbd "<leader>oh") #'outline-hide-sublevels
 
-  ;; code
-  (kbd "<leader>ca") #'xref-find-apropos
-  (kbd "<leader>cd") #'xref-find-definitions
-  (kbd "<leader>cr") #'xref-find-references
+  ;; xref
+  (kbd "<leader>xa") #'xref-find-apropos
+  (kbd "<leader>xd") #'xref-find-definitions
+  (kbd "<leader>xr") #'xref-find-references
+
+  ;; compilation
+  (kbd "<leader>cc") #'compile
+  (kbd "<leader>cr") #'recompile
+  (kbd "<leader>ck") #'kill-compilation
+  ;; comments
+  (kbd "<leader>cd") #'comment-dwim
+  (kbd "<leader>cl") #'comment-line
+  ;; case conversion
+  (kbd "<leader>cu") #'upcase-dwim
+  (kbd "<leader>cl") #'downcase-dwim
 
   ;; search
   (kbd "<leader>si") #'consult-imenu
   (kbd "<leader>sp") #'consult-ripgrep
   (kbd "<leader>sP") #'+fate/search-other-project
   (kbd "<leader>sf") #'consult-line
-  ;; FIXME(Hqhs): projectile-project-root is not defined
   (kbd "<leader>*")  #'+fate/search-project-for-symbol-at-point
   (kbd "<leader>sd") #'+fate/search-cwd
   (kbd "<leader>sD") #'+fate/search-other-cwd
   ;; (kbd "<leader>'")  #'vertico-repeat
+
+  ;; toggle functions
+  (kbd "<leader>tl") #'display-line-numbers-mode
+  (kbd "<leader>tw") #'whitespace-mode
+  (kbd "<leader>tf") #'auto-fill-mode
+  (kbd "<leader>th") #'hl-line-mode
 
   ;; magit
   (kbd "<leader>gg") #'magit-status
@@ -65,7 +86,6 @@
   (kbd "<leader>pp")  #'project-switch-project
   (kbd "<leader>pc")  #'project-compile
   (kbd "<leader>pk")  #'project-kill-buffers
-  ;; Additional useful bindings
   (kbd "<leader>pd")  #'project-dired
   (kbd "<leader>ps")  #'project-shell
   (kbd "<leader>pg")  #'project-find-regexp ;; NOTE(hqhs): produces new buffer with results
@@ -81,7 +101,7 @@
 (evil-define-key 'insert 'global
   (kbd "C-a") #'move-beginning-of-line
   (kbd "C-e") #'move-end-of-line
-  (kbd "C-@") #'company-complete-common)
+  (kbd "C-SPC") #'company-complete-common)
 
 (evil-define-key* '(insert replace visual operator) 'global
   (kbd "<escape>") #'evil-escape)
