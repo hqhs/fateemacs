@@ -1,6 +1,7 @@
 ;; -*- lexical-binding: t -*-
 
 (use-package eldoc
+  :ensure nil ;; built-in
   :init
   (setq eldoc-echo-area-use-multiline-p nil
 	eldoc-echo-area-display-truncation-message nil
@@ -9,6 +10,7 @@
 	eldoc-display-functions '(eldoc-display-in-buffer)))
 
 (use-package eglot
+  :ensure nil ;; built-in
   :commands (eglot eglot-ensure)
   :init
   (setq eglot-autoshutdown t

@@ -1,5 +1,17 @@
 ;; -*- lexical-binding: t -*-
 
+;; startup window size
+
+(setq initial-frame-alist
+      '((width . 120)
+        (height . 45)))
+
+(setq default-frame-alist
+      '((width . 120)
+        (height . 45)
+        (left . 100)    ; pixels from left
+        (top . 50)))   ; pixels from top
+
 ;; disable some warnings
 
 (setq byte-compile-warnings
@@ -43,7 +55,9 @@
 
 (+fate-load-lisp "straight.el")
 ;; requiring it before straight is loaded breaks clean installation
-(use-package cl-lib) ;; TODO(hqhs): where should it live?..
+(use-package cl-lib ;; TODO(hqhs): where should it live?..
+  :ensure nil ;; built-in
+  )
 
 (+fate-load-lisp "monokai-theme.el")
 (+fate-load-lisp "autoloads.el")

@@ -2,9 +2,10 @@
 
 ;;;###autoload
 (defun +fate/search-project-for-symbol-at-point (symbol)
-  "Searches the current project (or directory if there's none) using ripgrep"
+  "Searches the current project using ripgrep"
   (interactive (list (rxt-quote-pcre (thing-at-point 'symbol t))))
-  (consult-ripgrep (projectile-project-root nil) symbol))
+  (let ((dir (project-root (project-current t))))
+    (consult-ripgrep dir symbol)))
 
 ;;;###autoload
 (defun +fate/search-symbol-forward (count symbol)
@@ -41,7 +42,7 @@
     (user-error "Couldn't find ripgrep in your PATH"))
   (require 'consult)
   (setq deactivate-mark t)
-  (let* ((project-root (or (projectile-project-root) default-directory))
+  (let* ((project-root (project-root (project-current t)))
          (directory (or in project-root))
          (consult-ripgrep-args
           (concat "rg "
@@ -54,8 +55,8 @@
                   (mapconcat #'identity args " ")))
          (prompt (if (stringp prompt) (string-trim prompt) "Search"))
          (query (or query
-                    (when (+fate/region-active-p)
-		      (regexp-quote (buffer-substring-no-properties (region-beginning) (region-end))))))
+                   (when (+fate/region-active-p)
+                     (regexp-quote (buffer-substring-no-properties (region-beginning) (region-end))))))
 	 (consult-async-split-style consult-async-split-style)
          (consult-async-split-styles-alist consult-async-split-styles-alist))
     ;; Change the split style if the initial query contains the separator.
@@ -65,15 +66,15 @@
         (pcase type
           (`separator
            (replace-regexp-in-string (regexp-quote (char-to-string separator))
-                                     (concat "\\" (char-to-string separator))
-                                     query t t))
+                                   (concat "\\" (char-to-string separator))
+                                   query t t))
           (`perl
            (when (string-match-p initial query)
              (setf (alist-get 'perlalt consult-async-split-styles-alist)
                    `(:initial ,(or (cl-loop for char in (list "%" "@" "!" "&" "/" ";")
-                                            unless (string-match-p char query)
-                                            return char)
-                                   "%")
+                                          unless (string-match-p char query)
+                                          return char)
+                                 "%")
                      :type perl)
                    consult-async-split-style 'perlalt))))))
     (consult--grep prompt #'consult--ripgrep-make-builder directory query)))
@@ -81,15 +82,13 @@
 ;;;###autoload
 (defun +vertico/project-search (&optional arg initial-query directory)
   "Performs a live project search from the project root using ripgrep.
-If ARG (universal argument), include all files, even hidden or compressed ones,
-in the search."
+If ARG (universal argument), include all files, even hidden or compressed ones."
   (interactive "P")
   (+vertico-file-search :query initial-query :in directory :all-files arg))
 
 ;;;###autoload
 (defun +vertico/project-search-from-cwd (&optional arg initial-query)
-  "Performs a live project search from the current directory.
-If ARG (universal argument), include all files, even hidden or compressed ones."
+  "Performs a live project search from the current directory."
   (interactive "P")
   (+vertico/project-search arg initial-query default-directory))
 
@@ -102,29 +101,29 @@ If prefix ARG is set, prompt for a directory to search from."
           (if arg
               (read-directory-name "Search directory: ")
             default-directory)))
-    (call-interactively #'+vertico/project-search-from-cwd #'rgrep)))
+    (call-interactively #'+vertico/project-search-from-cwd)))
 
 ;;;###autoload
 (defun +fate/search-other-cwd ()
   "Conduct a text search in another directory."
   (interactive)
-  (+default/search-cwd 'other))
+  (+fate/search-cwd 'other))
 
 ;;;###autoload
 (defun +fate/search-project (&optional arg)
   "Conduct a text search in the current project root.
-If prefix ARG is set, include ignored/hidden files."
+If prefix ARG is set, include hidden files."
   (interactive "P")
-  (let* ((projectile-project-root nil)
-         (disabled-command-function nil)
-         (current-prefix-arg (unless (eq arg 'other) arg))
-         (default-directory
-           (if (eq arg 'other)
-               (if-let (projects (projectile-relevant-known-projects))
+  (let ((default-directory
+         (if (eq arg 'other)
+             (let ((projects (project-known-project-roots)))
+               (if projects
                    (completing-read "Search project: " projects nil t)
-                 (user-error "There are no known projects"))
-             default-directory)))
-    (call-interactively #'+vertico/project-search #'consult-ripgrep)))
+                 (user-error "There are no known projects")))
+           default-directory)))
+    (if (eq arg 'other)
+        (call-interactively #'+vertico/project-search)
+      (+vertico/project-search arg))))
 
 ;;;###autoload
 (defun +fate/search-other-project ()

@@ -30,6 +30,7 @@
 
 ;; New version using go-ts-mode
 (use-package go-ts-mode
+  :mode (("\\.go\\'" . go-ts-mode))
   :hook ((go-ts-mode . eglot-ensure)
          (go-ts-mode . yas-minor-mode-on))
   :config
@@ -39,7 +40,7 @@
 (use-package mmm-mode
   :straight t
   :config
-  (mmm-add-mode-ext-class 'go-mode nil 'go-sql)
+  (mmm-add-mode-ext-class 'go-ts-mode nil 'go-sql)
   (mmm-add-classes
    '((go-sql
       :submode sql-mode

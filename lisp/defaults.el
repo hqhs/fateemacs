@@ -152,9 +152,36 @@
   (advice-add #'yes-or-no-p :override #'y-or-n-p))
 
 (use-package autorevert
+  :ensure nil ;; built-in
   :init
   (global-auto-revert-mode 1))
 
 (use-package uniquify
+  :ensure nil ;; built-in
   :init
   (setq uniquify-buffer-name-style 'forward))
+
+(use-package recentf
+  :ensure nil ;; built-in
+  :custom
+  (recentf-max-saved-items 200)
+  (recentf-save-file (expand-file-name "recentf" fate-cache-dir))
+  :config
+  (recentf-mode 1))
+
+(use-package savehist
+  :ensure nil ;; built-in
+  :custom
+  (savehist-file (expand-file-name "savehist" fate-cache-dir))
+  (history-length 1000)
+  (history-delete-duplicates t)
+  (savehist-save-minibuffer-history t)
+  :config
+  (savehist-mode 1))
+
+(use-package repeat
+  :ensure nil ;; built-in
+  :custom
+  (repeat-mode 1)
+  (repeat-exit-key (kbd "RET"))
+  (repeat-exit-timeout 2))

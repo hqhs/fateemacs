@@ -17,14 +17,14 @@
   (kbd "<leader>ub") #'+fate/toggle-background-transparency
   ;;
   ;; to narrow buffers, use 'consult-narrow-key (currently defined as "<")
-  (kbd "<leader>,") #'consult-buffer
-  (kbd "<leader><") #'consult-project-buffer
+  (kbd "<leader>,") #'ido-switch-buffer ;;consult-buffer
+  (kbd "<leader><") #'project-switch-to-buffer ;; consult-project-buffer
   (kbd "<leader>.") #'find-file
 
   ;; "buffers" in emacs lingo, but configured as "file" prefix since
   ;; "f" is easier to type
-  (kbd "<leader>ff") #'consult-buffer ;; also "find file"
-  (kbd "<leader>fp") #'consult-project-buffer ;; // same as <leader>pf
+  (kbd "<leader>ff") #'ido-switch-buffer
+  (kbd "<leader>fp") #'project-switch-to-buffer
   (kbd "<leader>fo") #'consult-buffer-other-window
   (kbd "<leader>fn") #'evil-buffer-new
   (kbd "<leader>fr") #'revert-buffer
@@ -50,6 +50,7 @@
   (kbd "<leader>sp") #'consult-ripgrep
   (kbd "<leader>sP") #'+fate/search-other-project
   (kbd "<leader>sf") #'consult-line
+  ;; FIXME(Hqhs): projectile-project-root is not defined
   (kbd "<leader>*")  #'+fate/search-project-for-symbol-at-point
   (kbd "<leader>sd") #'+fate/search-cwd
   (kbd "<leader>sD") #'+fate/search-other-cwd
@@ -67,7 +68,7 @@
   ;; Additional useful bindings
   (kbd "<leader>pd")  #'project-dired
   (kbd "<leader>ps")  #'project-shell
-  (kbd "<leader>pg")  #'project-find-regexp
+  (kbd "<leader>pg")  #'project-find-regexp ;; NOTE(hqhs): produces new buffer with results
   (kbd "<leader>pr")  #'project-query-replace-regexp
   (kbd "<leader>p!")  #'project-shell-command
   (kbd "<leader>p&")  #'project-async-shell-command

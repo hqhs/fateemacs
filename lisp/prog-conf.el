@@ -6,7 +6,8 @@
      (c "https://github.com/tree-sitter/tree-sitter-c")
      ;; (c++ "https://github.com/tree-sitter/tree-sitter-cpp" "v0.23.4" nil "c++")
      (rust "https://github.com/tree-sitter/tree-sitter-rust")
-     (go "https://github.com/tree-sitter/tree-sitter-go" "master" nil "go")
+     (go "https://github.com/tree-sitter/tree-sitter-go")
+     (gomod "https://github.com/camdencheek/tree-sitter-go-mod")
      (python "https://github.com/tree-sitter/tree-sitter-python")
      (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
      (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
@@ -159,10 +160,14 @@
 ;; (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 
 ;; Electric pair mode (alternative to smartparens for basic needs)
-(electric-pair-mode 1)
-(setq electric-pair-preserve-balance t
-      electric-pair-delete-adjacent-pairs t
-      electric-pair-open-newline-between-pairs nil)
+(use-package electric
+  :ensure nil ;; built-in
+  :custom
+  (electric-pair-preserve-balance t)
+  (electric-pair-delete-adjacent-pairs t)
+  (electric-pair-open-newline-between-pairs nil)
+  :config
+  (electric-pair-mode 1))
 
 ;; Highlight TODO/FIXME/NOTE/HACK keywords
 (defface +prog-todo-face
@@ -211,11 +216,17 @@
         (append mode-line-misc-info
                 '((which-function-mode ("" which-func-format))))))
 
-;; Compilation settings
-(setq compilation-scroll-output 'first-error ; Scroll to first error
-      compilation-skip-threshold 2           ; Skip less important messages
-      compilation-auto-jump-to-first-error t ; Jump to first error
-      compilation-scroll-output t)           ; Scroll compilation buffer
+(use-package compile
+  :ensure nil ;; built-in
+  :custom
+  (compilation-scroll-output 'first-error)
+  (compilation-always-kill t)
+  (compilation-skip-threshold 2); Skip less important messages
+  (compilation-max-output-line-length nil)
+  :config
+  (require 'ansi-color)
+  (add-hook 'compilation-filter-hook
+            (lambda () (ansi-color-apply-on-region (point-min) (point-max)))))
 
 ;; Trailing whitespace handling
 (setq-default show-trailing-whitespace nil)  ; Disable globally
