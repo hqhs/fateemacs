@@ -18,6 +18,7 @@
 (defun +fate/treesit-manual-install ()
   "Manually install C++ grammar for tree-sitter on macOS."
   (interactive)
+  ;; FIXME(hqhs): breaks if `--init-directory' is not ~/.emacs.d
   (let* ((default-directory "~/.emacs.d/tree-sitter/")
          (cpp-dir (expand-file-name "cpp-grammar"))
          (process-environment
@@ -152,9 +153,10 @@
 (setq-default display-fill-column-indicator-column 80)
 (add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
 ; Line number display configuration
-(setq-default display-line-numbers-width 1
+(setq-default display-line-numbers-width 2
               display-line-numbers-width-start nil
               display-line-numbers-grow-only nil
+              display-line-numbers-current-absolute nil
               display-line-numbers-type 'relative)
 ;; I use evilem motions instead
 ;; (add-hook 'prog-mode-hook #'display-line-numbers-mode)

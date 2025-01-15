@@ -22,22 +22,23 @@
 
 ;; Custom mode-line format
 (setq-default mode-line-format
-      '("%e"
-        mode-line-front-space
-        mode-line-mule-info
-        mode-line-client
-        mode-line-modified
-        mode-line-remote
-        mode-line-frame-identification
-        mode-line-buffer-identification
-        "  "
-        mode-line-position
-        (vc-mode vc-mode)
-        "  "
-        "  "
-        (:propertize mode-name) ; This shows only the major mode name
-        mode-line-misc-info
-        mode-line-end-spaces))
+              '((:eval evil-mode-line-tag)  ; Add Evil state
+                 "%e"
+                 mode-line-front-space
+                 mode-line-mule-info
+                 mode-line-client
+                 mode-line-modified
+                 mode-line-remote
+                 mode-line-frame-identification
+                 mode-line-buffer-identification
+                 "  "
+                 (:eval (format-mode-line "%l:%c"))  ; Shows only line:column
+                 (vc-mode vc-mode)
+                 "  "
+                 "  "
+                 (:propertize mode-name) ; This shows only the major mode name
+                 mode-line-misc-info
+                 mode-line-end-spaces))
 
 ;; theme, font
 (load-theme 'monokai t)

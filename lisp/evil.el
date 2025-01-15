@@ -12,12 +12,12 @@
         evil-visual-state-cursor 'box
         evil-ex-interactive-search-highlight 'selected-window
         evil-undo-system 'undo-redo
-        evil-normal-state-tag   (propertize "[NORMAL]" 'face '((:background "green" :foreground "black")))
-        evil-emacs-state-tag    (propertize "[EMACS]" 'face '((:background "orange" :foreground "black")))
-        evil-insert-state-tag   (propertize "[INSERT]" 'face '((:background "red") :foreground "white"))
-        evil-motion-state-tag   (propertize "[MOTION]" 'face '((:background "blue") :foreground "white"))
-        evil-visual-state-tag   (propertize "[VISUAL]" 'face '((:background "grey80" :foreground "black")))
-        evil-operator-state-tag (propertize "[OPERATOR]" 'face '((:background "purple"))))
+        evil-normal-state-tag   (propertize "[NORMAL]" 'face '(:inherit (success bold)))
+        evil-emacs-state-tag    (propertize "[EMACS]" 'face '(:inherit (warning bold)))
+        evil-insert-state-tag   (propertize "[INSERT]" 'face '(:inherit (error bold)))
+        evil-motion-state-tag   (propertize "[MOTION]" 'face '(:inherit (font-lock-keyword-face bold)))
+        evil-visual-state-tag   (propertize "[VISUAL]" 'face '(:inherit (font-lock-constant-face bold)))
+        evil-operator-state-tag (propertize "[OPERATOR]" 'face '(:inherit (font-lock-function-name-face bold))))
   :config
   (evil-mode 1))
 

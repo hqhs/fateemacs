@@ -76,6 +76,8 @@
   (kbd "<leader>tw") #'whitespace-mode
   (kbd "<leader>tf") #'auto-fill-mode
   (kbd "<leader>th") #'hl-line-mode
+  (kbd "<leader>tv") #'visual-line-mode
+  (kbd "<leader>tV") #'global-visual-line-mode
 
   ;; magit
   (kbd "<leader>gg") #'magit-status

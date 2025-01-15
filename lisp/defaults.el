@@ -1,11 +1,14 @@
 ;; -*- lexical-binding: t -*-
 ;; better values for emacs out-of-the-box configuration options
 
+(setq confirm-kill-emacs 'y-or-n-p)
+
 ;; set PATH from shell
 (setq-default exec-path
               (append (split-string (getenv "PATH") path-separator t)
                       (list exec-directory)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; security:
 
 ;; Only allow safe local variables
@@ -16,6 +19,36 @@
 (setq vc-follow-symlinks nil)
 ;; Confirm before visiting symbolic links to files
 (setq find-file-visit-truename t)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; performance
+
+(unless noninteractive
+    ;; PERF: Resizing the Emacs frame (to accommodate fonts that are smaller or
+    ;;   larger than the default system font) can impact startup time
+    ;;   dramatically. The larger the delta, the greater the delay. Even trivial
+    ;;   deltas can yield up to a ~1000ms loss, depending also on
+    ;;   `window-system' (PGTK builds seem least affected and NS/MAC the most).
+    (setq frame-inhibit-implied-resize t)
+
+    ;; PERF: A fair bit of startup time goes into initializing the splash and
+    ;;   scratch buffers in the typical Emacs session (b/c they activate a
+    ;;   non-trivial major mode, generate the splash buffer, and trigger
+    ;;   premature frame redraws by writing to *Messages*). These hacks prevent
+    ;;   most of this work from happening for some decent savings in startup
+    ;;   time. Our dashboard and `doom/open-scratch-buffer' provide a faster
+    ;;   (and more useful) alternative anyway.
+    (setq inhibit-startup-screen t
+          inhibit-startup-echo-area-message user-login-name
+          initial-major-mode 'fundamental-mode
+          initial-scratch-message nil)
+    ;; PERF,UX: Prevent "For information about GNU Emacs..." line in *Messages*.
+    (advice-add #'display-startup-echo-area-message :override #'ignore)
+    ;; PERF: Suppress the vanilla startup screen completely. We've disabled it
+    ;;   with `inhibit-startup-screen', but it would still initialize anyway.
+    ;;   This involves file IO and/or bitmap work (depending on the frame type)
+    ;;   that we can no-op for a free 50-100ms saving in startup time.
+    (advice-add #'display-startup-screen :override #'ignore))
 
 ;; Warn when opening files bigger than 5MB
 (setq large-file-warning-threshold (* 5 1024 1024))
@@ -191,4 +224,11 @@
   :custom
   (dired-dwim-target t)
   (dired-recursive-copies 'always)
-  (dired-recursive-deletes 'top))
+  (dired-recursive-deletes 'top)
+  :config
+  (put 'dired-find-alternate-file 'disabled nil)
+  (eval-after-load 'evil-collection
+    (lambda ()
+      (evil-collection-define-key 'normal 'dired-mode-map
+        "l" 'dired-find-alternate-file
+        "h" (lambda () (interactive) (find-alternate-file ".."))))))

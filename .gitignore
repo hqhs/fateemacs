@@ -2,6 +2,8 @@ straight/*
 transient/*
 auto-save-list/*
 cache/*
+url/*
+elpa/*
 tree-sitter/*
 .local/*
 
