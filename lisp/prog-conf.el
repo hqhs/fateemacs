@@ -12,6 +12,7 @@
      (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
      (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
      (toml "https://github.com/tree-sitter/tree-sitter-toml")
+     ;; 404 on github, no yaml repo in tree-sitter project
      ;; (yaml "https://github.com/tree-sitter/tree-sitter-yaml")
      (json "https://github.com/tree-sitter/tree-sitter-json")))
 
@@ -70,7 +71,9 @@
         (js2-mode        . js-ts-mode)
         (typescript-mode . typescript-ts-mode)
         (json-mode       . json-ts-mode)
-        (yaml-mode       . yaml-ts-mode)
+        ;; 404 on github, no yaml repo in tree-sitter project
+        ;; default highlighting is good enough
+        ;; (yaml-mode       . yaml-ts-mode)
         (rust-mode       . rust-ts-mode)
         (go-mode         . go-ts-mode)))
 
@@ -167,7 +170,7 @@
   :custom
   (electric-pair-preserve-balance t)
   (electric-pair-delete-adjacent-pairs t)
-  (electric-pair-open-newline-between-pairs nil)
+  (electric-pair-open-newline-between-pairs t) ;; default, but still
   :config
   (electric-pair-mode 1))
 
@@ -228,7 +231,10 @@
   :config
   (require 'ansi-color)
   (add-hook 'compilation-filter-hook
-            (lambda () (ansi-color-apply-on-region (point-min) (point-max)))))
+            (lambda () (ansi-color-apply-on-region (point-min) (point-max))))
+  ;; Enable visual-line-mode in compilation buffers
+  (add-hook 'compilation-mode-hook #'visual-line-mode)
+  )
 
 ;; Trailing whitespace handling
 (setq-default show-trailing-whitespace nil)  ; Disable globally
@@ -255,7 +261,6 @@
 (setq-default comment-fill-column 80)
 
 ;; Provide better electric indent behavior
-(electric-indent-mode 1)
 (setq-default electric-indent-chars '(?\n ?\} ?\) ?\]))
 
 (use-package editorconfig

@@ -15,7 +15,7 @@
 ;;;###autoload
 (defun +fate/search-project-for-symbol-at-point (symbol)
   "Searches the current project using ripgrep"
-  (interactive (list (rxt-quote-pcre (thing-at-point 'symbol t))))
+  (interactive (list (regexp-quote (thing-at-point 'symbol t))))
   (let ((dir (project-root (project-current t))))
     (consult-ripgrep dir symbol)))
 

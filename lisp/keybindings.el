@@ -33,11 +33,13 @@
   (kbd "<leader>fo") #'consult-buffer-other-window
   (kbd "<leader>fn") #'evil-buffer-new
   (kbd "<leader>fr") #'revert-buffer
-  (kbd "<leader>fy") #'+fate/copy-file-path ; Add this helper function
   (kbd "<leader>fs") #'save-buffer
   (kbd "<leader>fS") #'write-file           ; Save as
   (kbd "<leader>fD") #'delete-file
   (kbd "<leader>fR") #'rename-file
+  ;; TODO(hqhs): two more: copy debugger-formatted location
+  ;; and copy the whole buffer
+  (kbd "<leader>fy") #'+fate/copy-file-path ; Add this helper function
 
   ;; bookmarks (another reason to prefix "buffers" as files)
   ;; also prefixed with C-x r
