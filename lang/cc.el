@@ -5,7 +5,7 @@
   "Insert -> if - is typed after a word character."
   (interactive)
   (if (and (eq last-command-event ?-)
-           (looking-back "\\w" 1)
+           (looking-back "\\(?:\\w\\|]\\)" 1)
            (not (nth 4 (syntax-ppss)))) ; not in comment
       (insert "->")
     (insert "-")))
