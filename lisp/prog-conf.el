@@ -3,7 +3,8 @@
 ;; Basic treesit setup
 (setq treesit-language-source-alist
    '((bash "https://github.com/tree-sitter/tree-sitter-bash")
-     (c "https://github.com/tree-sitter/tree-sitter-c")
+     ;; NOTE(hqhs): I don't use treesit for c/c++
+     ;; (c "https://github.com/tree-sitter/tree-sitter-c")
      ;; (c++ "https://github.com/tree-sitter/tree-sitter-cpp" "v0.23.4" nil "c++")
      (rust "https://github.com/tree-sitter/tree-sitter-rust")
      (go "https://github.com/tree-sitter/tree-sitter-go")
@@ -63,8 +64,11 @@
 
 ;; Language mode remapping
 (setq major-mode-remap-alist
-      '((c-mode          . c-ts-mode)
-        (c++-mode        . c++-ts-mode)
+      '(;; NOTE(hqhs): parsing c++ is hard, and it's known for 10k+ lines source
+        ;; files, and I'm writing a LOT of c++ novadays, so I don't really
+        ;; need improved syntax highlighting for it.
+        ;; (c-mode          . c-ts-mode)
+        ;; (c++-mode        . c++-ts-mode)
         (python-mode     . python-ts-mode)
         (javascript-mode . js-ts-mode)
         (js-mode         . js-ts-mode)
