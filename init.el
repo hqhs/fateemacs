@@ -105,6 +105,7 @@
 (+fate-load-lang "elisp.el")
 (+fate-load-lang "markdown.el")
 (+fate-load-lang "javascript.el") ;; typescript and every other possible flavor
+(+fate-load-lang "flatbuffers.el")
 (+fate-load-lang "gdscript.el")
 (+fate-load-lang "web.el")
 (+fate-load-lang "json.el")

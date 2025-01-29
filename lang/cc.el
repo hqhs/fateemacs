@@ -1,5 +1,6 @@
 ;; -*- lexical-binding: t -*-
 
+
 ;; C/C++ arrow insertion using electric-pair-mode
 (defun +fate/c-electric-arrow ()
   "Insert -> if - is typed after a word character."
@@ -77,3 +78,7 @@
           (message "Disabled clang-format-on-save"))
       (add-hook 'before-save-hook #'clang-format-buffer nil t)
       (message "Enabled clang-format-on-save"))))
+
+(use-package ggtags
+  :straight t
+  )
