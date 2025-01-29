@@ -19,6 +19,17 @@ git clone git@github.com:hqhs/fateemacs.git ~/.emacs.d
 emacs -nw
 ```
 
+external tools:
+```
+# Ubuntu/Debian
+sudo apt install global ripgrep
+```
+
+```
+# macOS
+brew install global ripgrep
+```
+
 ### Fate emacs
 
 This is my attempt to provide sane default config there I try to disable as much as possible and still provide enought features for muscle memory to work.
