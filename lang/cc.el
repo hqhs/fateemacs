@@ -57,23 +57,12 @@
 (use-package clang-format
   :straight t
   :after cc-mode
-  :hook ((c-mode . (lambda ()
-                     (add-hook 'before-save-hook #'clang-format-buffer nil t)))
-         (c++-mode . (lambda ()
-                      (add-hook 'before-save-hook #'clang-format-buffer nil t))))
   :custom
   (clang-format-style "file")
   (clang-format-fallback-style "webkit")
   :config
-  (defun +fate/toggle-clang-format-on-save ()
-    "Toggle clang-format-on-save for the current buffer."
-    (interactive)
-    (if (member #'clang-format-buffer before-save-hook)
-        (progn
-          (remove-hook 'before-save-hook #'clang-format-buffer t)
-          (message "Disabled clang-format-on-save"))
-      (add-hook 'before-save-hook #'clang-format-buffer nil t)
-      (message "Enabled clang-format-on-save"))))
+  (evil-define-key '(normal visual) c-mode-base-map
+    (kbd "SPC m f") 'clang-format-buffer))
 
 (use-package ggtags
   :straight t)
