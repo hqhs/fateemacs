@@ -12,7 +12,8 @@
 
 (defun +fate/check-treesit-language (lang)
   "Check if treesit is available and LANG grammar is installed."
-  (and (fboundp 'treesit-available-p)
+  (and (version< "30" emacs-version)
+       (fboundp 'treesit-available-p)
        (treesit-available-p)
        (treesit-language-available-p lang)))
 
@@ -40,30 +41,40 @@
   (+fate/setup-cc-mode)
 
   ;; Hooks for both regular and treesit modes
-  (dolist (hook '(c-mode-hook c++-mode-hook c-ts-mode-hook c++-ts-mode-hook))
+  (dolist (hook '(c-mode-hook c++-mode-hook))
     (add-hook hook #'eglot-ensure)
     (add-hook hook #'yas-minor-mode-on))
+
+  (when (version< "30" emacs-version)
+    (dolist (hook '(c-ts-mode-hook c++-ts-mode-hook))
+      (add-hook hook #'eglot-ensure)
+      (add-hook hook #'yas-minor-mode-on)))
 
   ;; Custom indentation rules
   (c-add-style "custom-style"
                '((c-basic-offset . 1)
                  (c-offsets-alist . ((case-label . 0)
-                                    (statement-case-intro . +)
-                                    (access-label . -)
-                                    (innamespace . +)
-                                    (arglist-intro . +)
-                                    (arglist-cont . c-lineup-gcc-asm-reg)
-                                    (arglist-cont-nonempty . c-lineup-arglist)
-                                    (arglist-close . c-lineup-close-paren)
-                                    (func-decl-cont . +)))))
+                                     (statement-case-intro . +)
+                                     (access-label . -)
+                                     (innamespace . +)
+                                     (arglist-intro . +)
+                                     (arglist-cont . c-lineup-gcc-asm-reg)
+                                     (arglist-cont-nonempty . c-lineup-arglist)
+                                     (arglist-close . c-lineup-close-paren)
+                                     (func-decl-cont . +)))))
 
   (setq c-default-style '((c-mode . "custom-style")
-                         (c++-mode . "custom-style"))
+                          (c++-mode . "custom-style"))
         c-syntactic-indentation t)
   :config
   ;; insert '->' after '-' in c/c++
-  (dolist (mode '(c-mode-map c++-mode-map c-ts-mode-map c++-ts-mode-map))
-    (define-key (symbol-value mode) (kbd "-") '+fate/c-electric-arrow)))
+  (dolist (mode '(c-mode-map c++-mode-map))
+    (define-key (symbol-value mode) (kbd "-") '+fate/c-electric-arrow))
+
+  ;; Only add treesit mode keybindings if available
+  (when (version<= "30" emacs-version)
+    (dolist (mode '(c-ts-mode-map c++-ts-mode-map))
+      (define-key (symbol-value mode) (kbd "-") '+fate/c-electric-arrow))))
 
 (use-package clang-format
   :straight t
