@@ -71,10 +71,12 @@
   (dolist (mode '(c-mode-map c++-mode-map))
     (define-key (symbol-value mode) (kbd "-") '+fate/c-electric-arrow))
 
-  ;; Only add treesit mode keybindings if available
-  (when (version<= "30" emacs-version)
-    (dolist (mode '(c-ts-mode-map c++-ts-mode-map))
-      (define-key (symbol-value mode) (kbd "-") '+fate/c-electric-arrow))))
+  ;; same thing for treesit based modes
+  (with-eval-after-load "c-ts-mode"  ; or "c++-ts-mode" - either is sufficient
+    (when (and (+fate/check-treesit-language 'c)
+               (+fate/check-treesit-language 'cpp))
+      (dolist (mode '(c-ts-mode-map c++-ts-mode-map))
+        (define-key (symbol-value mode) (kbd "-") '+fate/c-electric-arrow)))))
 
 (use-package clang-format
   :straight t
