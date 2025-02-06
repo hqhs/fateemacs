@@ -10,12 +10,19 @@
       (insert "->")
     (insert "-")))
 
-(defun +fate/add-clang-format-on-save ()
-  (add-hook 'before-save-hook
-            (lambda () (clang-format-buffer))
-            nil
-            ;; buffer local hook
-            t))
+(defun +fate/check-treesit-language (lang)
+  "Check if treesit is available and LANG grammar is installed."
+  (and (fboundp 'treesit-available-p)
+       (treesit-available-p)
+       (treesit-language-available-p lang)))
+
+(defun +fate/setup-cc-mode ()
+  "Setup proper mode for C/C++ based on treesit availability."
+  (when (and (+fate/check-treesit-language 'c)
+             (+fate/check-treesit-language 'cpp))
+    (setq major-mode-remap-alist
+          '((c-mode . c-ts-mode)
+            (c++-mode . c++-ts-mode)))))
 
 ;; Use cc-mode instead of tree-sitter modes
 (use-package cc-mode
@@ -23,15 +30,19 @@
          ("\\.h\\'" . c-or-c++-mode) ;; Use automatic detection for headers
          ("\\.cpp\\'" . c++-mode)
          ("\\.hpp\\'" . c++-mode))
-  :hook ((c-mode . eglot-ensure)
-         (c++-mode . eglot-ensure)
-         (c-mode . yas-minor-mode-on)
-         (c++-mode . yas-minor-mode-on))
   :init
   ;; Basic indentation settings
   (setq-default tab-width 2)
   (setq-default c-basic-offset 2)
   (setq-default indent-tabs-mode nil)
+
+  ;; enable treesit if external libraries for c/c++ are installed
+  (+fate/setup-cc-mode)
+
+  ;; Hooks for both regular and treesit modes
+  (dolist (hook '(c-mode-hook c++-mode-hook c-ts-mode-hook c++-ts-mode-hook))
+    (add-hook hook #'eglot-ensure)
+    (add-hook hook #'yas-minor-mode-on))
 
   ;; Custom indentation rules
   (c-add-style "custom-style"
@@ -51,7 +62,7 @@
         c-syntactic-indentation t)
   :config
   ;; insert '->' after '-' in c/c++
-  (dolist (mode '(c-mode-map c++-mode-map))
+  (dolist (mode '(c-mode-map c++-mode-map c-ts-mode-map c++-ts-mode-map))
     (define-key (symbol-value mode) (kbd "-") '+fate/c-electric-arrow)))
 
 (use-package clang-format

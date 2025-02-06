@@ -3,7 +3,8 @@
 ;; Basic treesit setup
 (setq treesit-language-source-alist
    '((bash "https://github.com/tree-sitter/tree-sitter-bash")
-     ;; NOTE(hqhs): I don't use treesit for c/c++
+     ;; NOTE(hqhs): treesit for c/c++ is optional because auto install doesn't
+     ;; work
      ;; (c "https://github.com/tree-sitter/tree-sitter-c")
      ;; (c++ "https://github.com/tree-sitter/tree-sitter-cpp" "v0.23.4" nil "c++")
      (rust "https://github.com/tree-sitter/tree-sitter-rust")
