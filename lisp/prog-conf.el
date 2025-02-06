@@ -124,7 +124,7 @@
    '(tree-sitter-hl-face:tag ((t (:inherit font-lock-function-name-face :weight bold)))))
 
   ;; Set up general tree-sitter configuration
-  (setq treesit-font-lock-level 4)  ; Maximum highlighting level
+  (setq treesit-font-lock-level 3)  ; Maximum highlighting level
   )
 
 ;; Configure indent offset for different modes
