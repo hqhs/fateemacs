@@ -33,12 +33,18 @@
          ("\\.hpp\\'" . c++-mode))
   :init
   ;; Basic indentation settings
-  (setq-default tab-width 2)
-  (setq-default c-basic-offset 2)
-  (setq-default indent-tabs-mode nil)
+  (setq-default tab-width 2
+                c-basic-offset 2
+                indent-tabs-mode nil
+                ;;
+                ;; c-syntactic-indentation t
+                ;; c-tab-always-indent t
+                )
 
+  ;; Treesit is NOT enabled because parsing is not smart enough to parse
+  ;; all of the insanity if c++ macros
   ;; enable treesit if external libraries for c/c++ are installed
-  (+fate/setup-cc-mode)
+  ;; (+fate/setup-cc-mode)
 
   ;; Hooks for both regular and treesit modes
   (dolist (hook '(c-mode-hook c++-mode-hook))
@@ -64,9 +70,10 @@
                                      (func-decl-cont . +)))))
 
   (setq c-default-style '((c-mode . "custom-style")
-                          (c++-mode . "custom-style"))
-        c-syntactic-indentation t)
+                          (c++-mode . "custom-style")))
   :config
+  (setq-local treesit-simple-indent-rules nil)
+
   ;; insert '->' after '-' in c/c++
   (dolist (mode '(c-mode-map c++-mode-map))
     (define-key (symbol-value mode) (kbd "-") '+fate/c-electric-arrow))
@@ -76,7 +83,17 @@
     (when (and (+fate/check-treesit-language 'c)
                (+fate/check-treesit-language 'cpp))
       (dolist (mode '(c-ts-mode-map c++-ts-mode-map))
-        (define-key (symbol-value mode) (kbd "-") '+fate/c-electric-arrow)))))
+        (evil-define-key 'insert (symbol-value mode) (kbd "-") '+fate/c-electric-arrow)
+        ;; (evil-define-key 'insert (symbol-value mode) [tab] 'self-insert-command)
+        )
+      ;; Disable treesit indentation ONLY when using treesit modes
+      ;; (add-hook 'c-ts-mode-hook (lambda () (setq indent-line-function 'c-indent-line)))
+      ;; (add-hook 'c++-ts-mode-hook (lambda () (setq indent-line-function 'c-indent-line)))
+      (add-hook 'c-ts-mode-hook (lambda () (setq indent-line-function 'indent-relative)))
+      (add-hook 'c++-ts-mode-hook (lambda () (setq indent-line-function 'indent-relative)))
+      )
+    )
+  )
 
 (use-package clang-format
   :straight t
@@ -86,7 +103,14 @@
   (clang-format-fallback-style "webkit")
   :config
   (evil-define-key '(normal visual) c-mode-base-map
-    (kbd "SPC m f") 'clang-format-buffer))
+    (kbd "SPC m f") 'clang-format-buffer)
+
+  (with-eval-after-load "c-ts-mode"
+    (when (and (+fate/check-treesit-language 'c)
+               (+fate/check-treesit-language 'cpp))
+      (evil-define-key '(normal visual) c-ts-base-mode-map
+        (kbd "SPC m f") 'clang-format-buffer)))
+  )
 
 (use-package ggtags
   :straight t)
