@@ -65,9 +65,7 @@
 
 ;; Language mode remapping
 (setq major-mode-remap-alist
-      '(;; NOTE(hqhs): parsing c++ is hard, and it's known for 10k+ lines source
-        ;; files, and I'm writing a LOT of c++ novadays, so I don't really
-        ;; need improved syntax highlighting for it.
+      '(;; NOTE(hqhs): enabled optionally based on availability in cc.el
         ;; (c-mode          . c-ts-mode)
         ;; (c++-mode        . c++-ts-mode)
         (python-mode     . python-ts-mode)
