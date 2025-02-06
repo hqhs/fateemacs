@@ -10,21 +10,6 @@
       (insert "->")
     (insert "-")))
 
-(defun +fate/check-treesit-language (lang)
-  "Check if treesit is available and LANG grammar is installed."
-  (and (version< "30" emacs-version)
-       (fboundp 'treesit-available-p)
-       (treesit-available-p)
-       (treesit-language-available-p lang)))
-
-(defun +fate/setup-cc-mode ()
-  "Setup proper mode for C/C++ based on treesit availability."
-  (when (and (+fate/check-treesit-language 'c)
-             (+fate/check-treesit-language 'cpp))
-    (setq major-mode-remap-alist
-          '((c-mode . c-ts-mode)
-            (c++-mode . c++-ts-mode)))))
-
 ;; Use cc-mode instead of tree-sitter modes
 (use-package cc-mode
   :mode (("\\.c\\'" . c-mode)
@@ -37,14 +22,9 @@
                 c-basic-offset 2
                 indent-tabs-mode nil
                 ;;
-                ;; c-syntactic-indentation t
-                ;; c-tab-always-indent t
+                c-syntactic-indentation t
+                c-tab-always-indent t
                 )
-
-  ;; Treesit is NOT enabled because parsing is not smart enough to parse
-  ;; all of the insanity if c++ macros
-  ;; enable treesit if external libraries for c/c++ are installed
-  ;; (+fate/setup-cc-mode)
 
   ;; Hooks for both regular and treesit modes
   (dolist (hook '(c-mode-hook c++-mode-hook))
@@ -72,27 +52,10 @@
   (setq c-default-style '((c-mode . "custom-style")
                           (c++-mode . "custom-style")))
   :config
-  (setq-local treesit-simple-indent-rules nil)
 
   ;; insert '->' after '-' in c/c++
   (dolist (mode '(c-mode-map c++-mode-map))
     (define-key (symbol-value mode) (kbd "-") '+fate/c-electric-arrow))
-
-  ;; same thing for treesit based modes
-  (with-eval-after-load "c-ts-mode"  ; or "c++-ts-mode" - either is sufficient
-    (when (and (+fate/check-treesit-language 'c)
-               (+fate/check-treesit-language 'cpp))
-      (dolist (mode '(c-ts-mode-map c++-ts-mode-map))
-        (evil-define-key 'insert (symbol-value mode) (kbd "-") '+fate/c-electric-arrow)
-        ;; (evil-define-key 'insert (symbol-value mode) [tab] 'self-insert-command)
-        )
-      ;; Disable treesit indentation ONLY when using treesit modes
-      ;; (add-hook 'c-ts-mode-hook (lambda () (setq indent-line-function 'c-indent-line)))
-      ;; (add-hook 'c++-ts-mode-hook (lambda () (setq indent-line-function 'c-indent-line)))
-      (add-hook 'c-ts-mode-hook (lambda () (setq indent-line-function 'indent-relative)))
-      (add-hook 'c++-ts-mode-hook (lambda () (setq indent-line-function 'indent-relative)))
-      )
-    )
   )
 
 (use-package clang-format
@@ -104,12 +67,6 @@
   :config
   (evil-define-key '(normal visual) c-mode-base-map
     (kbd "SPC m f") 'clang-format-buffer)
-
-  (with-eval-after-load "c-ts-mode"
-    (when (and (+fate/check-treesit-language 'c)
-               (+fate/check-treesit-language 'cpp))
-      (evil-define-key '(normal visual) c-ts-base-mode-map
-        (kbd "SPC m f") 'clang-format-buffer)))
   )
 
 (use-package ggtags
