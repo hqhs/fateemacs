@@ -133,7 +133,8 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-   '("603a831e0f2e466480cdc633ba37a0b1ae3c3e9a4e90183833bc4def3421a961"
+   '("3fe1ebb870cc8a28e69763dde7b08c0f6b7e71cc310ffc3394622e5df6e4f0da"
+     "603a831e0f2e466480cdc633ba37a0b1ae3c3e9a4e90183833bc4def3421a961"
      "2918f362c1418488daa9ea3beaa32df0cb928f2be5a746b09535320fae96badc"
      "a9abd706a4183711ffcca0d6da3808ec0f59be0e8336868669dc3b10381afb6f"
      "8d8207a39e18e2cc95ebddf62f841442d36fcba01a2a9451773d4ed30b632443"
