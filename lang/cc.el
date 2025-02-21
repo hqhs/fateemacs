@@ -42,12 +42,19 @@
                  (c-offsets-alist . ((case-label . 0)
                                      (statement-case-intro . +)
                                      (access-label . -)
-                                     (innamespace . +)
+                                     (innamespace . -)
                                      (arglist-intro . +)
                                      (arglist-cont . c-lineup-gcc-asm-reg)
                                      (arglist-cont-nonempty . c-lineup-arglist)
                                      (arglist-close . c-lineup-close-paren)
-                                     (func-decl-cont . +)))))
+                                     (func-decl-cont . +)
+                                     (block-open . 0)          ; Controls opening braces for blocks
+                                     (brace-list-open . 0)     ; Controls opening braces for lists
+                                     (brace-entry-open . 0)    ; Controls opening braces for entries
+                                     (statement-block-intro . +) ; Controls indentation after an opening brace
+                                     (block-close . 0)         ; Controls closing braces
+                                     (brace-list-close . 0)    ; Controls closing braces for lists
+                                     ))))
 
   (setq c-default-style '((c-mode . "custom-style")
                           (c++-mode . "custom-style")))

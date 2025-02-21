@@ -31,6 +31,7 @@
         '(xref
           dired
           magit
+          ibuffer
           (corfu :defer t)     ; Only load when corfu is loaded
           vertico
           consult

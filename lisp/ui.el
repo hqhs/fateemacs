@@ -73,9 +73,9 @@
   ;; theme, font
   (set-face-attribute 'default nil
                       :family "Fira Code"
-                      :height 145
+                      :height 150
                       :weight 'normal
-                      :width 'normal)
+                      :width  'normal)
   ;; Global settings (defaults)
   ;; (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
   ;;       doom-themes-enable-italic t) ; if nil, italics is universally disabled
