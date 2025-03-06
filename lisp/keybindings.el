@@ -28,6 +28,7 @@
 
   ;; "buffers" in emacs lingo, but configured as "file" prefix since
   ;; "f" is easier to type
+  (kbd "<leader>fi") #'ibuffer
   (kbd "<leader>ff") #'ido-switch-buffer
   (kbd "<leader>fp") #'project-switch-to-buffer
   (kbd "<leader>fo") #'consult-buffer-other-window

@@ -45,7 +45,9 @@
 
 (setq network-security-level 'high
       gnutls-verify-error t
-      gnutls-min-prime-bits 3072)
+      gnutls-min-prime-bits 3072
+      password-cache-expiry 3600 ;; 1 hour instead of 16 seconds
+      )
 
 (defvar fate-emacs-dir user-emacs-directory
   "The path to the currently loaded .emacs.d directory. Must end with a slash.")
