@@ -1,7 +1,7 @@
 ;; -*- lexical-binding: t -*-
 
 (setq ring-bell-function 'ignore)
-(setq-default display-fill-column-indicator-column 80)
+(setq-default display-fill-column-indicator-column 100)
 (setq-default display-line-numbers-type 'relative)
 ;; (global-display-line-numbers-mode)
 

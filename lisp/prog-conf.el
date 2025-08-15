@@ -156,7 +156,6 @@
 (show-paren-mode 1)
 
 ;; Column indicator and line numbers setup
-(setq-default display-fill-column-indicator-column 80)
 (add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
 ; Line number display configuration
 (setq-default display-line-numbers-width 2
@@ -196,7 +195,7 @@
 ;; Code folding setup with hideshow and outline
 (defun +setup-code-folding ()
   "Setup hideshow and outline minor mode."
-  (hs-minor-mode 1)
+  (ignore-errors (hs-minor-mode 1))
   (outline-minor-mode 1)
   ;; Define outline regex patterns for common programming constructs
   (setq-local outline-regexp "\\(^\\s-*\\(class\\|public\\|private\\|protected\\|def\\|function\\|if\\|while\\|for\\|do\\)\\)\\|\\(^.*{\\)")
@@ -300,8 +299,8 @@
   ;; the written file). While sometimes convenient, this behavior is not
   ;; intuitive. To the average user it looks like whitespace cleanup is failing,
   ;; which causes folks to redundantly install their own.
-
-  (setq ws-butler-keep-whitespace-before-point nil)
+  (setq ws-butler-keep-whitespace-before-point nil
+        ws-butler-global-exempt-modes '(python-mode python-ts-mode))
   :config
   (ws-butler-global-mode))
 
@@ -313,6 +312,10 @@
              (bound-and-true-p evil-escape-mode)
              (eq evil-state 'insert))
     (evil-escape)))
+
+(use-package format-all
+  :hook (rust-ts-mode . format-all-mode))
+
 
 ;; TODO: multiple cursors support
 
