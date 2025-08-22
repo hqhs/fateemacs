@@ -314,7 +314,10 @@
     (evil-escape)))
 
 (use-package format-all
-  :hook (rust-ts-mode . format-all-mode))
+  :straight t
+  ;; FIXME: doesn't work with cargo fmt
+  ;; :hook (rust-ts-mode . format-all-mode)
+  )
 
 
 ;; TODO: multiple cursors support
