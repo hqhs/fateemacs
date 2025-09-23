@@ -38,23 +38,25 @@
 
   ;; Custom indentation rules
   (c-add-style "custom-style"
-               '((c-basic-offset . 1)
-                 (c-offsets-alist . ((case-label . 0)
-                                     (statement-case-intro . +)
-                                     (access-label . -)
-                                     (innamespace . -)
-                                     (arglist-intro . +)
-                                     (arglist-cont . c-lineup-gcc-asm-reg)
-                                     (arglist-cont-nonempty . c-lineup-arglist)
-                                     (arglist-close . c-lineup-close-paren)
-                                     (func-decl-cont . +)
-                                     (block-open . 0)          ; Controls opening braces for blocks
-                                     (brace-list-open . 0)     ; Controls opening braces for lists
-                                     (brace-entry-open . 0)    ; Controls opening braces for entries
-                                     (statement-block-intro . +) ; Controls indentation after an opening brace
-                                     (block-close . 0)         ; Controls closing braces
-                                     (brace-list-close . 0)    ; Controls closing braces for lists
-                                     ))))
+             '((c-basic-offset . 2)
+               (c-offsets-alist . ((case-label . 0)
+                                   (statement-case-intro . +)
+                                   (access-label . -)
+                                   (innamespace . 0)          ; Changed: was -, now 0 for NamespaceIndentation: All
+                                   (arglist-intro . +)
+                                   (arglist-cont . c-lineup-gcc-asm-reg)
+                                   (arglist-cont-nonempty . c-lineup-arglist)
+                                   (arglist-close . c-lineup-close-paren)
+                                   (func-decl-cont . +)
+                                   (substatement-open . 0)    ; Changed: for BreakBeforeBraces: Allman
+                                   (class-open . 0)           ; Added: for class braces in Allman style
+                                   (namespace-open . 0)       ; Added: for namespace braces
+                                   (brace-list-open . 0)      ; Your original setting
+                                   (brace-entry-open . 0)     ; Your original setting
+                                   (statement-block-intro . +) ; Your original setting
+                                   (block-close . 0)          ; Your original setting
+                                   (brace-list-close . 0)     ; Your original setting
+                                   ))))
 
   (setq c-default-style '((c-mode . "custom-style")
                           (c++-mode . "custom-style")))

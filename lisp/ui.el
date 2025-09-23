@@ -73,7 +73,7 @@
   ;; theme, font
   (set-face-attribute 'default nil
                       :family "Fira Code"
-                      :height 150
+                      :height 180
                       :weight 'normal
                       :width  'normal)
   ;; Global settings (defaults)
