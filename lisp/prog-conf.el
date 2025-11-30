@@ -154,17 +154,7 @@
           evil-fold-list)))
 
 ;; Which function mode setup
-(defun +setup-which-function ()
-  "Setup which-function-mode with better defaults."
-  (which-function-mode 1)
-  (setq which-func-unknown "⊥") ; Show this when function is unknown
-  ;; Only show which-function in mode-line when it's available
-  (setq mode-line-misc-info
-        (delete (assoc 'which-function-mode
-                      mode-line-misc-info) mode-line-misc-info))
-  (setq mode-line-misc-info
-        (append mode-line-misc-info
-                '((which-function-mode ("" which-func-format))))))
+(which-function-mode 1)
 
 (use-package compile
   :ensure nil ;; built-in
