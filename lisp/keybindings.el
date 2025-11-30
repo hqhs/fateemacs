@@ -111,7 +111,8 @@
 (evil-define-key 'insert 'global
   (kbd "C-a") #'move-beginning-of-line
   (kbd "C-e") #'move-end-of-line
-  (kbd "C-SPC") #'company-complete-common)
+  (kbd "C-SPC") #'completion-at-point
+  )
 
 ;; (evil-define-key* '(insert replace visual operator) 'global
 ;;   (kbd "<escape>") #'evil-escape)

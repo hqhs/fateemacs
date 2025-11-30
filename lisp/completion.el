@@ -13,14 +13,10 @@
   :init
   (setq consult-narrow-key "<"))
 
-(use-package company
+(use-package corfu
   :straight t
-  :commands (company-complete-common)
   :init
-  (setq company-minimum-prefix-length 2
-	company-tooltip-limit 14
-	company-require-match 'never
-	company-backends '(company-capf))
+  (setq corfu-auto t
+        corfu-auto-prefix 2)
   :config
-  (global-company-mode)
-  (define-key company-active-map (kbd "C-w") nil t))
+  (global-corfu-mode))
