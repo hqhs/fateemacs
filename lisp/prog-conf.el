@@ -182,7 +182,6 @@
   (electric-indent-mode 1)        ; Electric indentation
   (+setup-todo-highlighting)      ; Highlight TODO keywords
   (+setup-code-folding)          ; Setup code folding
-  (+setup-which-function)        ; Show current function in mode-line
   ;; Enable useful minor modes
   (subword-mode 1)               ; Treat camelCase as separate words
   (show-paren-mode 1))           ; Show matching parentheses
