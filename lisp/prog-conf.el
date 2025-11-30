@@ -1,6 +1,7 @@
 ;; -*- lexical-binding: t -*-
 
 ;; Basic treesit setup
+(setq treesit-font-lock-level 3)
 (setq treesit-language-source-alist
    '((bash "https://github.com/tree-sitter/tree-sitter-bash")
      ;; NOTE(hqhs): treesit for c/c++ is optional because auto install doesn't
@@ -80,53 +81,6 @@
         (rust-mode       . rust-ts-mode)
         (go-mode         . go-ts-mode)))
 
-;; Tree-sitter face customization
-(defun +setup-treesit-faces ()
-  "Setup enhanced tree-sitter highlighting faces."
-  (custom-set-faces
-   ;; Function and method declarations
-   '(tree-sitter-hl-face:function.call ((t (:inherit font-lock-function-name-face :weight normal))))
-   '(tree-sitter-hl-face:function.method.call ((t (:inherit tree-sitter-hl-face:function.call))))
-   '(tree-sitter-hl-face:constructor ((t (:inherit tree-sitter-hl-face:function.call :weight bold))))
-
-   ;; Variables and properties
-   '(tree-sitter-hl-face:property ((t (:inherit font-lock-constant-face :slant normal))))
-   '(tree-sitter-hl-face:variable ((t (:inherit font-lock-variable-name-face))))
-   '(tree-sitter-hl-face:variable.parameter ((t (:inherit tree-sitter-hl-face:variable :slant italic))))
-
-   ;; Types and attributes
-   '(tree-sitter-hl-face:type ((t (:inherit font-lock-type-face :weight bold))))
-   '(tree-sitter-hl-face:type.argument ((t (:inherit tree-sitter-hl-face:type :weight normal))))
-   '(tree-sitter-hl-face:type.parameter ((t (:inherit tree-sitter-hl-face:type :weight normal :slant italic))))
-   '(tree-sitter-hl-face:attribute ((t (:inherit font-lock-preprocessor-face :slant italic))))
-
-   ;; Keywords and operators
-   '(tree-sitter-hl-face:keyword ((t (:inherit font-lock-keyword-face :weight bold))))
-   '(tree-sitter-hl-face:operator ((t (:inherit font-lock-operator-face :weight bold))))
-
-   ;; Constants and literals
-   '(tree-sitter-hl-face:constant ((t (:inherit font-lock-constant-face))))
-   '(tree-sitter-hl-face:constant.builtin ((t (:inherit font-lock-builtin-face :weight bold))))
-   '(tree-sitter-hl-face:string ((t (:inherit font-lock-string-face))))
-   '(tree-sitter-hl-face:string.special ((t (:inherit tree-sitter-hl-face:string :weight bold))))
-   '(tree-sitter-hl-face:embedded ((t (:inherit font-lock-variable-name-face :background "#232531"))))
-
-   ;; Comments and documentation
-   '(tree-sitter-hl-face:comment ((t (:inherit font-lock-comment-face))))
-   '(tree-sitter-hl-face:doc ((t (:inherit font-lock-doc-face))))
-
-   ;; Punctuation and brackets
-   '(tree-sitter-hl-face:punctuation.bracket ((t (:inherit font-lock-bracket-face :weight normal))))
-   '(tree-sitter-hl-face:punctuation.delimiter ((t (:inherit font-lock-delimiter-face :weight normal))))
-
-   ;; Labels and tags
-   '(tree-sitter-hl-face:label ((t (:inherit font-lock-property-face :weight bold))))
-   '(tree-sitter-hl-face:tag ((t (:inherit font-lock-function-name-face :weight bold)))))
-
-  ;; Set up general tree-sitter configuration
-  (setq treesit-font-lock-level 3)  ; Maximum highlighting level
-  )
-
 ;; Configure indent offset for different modes
 (setq c-ts-mode-indent-offset 2
       c++-ts-mode-indent-offset 2
@@ -136,9 +90,6 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; configure 'prog-mode
-
-;; Add tree-sitter setup to prog-mode-hook
-(add-hook 'prog-mode-hook #'+setup-treesit-faces)
 
 ;; Basic programming defaults
 (setq-default indent-tabs-mode nil          ; Use spaces instead of tabs

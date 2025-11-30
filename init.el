@@ -181,31 +181,3 @@
                 "--completion-style=detailed"
                 "--function-arg-placeholders" "--fallback-style=llvm"))
      (eglot-ignored-server-capabilities . t) (apheleia-inhibit . t))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(tree-sitter-hl-face:attribute ((t (:inherit font-lock-preprocessor-face :slant italic))))
- '(tree-sitter-hl-face:comment ((t (:inherit font-lock-comment-face))))
- '(tree-sitter-hl-face:constant ((t (:inherit font-lock-constant-face))))
- '(tree-sitter-hl-face:constant.builtin ((t (:inherit font-lock-builtin-face :weight bold))))
- '(tree-sitter-hl-face:constructor ((t (:inherit tree-sitter-hl-face:function.call :weight bold))))
- '(tree-sitter-hl-face:doc ((t (:inherit font-lock-doc-face))))
- '(tree-sitter-hl-face:embedded ((t (:inherit font-lock-variable-name-face :background "#232531"))))
- '(tree-sitter-hl-face:function.call ((t (:inherit font-lock-function-name-face :weight normal))))
- '(tree-sitter-hl-face:function.method.call ((t (:inherit tree-sitter-hl-face:function.call))))
- '(tree-sitter-hl-face:keyword ((t (:inherit font-lock-keyword-face :weight bold))))
- '(tree-sitter-hl-face:label ((t (:inherit font-lock-property-face :weight bold))))
- '(tree-sitter-hl-face:operator ((t (:inherit font-lock-operator-face :weight bold))))
- '(tree-sitter-hl-face:property ((t (:inherit font-lock-constant-face :slant normal))))
- '(tree-sitter-hl-face:punctuation.bracket ((t (:inherit font-lock-bracket-face :weight normal))))
- '(tree-sitter-hl-face:punctuation.delimiter ((t (:inherit font-lock-delimiter-face :weight normal))))
- '(tree-sitter-hl-face:string ((t (:inherit font-lock-string-face))))
- '(tree-sitter-hl-face:string.special ((t (:inherit tree-sitter-hl-face:string :weight bold))))
- '(tree-sitter-hl-face:tag ((t (:inherit font-lock-function-name-face :weight bold))))
- '(tree-sitter-hl-face:type ((t (:inherit font-lock-type-face :weight bold))))
- '(tree-sitter-hl-face:type.argument ((t (:inherit tree-sitter-hl-face:type :weight normal))))
- '(tree-sitter-hl-face:type.parameter ((t (:inherit tree-sitter-hl-face:type :weight normal :slant italic))))
- '(tree-sitter-hl-face:variable ((t (:inherit font-lock-variable-name-face))))
- '(tree-sitter-hl-face:variable.parameter ((t (:inherit tree-sitter-hl-face:variable :slant italic)))))
