@@ -117,28 +117,7 @@
 ;; I use evilem motions instead
 ;; (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 
-(use-package smartparens
-  :straight t
-  :hook ((prog-mode . smartparens-mode)
-         (text-mode . smartparens-mode)
-         (markdown-mode . smartparens-mode))
-  :config
-  ;; Expand {|} => { | }
-  ;; Expand {|} => {
-  ;;   |
-  ;; }
-  (dolist (brace '("(" "{" "["))
-      (sp-pair brace nil
-               :post-handlers '(("||\n[i]" "RET") ("| " "SPC"))
-               ;; Don't autopair opening braces if before a word character or
-               ;; other opening brace. The rationale: it interferes with manual
-               ;; balancing of braces, and is odd form to have s-exps with no
-               ;; whitespace in between, e.g. ()()(). Insert whitespace if
-               ;; genuinely want to start a new form in the middle of a word.
-               :unless '(sp-point-before-word-p sp-point-before-same-p)))
-
-  ;; Optional: load default config for common pairs
-  (require 'smartparens-config))
+(electric-pair-mode 1)
 
 ;; Highlight TODO/FIXME/NOTE/HACK keywords
 (defface +prog-todo-face
