@@ -13,11 +13,13 @@
     (message "No file associated with buffer")))
 
 ;;;###autoload
-(defun +fate/search-project-for-symbol-at-point (symbol)
-  "Searches the current project using ripgrep"
-  (interactive (list (regexp-quote (thing-at-point 'symbol t))))
-  (let ((dir (project-root (project-current t))))
-    (consult-ripgrep dir symbol)))
+(defun +fate/search-project-for-symbol-at-point ()
+  "Search project for symbol at point using ripgrep."
+  (interactive)
+  (let ((symbol (thing-at-point 'symbol t)))
+    (unless symbol
+      (user-error "No symbol at point"))
+    (+fate--rg-search (project-root (project-current t)) nil symbol)))
 
 ;;;###autoload
 (defun +fate/search-symbol-forward (count symbol)
@@ -55,11 +57,12 @@
   (interactive "P")
   (+fate--rg-search (read-directory-name "Search in: ") arg))
 
-(defun +fate--rg-search (directory &optional include-hidden)
+(defun +fate--rg-search (directory &optional include-hidden query)
   "Run ripgrep in DIRECTORY. With INCLUDE-HIDDEN, search hidden files."
   (unless (executable-find "rg")
     (user-error "Couldn't find ripgrep in your PATH"))
-  (let* ((query (or (when (use-region-p)
+  (let* ((query (or query
+                    (when (use-region-p)
                       (buffer-substring-no-properties (region-beginning) (region-end)))
                     (read-string "Search: ")))
          (default-directory directory)
