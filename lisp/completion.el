@@ -7,12 +7,6 @@
 ;; NOTE(hqhs): fido ("fake ido" uses icomplete settings under the hood)
 (setq icomplete-prospects-height 15)
 
-(use-package consult
-  :straight t
-  :defer t
-  :init
-  (setq consult-narrow-key "<"))
-
 (use-package corfu
   :straight t
   :init

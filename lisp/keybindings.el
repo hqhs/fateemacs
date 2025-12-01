@@ -70,10 +70,10 @@
   (kbd "<leader>cl") #'downcase-dwim
 
   ;; search
-  (kbd "<leader>si") #'consult-imenu
-  (kbd "<leader>sp") #'consult-ripgrep
+  (kbd "<leader>si") #'imenu
+  (kbd "<leader>sp") #'project-find-regexp
   (kbd "<leader>sP") #'+fate/search-other-project
-  (kbd "<leader>sf") #'consult-line
+  (kbd "<leader>sf") #'occur
   (kbd "<leader>*")  #'+fate/search-project-for-symbol-at-point
   (kbd "<leader>sd") #'+fate/search-cwd
   (kbd "<leader>sD") #'+fate/search-other-cwd

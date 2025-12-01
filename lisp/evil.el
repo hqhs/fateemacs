@@ -34,7 +34,6 @@
           ibuffer
           (corfu :defer t)     ; Only load when corfu is loaded
           vertico
-          consult
           ;; minibuffer
           compile
           buff-menu
@@ -44,7 +43,9 @@
           info
           which-key))
   :config
-  (evil-collection-init))
+  (evil-collection-init)
+  ;; (evil-set-initial-state 'occur-mode 'normal)
+  )
 
 (use-package evil-escape
   :straight t

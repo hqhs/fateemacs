@@ -227,12 +227,13 @@
 (use-package ws-butler
   :straight t
   :init
-    ;; ws-butler normally preserves whitespace in the buffer (but strips it from
+  ;; ws-butler normally preserves whitespace in the buffer (but strips it from
   ;; the written file). While sometimes convenient, this behavior is not
   ;; intuitive. To the average user it looks like whitespace cleanup is failing,
   ;; which causes folks to redundantly install their own.
   (setq ws-butler-keep-whitespace-before-point nil
-        ws-butler-global-exempt-modes '(python-mode python-ts-mode))
+        ;; ws-butler-global-exempt-modes '(python-mode python-ts-mode)
+        )
   :config
   (ws-butler-global-mode))
 
