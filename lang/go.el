@@ -36,15 +36,3 @@
   :config
   ;; Your existing go-specific functions can stay
   (add-hook 'go-ts-mode-hook '+fate/go-after-save-hook))
-
-(use-package mmm-mode
-  :straight t
-  :config
-  (mmm-add-mode-ext-class 'go-ts-mode nil 'go-sql)
-  (mmm-add-classes
-   '((go-sql
-      :submode sql-mode
-      :face mmm-code-submode-face
-      :front "\\(\"\\|`\\)[\\n[:space:]]*\\(SELECT\\|INSERT\\|UPDATE\\|DELETE\\|CREATE\\|ALTER\\|DROP\\)"
-      :back "\\(\"\\|`\\);")))
-  )
