@@ -31,7 +31,7 @@
   (kbd "<leader>fi") #'ibuffer
   (kbd "<leader>ff") #'ido-switch-buffer
   (kbd "<leader>fp") #'project-switch-to-buffer
-  (kbd "<leader>fo") #'consult-buffer-other-window
+  (kbd "<leader>fo") #'switch-to-buffer-other-window
   (kbd "<leader>fn") #'evil-buffer-new
   (kbd "<leader>fr") #'revert-buffer
   (kbd "<leader>fs") #'save-buffer

@@ -29,13 +29,6 @@
 (setq project-switch-use-entire-frame t)  ; Use full frame for project commands
 (setq project-kill-buffers-display-buffer-list t)  ; Show buffer list when killing
 
-;; Optional: Integration with consult for better UI
-(with-eval-after-load 'consult
-  ;; Use consult-ripgrep instead of project-find-regexp when available
-  (define-key project-prefix-map (kbd "g") #'consult-ripgrep)
-  (evil-define-key '(normal visual) 'global
-    (kbd "<leader>pg") #'consult-ripgrep))
-
 ;; Optional: Make project commands available in more buffers
 (setq project-switch-commands-respect-buffer t)
 

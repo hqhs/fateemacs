@@ -30,9 +30,6 @@
           dired
           magit
           ibuffer
-          (corfu :defer t)     ; Only load when corfu is loaded
-          vertico
-          ;; minibuffer
           compile
           buff-menu
           custom

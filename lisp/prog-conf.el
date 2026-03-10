@@ -203,14 +203,6 @@
 ;; Built-in whitespace cleanup on save (replaces ws-butler)
 (add-hook 'before-save-hook #'delete-trailing-whitespace)
 
-(defun +fate/sp-escape-and-remove-overlay ()
-  "Combine sp-remove-active-pair-overlay and escape to normal state."
-  (interactive)
-  (sp-remove-active-pair-overlay)
-  (when (and (bound-and-true-p evil-mode)
-             (eq evil-state 'insert))
-    (evil-normal-state)))
-
 ;; Custom format-on-save (replaces apheleia, no external dep)
 (defvar-local +fate-format-command nil
   "Formatter command as a list of strings. Buffer-local.
