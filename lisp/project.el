@@ -9,7 +9,7 @@
         (project-find-regexp "Find regexp" "g")
         (project-dired "Find directory" "d")
         (project-eshell "Eshell" "e")
-        (project-compile "Compile" "c")))
+        (+fate/project-compile "Compile" "c")))
 
 ;; By default, project.el searches for either .git, .hg, etc.
 ;; Add more root markers here if needed
@@ -22,7 +22,22 @@
 (setq project-list-file (concat fate-cache-dir "projects"))
 
 ;; Bind keys in the project map (accessed via C-x p by default)
-(define-key project-prefix-map (kbd "m") #'project-compile)
+(defvar +fate--project-compile-commands (make-hash-table :test 'equal)
+  "Hash table mapping project roots to their compile commands.")
+
+(defun +fate/project-compile ()
+  "Like `project-compile', but remembers the compile command per project."
+  (interactive)
+  (let* ((root (project-root (project-current t)))
+         (default-directory root)
+         (saved (gethash root +fate--project-compile-commands))
+         (compile-command (or saved compile-command)))
+    (call-interactively #'compile)
+    (puthash root compile-command +fate--project-compile-commands)))
+
+(add-to-list 'savehist-additional-variables '+fate--project-compile-commands)
+
+(define-key project-prefix-map (kbd "m") #'+fate/project-compile)
 (define-key project-prefix-map (kbd "k") #'project-kill-buffers)
 
 ;; Optional: Configure project switching behavior

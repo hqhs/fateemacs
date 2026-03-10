@@ -94,7 +94,7 @@
   ;; project
   (kbd "<leader>SPC") #'project-find-file
   (kbd "<leader>pp")  #'project-switch-project
-  (kbd "<leader>pc")  #'project-compile
+  (kbd "<leader>pc")  #'+fate/project-compile
   (kbd "<leader>pk")  #'project-kill-buffers
   (kbd "<leader>pd")  #'project-dired
   (kbd "<leader>ps")  #'project-shell
