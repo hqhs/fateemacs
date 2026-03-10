@@ -13,23 +13,30 @@
   (if (minibufferp)
       (completion--in-region start end collection predicate)
     (let* ((initial (buffer-substring-no-properties start end))
-           (completion (completing-read
-                        "Complete: " collection predicate nil initial)))
-      (when completion
-        (delete-region start end)
-        (insert completion)))))
+           ;; Pre-resolve candidates into a flat list so icomplete
+           ;; doesn't choke on programmatic completion tables.
+           (candidates (all-completions initial collection predicate)))
+      (when candidates
+        (let ((chosen (completing-read "Complete: " candidates nil nil initial)))
+          (when (and chosen (not (string-empty-p chosen)))
+            (delete-region start end)
+            (insert chosen)))))))
 
 (setq completion-in-region-function #'+fate/completion-in-region)
 
 ;; Custom dabbrev capf (replaces cape-dabbrev)
+(require 'dabbrev)
+
 (defun +fate/dabbrev-capf ()
   "Completion-at-point function for dynamic abbreviation."
   (let ((bounds (bounds-of-thing-at-point 'symbol)))
     (when bounds
-      (list (car bounds) (cdr bounds)
-            (dabbrev--find-all-expansions
-             (buffer-substring-no-properties (car bounds) (cdr bounds))
-             nil)))))
+      (dabbrev--reset-global-variables)
+      (let ((expansions (dabbrev--find-all-expansions
+                         (buffer-substring-no-properties (car bounds) (cdr bounds))
+                         nil)))
+        (when expansions
+          (list (car bounds) (cdr bounds) expansions))))))
 
 (add-hook 'prog-mode-hook
           (lambda () (add-hook 'completion-at-point-functions #'+fate/dabbrev-capf 20 t)))
