@@ -45,27 +45,26 @@
   :config
   (global-hl-line-mode 1))
 
-(use-package ligature
-  :straight t
-  :config
-  ;; Enable ligatures in programming modes
-  (ligature-set-ligatures 'prog-mode '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\" "{-" "::"
-				       ":::" ":=" "!!" "!=" "!==" "-}" "----" "-->" "->" "->>"
-				       "-<" "-<<" "-~" "#{" "#[" "##" "###" "####" "#(" "#?" "#_"
-				       "#_(" ".-" ".=" ".." "..<" "..." "?=" "??"
-               ;; ";;"
-               "/*" "/**"
-				       "/=" "/==" "/>"
-               ;; "//" "///"
-               "&&" "||" "||=" "|=" "|>" "^=" "$>"
-				       "++" "+++" "+>" "=:=" "==" "===" "==>" "=>" "=>>" "<="
-				       "=<<" "=/=" ">-" ">=" ">=>" ">>" ">>-" ">>=" ">>>" "<*"
-				       "<*>" "<|" "<|>" "<$" "<$>" "<!--" "<-" "<--" "<->" "<+"
-				       "<+>" "<=" "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<"
-				       "<~" "<~~" "</" "</>" "~@" "~-" "~>" "~~" "~~>" "%%"))
-  ;; Enables ligature checks globally in all buffers. You can also do it
-  ;; per mode with `ligature-mode'.
-  (global-ligature-mode t))
+;; Fira Code ligatures via built-in HarfBuzz (Emacs 28+, no external dep)
+(when (and (fboundp 'set-fontset-font) (>= emacs-major-version 28))
+  (let ((ligatures '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\"
+                     "{-" "::" ":::" ":=" "!!" "!=" "!==" "-}" "----"
+                     "-->" "->" "->>" "-<" "-<<" "-~" "#{" "#[" "##"
+                     "###" "####" "#(" "#?" "#_" "#_(" ".-" ".=" ".."
+                     "..<" "..." "?=" "??" "/*" "/**" "/=" "/==" "/>"
+                     "&&" "||" "||=" "|=" "|>" "^=" "$>" "++" "+++"
+                     "+>" "=:=" "==" "===" "==>" "=>" "=>>" "<="
+                     "=<<" "=/=" ">-" ">=" ">=>" ">>" ">>-" ">>="
+                     ">>>" "<*" "<*>" "<|" "<|>" "<$" "<$>" "<!--"
+                     "<-" "<--" "<->" "<+" "<+>" "<=" "<==" "<=>"
+                     "<=<" "<>" "<<" "<<-" "<<=" "<<<" "<~" "<~~"
+                     "</" "</>" "~@" "~-" "~>" "~~" "~~>" "%%")))
+    (dolist (pat ligatures)
+      (set-char-table-range
+       composition-function-table
+       (aref pat 0)
+       (nconc (char-table-range composition-function-table (aref pat 0))
+              (list (vector (regexp-quote pat) 0 'compose-gstring-for-graphic)))))))
 
 (use-package doom-themes
   :straight t
@@ -92,7 +91,3 @@
   ;; Corrects (and improves) org-mode's native fontification.
   (doom-themes-org-config))
 
-(use-package solaire-mode
-  :straight t
-  :config
-  (solaire-global-mode t))

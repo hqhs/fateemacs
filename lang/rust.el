@@ -5,9 +5,10 @@
   :hook ((rust-ts-mode . eglot-ensure))
   :config
 
-  (add-hook 'rust-ts-mode-hook #'apheleia-mode)
-  (setf (alist-get 'rustfmt apheleia-formatters)
-        '("rustfmt" "--edition" "2024" "--quiet" "--emit" "stdout"))
+  (add-hook 'rust-ts-mode-hook
+            (lambda ()
+              (setq-local +fate-format-command
+                          '("rustfmt" "--edition" "2024" "--quiet" "--emit" "stdout"))))
 
   (add-to-list 'compilation-error-regexp-alist 'rust-cargo)
   (add-to-list 'compilation-error-regexp-alist-alist

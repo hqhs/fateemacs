@@ -47,18 +47,39 @@
   ;; (evil-set-initial-state 'occur-mode 'normal)
   )
 
-(use-package evil-escape
-  :straight t
-  :after evil
-  :init
-  (setq evil-escape-excluded-states '(normal visual multiedit emacs motion))
-  :config
-  (evil-escape-mode)
+;; Custom evil-escape replacement (no external dep)
+;; "jk" in insert mode → normal mode, with configurable timeout
+(defvar +fate-escape-key-sequence "jk")
+(defvar +fate-escape-timeout 0.2)
+(defvar +fate--escape-timer nil)
 
-  ;; First remove the global C-g binding
+(defun +fate--escape-insert-first-key ()
+  "Handle first key of escape sequence in insert state."
+  (interactive)
+  (insert (aref +fate-escape-key-sequence 0))
+  (setq +fate--escape-timer
+        (run-with-timer
+         +fate-escape-timeout nil
+         (lambda () (setq +fate--escape-timer nil)))))
+
+(defun +fate--escape-insert-second-key ()
+  "Handle second key of escape sequence in insert state."
+  (interactive)
+  (if +fate--escape-timer
+      (progn
+        (cancel-timer +fate--escape-timer)
+        (setq +fate--escape-timer nil)
+        (delete-char -1)
+        (evil-normal-state))
+    (insert (aref +fate-escape-key-sequence 1))))
+
+(with-eval-after-load 'evil
+  (evil-define-key 'insert 'global
+    (kbd (string (aref +fate-escape-key-sequence 0))) #'+fate--escape-insert-first-key
+    (kbd (string (aref +fate-escape-key-sequence 1))) #'+fate--escape-insert-second-key)
+
+  ;; C-g → escape from evil states, keyboard-quit otherwise
   (global-unset-key (kbd "C-g"))
-
-  ;; Make C-g work like escape, but fall back to keyboard-quit when not in evil states
   (global-set-key (kbd "C-g")
                   (lambda ()
                     (interactive)
@@ -67,7 +88,7 @@
                           (evil-replace-state-p)
                           (evil-visual-state-p)
                           (evil-operator-state-p))
-                      (evil-escape))
+                      (evil-normal-state))
                      (t
                       (keyboard-quit))))))
 

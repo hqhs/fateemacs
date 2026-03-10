@@ -202,8 +202,6 @@
   :init
   (editorconfig-mode)
   :config
-  (when (require 'ws-butler nil t)
-    (setq editorconfig-trim-whitespaces-mode 'ws-butler-mode))
 
   ;; Fix #5057 archives don't need editorconfig settings, and they may otherwise
   ;; interfere with the process of opening them (office formats are zipped XML
@@ -224,32 +222,42 @@
         dtrt-indent-max-lines 2000)
   (push '(t tab-width) dtrt-indent-hook-generic-mapping-list))
 
-(use-package ws-butler
-  :straight t
-  :init
-  ;; ws-butler normally preserves whitespace in the buffer (but strips it from
-  ;; the written file). While sometimes convenient, this behavior is not
-  ;; intuitive. To the average user it looks like whitespace cleanup is failing,
-  ;; which causes folks to redundantly install their own.
-  (setq ws-butler-keep-whitespace-before-point nil
-        ;; ws-butler-global-exempt-modes '(python-mode python-ts-mode)
-        )
-  :config
-  (ws-butler-global-mode))
+;; Built-in whitespace cleanup on save (replaces ws-butler)
+(add-hook 'before-save-hook #'delete-trailing-whitespace)
 
 (defun +fate/sp-escape-and-remove-overlay ()
-  "Combine sp-remove-active-pair-overlay and +fate/sp-escape-and-evil-escape."
+  "Combine sp-remove-active-pair-overlay and escape to normal state."
   (interactive)
   (sp-remove-active-pair-overlay)
   (when (and (bound-and-true-p evil-mode)
-             (bound-and-true-p evil-escape-mode)
              (eq evil-state 'insert))
-    (evil-escape)))
+    (evil-normal-state)))
 
-(use-package apheleia
-  :straight t
-  ;; FIXME: doesn't work with cargo fmt
-  )
+;; Custom format-on-save (replaces apheleia, no external dep)
+(defvar-local +fate-format-command nil
+  "Formatter command as a list of strings. Buffer-local.
+The formatter should read stdin and write to stdout.")
+
+(defun +fate/format-buffer-on-save ()
+  "Format buffer using `+fate-format-command' before saving.
+Does nothing if `+fate-format-command' is nil."
+  (when +fate-format-command
+    (let* ((orig-point (point))
+           (orig-buf (current-buffer))
+           (output-buf (generate-new-buffer " *fate-fmt*"))
+           (exit-code (apply #'call-process-region
+                             (point-min) (point-max)
+                             (car +fate-format-command)
+                             nil output-buf nil
+                             (cdr +fate-format-command))))
+      (if (zerop exit-code)
+          (progn
+            (replace-buffer-contents output-buf)
+            (goto-char (min orig-point (point-max))))
+        (message "Formatter %s failed (exit %d)" (car +fate-format-command) exit-code))
+      (kill-buffer output-buf))))
+
+(add-hook 'before-save-hook #'+fate/format-buffer-on-save)
 
 ;; TODO: multiple cursors support
 

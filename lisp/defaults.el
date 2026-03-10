@@ -117,6 +117,24 @@
 ;; Emacs "updates" its ui more often than it needs to, so slow it down slightly
 (setq idle-update-delay 1.0)  ; default is 0.5
 
+;; PERF: Don't auto-adjust window height for tall lines
+(setq auto-window-vscroll nil)
+
+;; PERF: Horizontal scrolling tuning
+(setq hscroll-margin 2
+      hscroll-step 1)
+
+;; PERF: Blinking cursor causes needless redraws and can freeze on macOS
+(blink-cursor-mode -1)
+(setq blink-matching-paren nil)
+
+;; PERF: Don't stretch cursor for wide chars (tabs etc.)
+(setq x-stretch-cursor nil)
+
+;; PERF: PGTK-specific latency reduction
+(when (boundp 'pgtk-wait-for-event-timeout)
+  (setq pgtk-wait-for-event-timeout 0.001))
+
 ;; Font compacting can be terribly expensive, especially for rendering icon
 ;; fonts on Windows. Whether disabling it has a notable affect on Linux and Mac
 ;; hasn't been determined, but do it anyway, just in case. This increases memory
@@ -124,22 +142,15 @@
 (setq inhibit-compacting-font-caches t)
 
 ;; Increase how much is read from processes in a single chunk (default is 4kb).
-;; This is further increased elsewhere, where needed (like our LSP module).
-(setq read-process-output-max (* 64 1024))  ; 64kb
+;; 1MB for LSP responsiveness.
+(setq read-process-output-max (* 1024 1024))  ; 1mb
 
 ;; Introduced in Emacs HEAD (b2f8c9f), this inhibits fontification while
 ;; receiving input, which should help a little with scrolling performance.
 (setq redisplay-skip-fontification-on-input t)
 
-;; HACK: I intentionally avoid calling `menu-bar-mode', `tool-bar-mode', and
-;;   `scroll-bar-mode' because their manipulation of frame parameters can
-;;   trigger/queue a superfluous (and expensive, depending on the window system)
-;;   frame redraw at startup.
-(push '(menu-bar-lines . 0)   default-frame-alist)
-(push '(tool-bar-lines . 0)   default-frame-alist)
-(push '(vertical-scroll-bars) default-frame-alist)
-;; And set these to nil so users don't have to toggle the modes twice to
-;; reactivate them.
+;; Menu/tool/scroll bars are already disabled in early-init.el via
+;; default-frame-alist. Set mode vars to nil so toggling works correctly.
 (setq menu-bar-mode nil
       tool-bar-mode nil
       scroll-bar-mode nil)

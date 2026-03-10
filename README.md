@@ -34,6 +34,22 @@ brew install global ripgrep
 
 This is my attempt to provide sane default config there I try to disable as much as possible and still provide enought features for muscle memory to work.
 
+### Testing
+
+ERT (Emacs Regression Testing) tests live in `test/`. Run them all:
+```bash
+./test/run-tests.sh
+```
+
+Or run a single test file:
+```bash
+emacs -Q --batch -l test/test-config-loads.el -f ert-run-tests-batch-and-exit
+```
+
+Test files:
+- `test/test-config-loads.el` -- validates all `.el` files are valid elisp, checks key definitions exist
+- `test/test-autoloads.el` -- unit tests for `+fate/*` helper functions (search, copy-path, rg integration)
+
 ### Known issues
 
 Do not use GUI on macOS.

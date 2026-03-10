@@ -66,9 +66,29 @@
 
 (+fate-load-lisp "straight.el")
 ;; requiring it before straight is loaded breaks clean installation
-(use-package cl-lib ;; TODO(hqhs): where should it live?..
-  :ensure nil ;; built-in
-  )
+(use-package cl-lib
+  :ensure nil)
+
+;;; Utility macros (custom lisp, no deps)
+
+(defmacro +fate/add-transient-hook! (hook-or-function &rest forms)
+  "Attach FORMS to HOOK-OR-FUNCTION. Runs once, then removes itself.
+If HOOK-OR-FUNCTION is a hook symbol, adds to hook. If a function symbol, advises it."
+  (declare (indent 1))
+  (let ((fn (gensym "+fate-transient-")))
+    `(progn
+       (fset ',fn (lambda (&rest _)
+                    ,@forms
+                    (if (functionp ,hook-or-function)
+                        (advice-remove ,hook-or-function #',fn)
+                      (remove-hook ,hook-or-function #',fn))
+                    (fmakunbound ',fn)))
+       (if (functionp ,hook-or-function)
+           (advice-add ,hook-or-function :before #',fn)
+         (add-hook ,hook-or-function #',fn)))))
+
+;; Large file protection: auto-enable so-long-mode (built-in) for huge files
+(global-so-long-mode 1)
 
 (+fate-load-lisp "monokai-theme.el")
 (+fate-load-lisp "autoloads.el")

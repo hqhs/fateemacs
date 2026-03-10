@@ -12,17 +12,17 @@
   :straight t
   :config
   ;; go with sql queries
-  (define-hostmode poly-go-hostmode :mode 'go-ts-mode)
-  (define-innermode poly-sql-innermode
-    :mode 'sql-mode
-    :head-matcher "\\(\"\\|`\\)[\\n[:space:]]*\\(SELECT\\|INSERT\\|UPDATE\\|DELETE\\|CREATE\\|ALTER\\|DROP\\)"
-    :tail-matcher "\\(\"\\|`\\);"
-    :head-mode 'host
-    :tail-mode 'host)
-  (define-polymode poly-go-sql-mode
-    :hostmode 'poly-go-hostmode
-    :innermodes '(poly-sql-innermode))
-  (add-to-list 'auto-mode-alist '("\\.go\\'" . poly-go-sql-mode))
+  ;; (define-hostmode poly-go-hostmode :mode 'go-ts-mode)
+  ;; (define-innermode poly-sql-innermode
+  ;;   :mode 'sql-mode
+  ;;   :head-matcher "\\(\"\\|`\\)[\\n[:space:]]*\\(SELECT\\|INSERT\\|UPDATE\\|DELETE\\|CREATE\\|ALTER\\|DROP\\)"
+  ;;   :tail-matcher "\\(\"\\|`\\);"
+  ;;   :head-mode 'host
+  ;;   :tail-mode 'host)
+  ;; (define-polymode poly-go-sql-mode
+  ;;   :hostmode 'poly-go-hostmode
+  ;;   :innermodes '(poly-sql-innermode))
+  ;; (add-to-list 'auto-mode-alist '("\\.go\\'" . poly-go-sql-mode))
   ;; go templates with c++
   (define-hostmode poly-c++-hostmode :mode 'c++-ts-mode)
   (define-innermode poly-go-template-innermode
