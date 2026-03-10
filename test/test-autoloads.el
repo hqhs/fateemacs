@@ -63,24 +63,8 @@
     (should-error (+fate--rg-search "/tmp" nil "test")
                   :type 'user-error)))
 
-;;; +fate/format-buffer-on-save
-
-(ert-deftest test-fate/format-buffer-noop-when-no-command ()
-  "Should do nothing when +fate-format-command is nil."
-  (with-temp-buffer
-    (insert "hello  ")
-    (let ((+fate-format-command nil))
-      (+fate/format-buffer-on-save)
-      (should (string= (buffer-string) "hello  ")))))
-
-(ert-deftest test-fate/format-buffer-applies-formatter ()
-  "Should pipe buffer through formatter and replace contents."
-  (with-temp-buffer
-    (insert "hello world")
-    ;; Use 'tr' to uppercase as a simple test formatter
-    (let ((+fate-format-command '("tr" "a-z" "A-Z")))
-      (+fate/format-buffer-on-save)
-      (should (string= (buffer-string) "HELLO WORLD")))))
+;;; +fate/format-after-save (async formatter)
+;; Note: async formatter tests are in test/test-async-format.el
 
 ;;; provide
 (provide 'test-autoloads)

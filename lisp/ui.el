@@ -27,26 +27,6 @@
   :config
   (global-hl-line-mode 1))
 
-;; Fira Code ligatures via built-in HarfBuzz (Emacs 28+, no external dep)
-(when (and (fboundp 'set-fontset-font) (>= emacs-major-version 28))
-  (let ((ligatures '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\"
-                     "{-" "::" ":::" ":=" "!!" "!=" "!==" "-}" "----"
-                     "-->" "->" "->>" "-<" "-<<" "-~" "#{" "#[" "##"
-                     "###" "####" "#(" "#?" "#_" "#_(" ".-" ".=" ".."
-                     "..<" "..." "?=" "??" "/*" "/**" "/=" "/==" "/>"
-                     "&&" "||" "||=" "|=" "|>" "^=" "$>" "++" "+++"
-                     "+>" "=:=" "==" "===" "==>" "=>" "=>>" "<="
-                     "=<<" "=/=" ">-" ">=" ">=>" ">>" ">>-" ">>="
-                     ">>>" "<*" "<*>" "<|" "<|>" "<$" "<$>" "<!--"
-                     "<-" "<--" "<->" "<+" "<+>" "<=" "<==" "<=>"
-                     "<=<" "<>" "<<" "<<-" "<<=" "<<<" "<~" "<~~"
-                     "</" "</>" "~@" "~-" "~>" "~~" "~~>" "%%")))
-    (dolist (pat ligatures)
-      (set-char-table-range
-       composition-function-table
-       (aref pat 0)
-       (nconc (char-table-range composition-function-table (aref pat 0))
-              (list (vector (regexp-quote pat) 0 'compose-gstring-for-graphic)))))))
 
 ;; Font
 (set-face-attribute 'default nil

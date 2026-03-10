@@ -26,7 +26,8 @@
   (setq evil-collection-key-blacklist '("SPC")  ; Don't bind leader key
         ;; evil-collection-setup-minibuffer t
         evil-collection-mode-list    ; Explicitly list modes we want to configure
-        '(xref
+        '(corfu
+          xref
           dired
           magit
           ibuffer
@@ -36,7 +37,8 @@
           (org :after org)     ; Only after org is loaded
           help
           info
-          which-key))
+          which-key)
+        evil-collection-corfu-key-themes '(default magic-return))
   :config
   (evil-collection-init)
   ;; (evil-set-initial-state 'occur-mode 'normal)

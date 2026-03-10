@@ -33,12 +33,16 @@ TRANSIENT_HASH="3e30f5bff633a1d0d720305f6c8b5758b8ff1997"
 WITH_EDITOR_HASH="5db5f0eb2202f52d44f529fe00654c866bb64eb1"
 DASH_HASH="5df7605da5a080df769d4f260034fb0e5e86a7a4"
 COMPAT_HASH="cccd41f549fa88031a32deb26253b462021d7e12" # 30.1.0.1
+# Snippets:
+YASNIPPET_HASH="c1e6ff23e9af16b856c88dfaab9d3ad7b746ad37"
+# Completion:
+CORFU_HASH="d2a995c5c732d0fc439efe09440870a9de779a74"
 
 # ── vendor function ──────────────────────────────────────────────────
 
 vendor() {
   local name="$1" url="$2" hash="$3"
-  local dest="$VENDOR_DIR/$name"
+  local dest="$(pwd)/$VENDOR_DIR/$name"
 
   if [ -d "$dest" ]; then
     echo "  skip $name (already exists)"
@@ -103,5 +107,11 @@ vendor with-editor     https://github.com/magit/with-editor.git          "$WITH_
 vendor dash            https://github.com/magnars/dash.el.git            "$DASH_HASH"
 vendor compat          https://github.com/emacs-compat/compat.git       "$COMPAT_HASH"
 
+echo "Snippets:"
+vendor yasnippet       https://github.com/joaotavora/yasnippet.git     "$YASNIPPET_HASH"
+
+echo "Completion:"
+vendor corfu           https://github.com/minad/corfu.git              "$CORFU_HASH"
+
 echo
-echo "Done. Now: git add vendor/ && git commit -m 'vendor evil + magit'"
+echo "Done. Now: git add vendor/ && git commit -m 'vendor evil + magit + yasnippet'"

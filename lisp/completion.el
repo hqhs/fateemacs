@@ -7,22 +7,16 @@
 ;; TAB completes, then indents
 (setq tab-always-indent 'complete)
 
-;; Redirect in-buffer completion to the minibuffer (same UI as M-x)
-(defun +fate/completion-in-region (start end collection &optional predicate)
-  "Complete in-region via the minibuffer so fido-vertical-mode handles display."
-  (if (minibufferp)
-      (completion--in-region start end collection predicate)
-    (let* ((initial (buffer-substring-no-properties start end))
-           ;; Pre-resolve candidates into a flat list so icomplete
-           ;; doesn't choke on programmatic completion tables.
-           (candidates (all-completions initial collection predicate)))
-      (when candidates
-        (let ((chosen (completing-read "Complete: " candidates nil nil initial)))
-          (when (and chosen (not (string-empty-p chosen)))
-            (delete-region start end)
-            (insert chosen)))))))
-
-(setq completion-in-region-function #'+fate/completion-in-region)
+;; In-buffer completion popup (corfu)
+(use-package corfu
+  :ensure nil ;; vendored
+  :hook (prog-mode . corfu-mode)
+  :custom
+  (corfu-auto nil)            ; Manual trigger only (C-SPC)
+  (corfu-cycle t)             ; Cycle through candidates
+  (corfu-preselect 'prompt)   ; Don't preselect first candidate
+  (corfu-quit-no-match t)     ; Quit when no match
+  (corfu-count 10))           ; Max candidates shown
 
 ;; Custom dabbrev capf (replaces cape-dabbrev)
 (require 'dabbrev)

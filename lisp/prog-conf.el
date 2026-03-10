@@ -203,31 +203,74 @@
 ;; Built-in whitespace cleanup on save (replaces ws-butler)
 (add-hook 'before-save-hook #'delete-trailing-whitespace)
 
-;; Custom format-on-save (replaces apheleia, no external dep)
+;; Async format-on-save (apheleia-style, no external dep)
+;; Runs formatter asynchronously after save, then silently re-saves.
+;; Uses buffer-hash to detect edits during formatting and abort if needed.
+
 (defvar-local +fate-format-command nil
   "Formatter command as a list of strings. Buffer-local.
 The formatter should read stdin and write to stdout.")
 
-(defun +fate/format-buffer-on-save ()
-  "Format buffer using `+fate-format-command' before saving.
-Does nothing if `+fate-format-command' is nil."
-  (when +fate-format-command
-    (let* ((orig-point (point))
-           (orig-buf (current-buffer))
-           (output-buf (generate-new-buffer " *fate-fmt*"))
-           (exit-code (apply #'call-process-region
-                             (point-min) (point-max)
-                             (car +fate-format-command)
-                             nil output-buf nil
-                             (cdr +fate-format-command))))
-      (if (zerop exit-code)
-          (progn
-            (replace-buffer-contents output-buf)
-            (goto-char (min orig-point (point-max))))
-        (message "Formatter %s failed (exit %d)" (car +fate-format-command) exit-code))
-      (kill-buffer output-buf))))
+(defvar-local +fate--format-process nil
+  "Current async formatter process for this buffer.")
 
-(add-hook 'before-save-hook #'+fate/format-buffer-on-save)
+(defvar +fate--format-after-save-in-progress nil
+  "Non-nil while re-saving after async format, to prevent loops.")
+
+(defun +fate--buffer-hash ()
+  "Return a content hash of the current buffer."
+  (if (fboundp 'buffer-hash)
+      (buffer-hash)
+    (md5 (current-buffer))))
+
+(defun +fate--format-apply (buf output-buf saved-hash)
+  "Apply formatted OUTPUT-BUF contents to BUF if it hasn't changed since SAVED-HASH."
+  (when (buffer-live-p buf)
+    (with-current-buffer buf
+      (if (not (equal saved-hash (+fate--buffer-hash)))
+          (message "Fate fmt: buffer changed during format, skipping")
+        (let ((orig-point (point)))
+          (replace-buffer-contents output-buf)
+          (goto-char (min orig-point (point-max)))
+          ;; Re-save silently with loop guard
+          (when buffer-file-name
+            (let ((+fate--format-after-save-in-progress t))
+              (save-buffer)))))))
+  (when (buffer-live-p output-buf)
+    (kill-buffer output-buf)))
+
+(defun +fate/format-after-save ()
+  "Asynchronously format buffer using `+fate-format-command' after saving."
+  (when (and +fate-format-command
+             (not +fate--format-after-save-in-progress))
+    ;; Kill any in-flight formatter for this buffer
+    (when (and +fate--format-process (process-live-p +fate--format-process))
+      (delete-process +fate--format-process))
+    (let* ((buf (current-buffer))
+           (saved-hash (+fate--buffer-hash))
+           (output-buf (generate-new-buffer " *fate-fmt*"))
+           (cmd (car +fate-format-command))
+           (args (cdr +fate-format-command))
+           (content (buffer-substring-no-properties (point-min) (point-max)))
+           (proc (make-process
+                  :name "fate-fmt"
+                  :buffer output-buf
+                  :command (cons cmd args)
+                  :connection-type 'pipe
+                  :noquery t
+                  :sentinel
+                  (lambda (proc _event)
+                    (unless (process-live-p proc)
+                      (if (zerop (process-exit-status proc))
+                          (+fate--format-apply buf output-buf saved-hash)
+                        (message "Fate fmt: %s failed (exit %d)" cmd (process-exit-status proc))
+                        (when (buffer-live-p output-buf)
+                          (kill-buffer output-buf))))))))
+      (setq +fate--format-process proc)
+      (process-send-string proc content)
+      (process-send-eof proc))))
+
+(add-hook 'after-save-hook #'+fate/format-after-save)
 
 ;; TODO: multiple cursors support
 
