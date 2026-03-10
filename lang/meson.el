@@ -2,7 +2,6 @@
 
 (use-package meson-mode
   :ensure t
-  :straight t
   :mode (("\\.meson\\'" . meson-mode)
          ("meson\\.build\\'" . meson-mode)
          ("meson_options\\.txt\\'" . meson-mode))

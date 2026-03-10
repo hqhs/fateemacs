@@ -1,30 +1,15 @@
 ;; -*- lexical-binding: t -*-
 
-;;; load package manager of choice: straight.el
+;;; Load vendored dependencies from vendor/
+;;; No package manager. No network. Just load-path.
 
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name
-        "straight/repos/straight.el/bootstrap.el"
-        (or (bound-and-true-p straight-base-dir)
-            user-emacs-directory)))
-      (bootstrap-version 7))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
+(defvar fate-vendor-dir (expand-file-name "vendor/" fate-emacs-dir)
+  "Directory containing vendored dependencies.")
 
-(straight-use-package 'use-package)
+(dolist (dir (directory-files fate-vendor-dir t "^[^.]"))
+  (when (file-directory-p dir)
+    (add-to-list 'load-path dir)))
 
-;; Verify package signatures when possible
-(setq straight-check-for-modifications '(check-on-save find-when-checking))
-;; Use HTTPS for package downloads
-(setq straight-recipes-gnu-elpa-use-mirror t)
-
-;; Configure use-package to use straight.el by default
-;;(use-package straight
-  ;;:custom (straight-use-package-by-default t))
+;; use-package is built-in since Emacs 29. No :straight, no :ensure needed
+;; for vendored packages -- they're already on load-path.
+(require 'use-package)

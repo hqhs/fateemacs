@@ -67,7 +67,6 @@
               (list (vector (regexp-quote pat) 0 'compose-gstring-for-graphic)))))))
 
 (use-package doom-themes
-  :straight t
   :config
   ;; theme, font
   (set-face-attribute 'default nil

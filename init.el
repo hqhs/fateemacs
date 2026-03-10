@@ -64,10 +64,8 @@
 (defun +fate-load-lisp (file)
   (load (expand-file-name file fate-lisp-dir)))
 
-(+fate-load-lisp "straight.el")
-;; requiring it before straight is loaded breaks clean installation
-(use-package cl-lib
-  :ensure nil)
+(+fate-load-lisp "straight.el") ;; vendor loader + use-package
+(require 'cl-lib)
 
 ;;; Utility macros (custom lisp, no deps)
 
@@ -130,7 +128,6 @@ If HOOK-OR-FUNCTION is a hook symbol, adds to hook. If a function symbol, advise
 (+fate-load-lang "javascript.el") ;; typescript and every other possible flavor
 (+fate-load-lang "flatbuffers.el")
 (+fate-load-lang "capnproto.el")
-(+fate-load-lang "gdscript.el")
 (+fate-load-lang "web.el")
 (+fate-load-lang "json.el")
 (+fate-load-lang "yaml.el")

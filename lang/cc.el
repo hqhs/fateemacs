@@ -29,12 +29,12 @@
   ;; Hooks for both regular and treesit modes
   (dolist (hook '(c-mode-hook c++-mode-hook))
     (add-hook hook #'eglot-ensure)
-    (add-hook hook #'yas-minor-mode-on))
+)
 
   (when (version< "30" emacs-version)
     (dolist (hook '(c-ts-mode-hook c++-ts-mode-hook))
       (add-hook hook #'eglot-ensure)
-      (add-hook hook #'yas-minor-mode-on)))
+  ))
 
   ;; Custom indentation rules
   (c-add-style "custom-style"
@@ -68,7 +68,6 @@
   )
 
 (use-package clang-format
-  :straight t
   :after cc-mode
   :custom
   (clang-format-style "file")
@@ -78,5 +77,3 @@
     (kbd "SPC m f") 'clang-format-buffer)
   )
 
-(use-package ggtags
-  :straight t)

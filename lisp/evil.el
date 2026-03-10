@@ -1,7 +1,6 @@
 ;; -*- lexical-binding: t -*-
 
 (use-package evil
-  :straight t
   :init
   (setq evil-want-keybinding nil  ; Disable evil-keybindings as evil-collection handles this
         evil-want-C-u-scroll t
@@ -22,7 +21,6 @@
   (evil-mode 1))
 
 (use-package evil-collection
-  :straight t
   :after evil
   :init
   (setq evil-collection-key-blacklist '("SPC")  ; Don't bind leader key
@@ -93,7 +91,6 @@
                       (keyboard-quit))))))
 
 (use-package evil-easymotion
-  :straight t
   :after evil
   :commands (evilem-create evilem-default-keybindings)
   :init
@@ -104,7 +101,6 @@
   (evilem-default-keybindings "gs"))
 
 (use-package evil-snipe
-  :straight t
   :after evil
   :init
   (setq evil-snipe-smart-case t
@@ -116,7 +112,6 @@
   (evil-snipe-mode))
 
 (use-package evil-surround
-  :straight t
   :after evil
   :config
   (global-evil-surround-mode 1))

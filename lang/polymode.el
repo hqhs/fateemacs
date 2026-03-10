@@ -9,7 +9,6 @@
           nil nil)))
 
 (use-package polymode
-  :straight t
   :config
   ;; go with sql queries
   ;; (define-hostmode poly-go-hostmode :mode 'go-ts-mode)

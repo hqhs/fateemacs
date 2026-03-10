@@ -10,5 +10,4 @@
 
 (use-package pyvenv
   ;; virtualenv
-  :straight t
   :commands pyvenv-activate)

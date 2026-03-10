@@ -198,7 +198,6 @@
 (setq-default electric-indent-chars '(?\n ?\} ?\) ?\]))
 
 (use-package editorconfig
-  :straight t
   :init
   (editorconfig-mode)
   :config
@@ -210,7 +209,6 @@
                "\\.\\(zip\\|\\(doc\\|xls\\|ppt\\)x\\)\\'"))
 
 (use-package dtrt-indent
-  :straight t
   :commands dtrt-indent-mode
   :hook (prog-mode . dtrt-indent-mode)
   :config

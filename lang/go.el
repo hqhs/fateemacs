@@ -31,8 +31,7 @@
 ;; New version using go-ts-mode
 (use-package go-ts-mode
   :mode (("\\.go\\'" . go-ts-mode))
-  :hook ((go-ts-mode . eglot-ensure)
-         (go-ts-mode . yas-minor-mode-on))
+  :hook ((go-ts-mode . eglot-ensure))
   :config
   ;; Your existing go-specific functions can stay
   (add-hook 'go-ts-mode-hook '+fate/go-after-save-hook))
