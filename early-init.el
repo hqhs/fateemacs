@@ -13,22 +13,14 @@
 (defvar +fate--file-name-handler-alist file-name-handler-alist)
 (setq file-name-handler-alist nil)
 
-;; PERF: Suppress mode-line recalculation during startup (it runs 20+ times)
-(put 'mode-line-format 'initial-value (default-toplevel-value 'mode-line-format))
-(setq-default mode-line-format nil)
-(dolist (buf (buffer-list))
-  (with-current-buffer buf (setq mode-line-format nil)))
-
 ;; PERF: Suppress redisplay until we're ready
 (setq-default inhibit-redisplay t)
 (setq-default inhibit-message t)
 
-;; Restore everything on first user command
+;; Restore redisplay on first user command (mode-line is set by lisp/modeline.el)
 (defun +fate--reset-startup-optimizations-h ()
   (setq-default inhibit-redisplay nil
                 inhibit-message nil)
-  ;; Restore mode-line
-  (setq-default mode-line-format (get 'mode-line-format 'initial-value))
   (remove-hook 'post-command-hook #'+fate--reset-startup-optimizations-h))
 (add-hook 'post-command-hook #'+fate--reset-startup-optimizations-h -100)
 
