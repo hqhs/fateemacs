@@ -25,7 +25,8 @@
             interactive-only
             make-local
             mapcar
-            docstrings))
+            docstrings
+            lexical-binding))
 
 ;; disallow some packages from loading completely
 
@@ -118,7 +119,6 @@ If HOOK-OR-FUNCTION is a hook symbol, adds to hook. If a function symbol, advise
 (+fate-load-lang "gn.el")
 (+fate-load-lang "cc.el")
 (+fate-load-lang "go.el")
-(+fate-load-lang "polymode.el") ;; multiple major mode
 (+fate-load-lang "meson.el")
 (+fate-load-lang "mdesk.el")
 (+fate-load-lang "shaders.el")
@@ -170,6 +170,7 @@ If HOOK-OR-FUNCTION is a hook symbol, adds to hook. If a function symbol, advise
      "aec7b55f2a13307a55517fdf08438863d694550565dee23181d2ebd973ebd6b8"
      "88f7ee5594021c60a4a6a1c275614103de8c1435d6d08cc58882f920e0cec65e"
      default))
+ '(package-selected-packages nil)
  '(safe-local-variable-values
    '((projectile-project-compilation-cmd
       . "scons --gpu=wgpu-native --editor pizza && ./build/pizza")
@@ -185,3 +186,9 @@ If HOOK-OR-FUNCTION is a hook symbol, adds to hook. If a function symbol, advise
                 "--completion-style=detailed"
                 "--function-arg-placeholders" "--fallback-style=llvm"))
      (eglot-ignored-server-capabilities . t) (apheleia-inhibit . t))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )

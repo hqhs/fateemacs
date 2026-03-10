@@ -19,6 +19,14 @@
 (setq vc-follow-symlinks nil)
 ;; Confirm before visiting symbolic links to files
 (setq find-file-visit-truename t)
+;; Disable enriched text mode (historical code execution vector via .rtf/.enriched)
+(setq enriched-mode nil)
+(with-eval-after-load 'enriched
+  (defun enriched-decode-display-prop (_start _end &optional _param) nil))
+(setq auto-mode-alist (assoc-delete-all "\\.rtf\\'" auto-mode-alist #'string=))
+;; Disable inline image rendering (attack surface via libpng/libjpeg/etc.)
+(setq auto-image-file-mode nil)
+(setq inhibit-images t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; performance

@@ -1,4 +1,4 @@
-;;; evil-easymotion.el --- A port of vim's easymotion to emacs
+;;; evil-easymotion.el --- A port of vim's easymotion to emacs -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2014, 2015, 2016, 2018 PythonNut
 ;; Copyright (C) 2017 wouter bolsterlee

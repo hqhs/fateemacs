@@ -1,5 +1,10 @@
 ;; -*- lexical-binding: t -*-
 
+;; Suppress lexical-binding warnings for vendored packages
+;; that intentionally use dynamic binding (evil-snipe, evil-easymotion)
+(setq warning-suppress-log-types '((files lexical-binding)))
+(setq warning-suppress-types '((files lexical-binding)))
+
 ;; PERF: Defer GC entirely during startup, reset after init
 (setq gc-cons-threshold most-positive-fixnum)
 (setq gc-cons-percentage 1.0)

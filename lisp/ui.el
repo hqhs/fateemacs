@@ -66,27 +66,13 @@
        (nconc (char-table-range composition-function-table (aref pat 0))
               (list (vector (regexp-quote pat) 0 'compose-gstring-for-graphic)))))))
 
-(use-package doom-themes
-  :config
-  ;; theme, font
-  (set-face-attribute 'default nil
-                      :family "Fira Code"
-                      :height 180
-                      :weight 'normal
-                      :width  'normal)
-  ;; Global settings (defaults)
-  ;; (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-  ;;       doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  (load-theme 'doom-monokai-pro t)
-  ;; (load-theme 'monokai t) ;; checked-in to the repo
+;; Font
+(set-face-attribute 'default nil
+                    :family "Fira Code"
+                    :height 180
+                    :weight 'normal
+                    :width  'normal)
 
-  ;; Enable flashing mode-line on errors
-  ;; (doom-themes-visual-bell-config)
-  ;; Enable custom neotree theme (nerd-icons must be installed!)
-  ;; (doom-themes-neotree-config)
-  ;; or for treemacs users
-  ;; (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
-  ;; (doom-themes-treemacs-config)
-  ;; Corrects (and improves) org-mode's native fontification.
-  (doom-themes-org-config))
+;; Theme: checked-in monokai (no external dep)
+(load-theme 'monokai t)
 

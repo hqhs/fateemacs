@@ -67,13 +67,10 @@
     (define-key (symbol-value mode) (kbd "-") '+fate/c-electric-arrow))
   )
 
-(use-package clang-format
-  :after cc-mode
-  :custom
-  (clang-format-style "file")
-  (clang-format-fallback-style "webkit")
-  :config
-  (evil-define-key '(normal visual) c-mode-base-map
-    (kbd "SPC m f") 'clang-format-buffer)
-  )
+;; Format C/C++ via custom formatter (uses clang-format CLI directly)
+(dolist (hook '(c-mode-hook c++-mode-hook))
+  (add-hook hook
+            (lambda ()
+              (setq-local +fate-format-command
+                          (list "clang-format")))))
 

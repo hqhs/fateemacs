@@ -1,4 +1,5 @@
 ;; -*- lexical-binding: t -*-
 
-(use-package typescript-mode
-  :commands (typescript-mode typescript-tsx-mode))
+;; typescript-ts-mode and js-ts-mode (built-in with tree-sitter) handle
+;; .ts/.js files via major-mode-remap-alist in prog-conf.el.
+;; typescript-mode package is no longer needed.

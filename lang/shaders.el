@@ -1,7 +1,8 @@
 ;; -*- lexical-binding: t -*-
 
-(use-package wgsl-mode
-)
+;; TODO: rewrite as custom keyword modes
+(when (locate-library "wgsl-mode")
+  (use-package wgsl-mode))
 
-(use-package glsl-mode
-)
+(when (locate-library "glsl-mode")
+  (use-package glsl-mode))

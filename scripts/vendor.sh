@@ -50,11 +50,17 @@ vendor() {
   git clone --quiet "$url" "$tmp"
   git -C "$tmp" checkout --quiet "$hash"
   mkdir -p "$dest"
-  # only .el files -- no docs, tests, CI, images
-  find "$tmp" -name '*.el' \
-    -not -path '*/test*' \
-    -not -path '*/.github*' \
-    -exec cp {} "$dest/" \;
+  # copy .el files preserving subdirectory structure (evil-collection needs modes/*/)
+  cd "$tmp"
+  find . -name '*.el' \
+    -not -path './test/*' \
+    -not -path './tests/*' \
+    -not -path './.github/*' \
+    -print0 | while IFS= read -r -d '' f; do
+      mkdir -p "$dest/$(dirname "$f")"
+      cp "$f" "$dest/$f"
+  done
+  cd - > /dev/null
   rm -rf "$tmp"
 }
 

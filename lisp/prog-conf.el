@@ -197,28 +197,8 @@
 ;; Provide better electric indent behavior
 (setq-default electric-indent-chars '(?\n ?\} ?\) ?\]))
 
-(use-package editorconfig
-  :init
-  (editorconfig-mode)
-  :config
-
-  ;; Fix #5057 archives don't need editorconfig settings, and they may otherwise
-  ;; interfere with the process of opening them (office formats are zipped XML
-  ;; formats).
-  (add-to-list 'editorconfig-exclude-regexps
-               "\\.\\(zip\\|\\(doc\\|xls\\|ppt\\)x\\)\\'"))
-
-(use-package dtrt-indent
-  :commands dtrt-indent-mode
-  :hook (prog-mode . dtrt-indent-mode)
-  :config
-  ;; TODO: what is smie mode?
-  ;; Enable dtrt-indent even in smie modes so that it can update `tab-width',
-  ;; `standard-indent' and `evil-shift-width' there as well.
-  (setq dtrt-indent-run-after-smie t
-        ;; reduced from the default of 5000
-        dtrt-indent-max-lines 2000)
-  (push '(t tab-width) dtrt-indent-hook-generic-mapping-list))
+;; TODO: write custom editorconfig parser (~60 lines)
+;; TODO: write custom indent detection heuristic (~40 lines)
 
 ;; Built-in whitespace cleanup on save (replaces ws-butler)
 (add-hook 'before-save-hook #'delete-trailing-whitespace)
