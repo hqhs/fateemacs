@@ -1,4 +1,6 @@
 ;; -*- lexical-binding: t -*-
 
-;; json-ts-mode (built-in with tree-sitter) handles .json files via
-;; major-mode-remap-alist in prog-conf.el. json-mode is no longer needed.
+;; Use built-in js-json-mode (font-lock, no tree-sitter dependency)
+(add-to-list 'auto-mode-alist '("\\.json\\'" . js-json-mode))
+
+(provide 'json)

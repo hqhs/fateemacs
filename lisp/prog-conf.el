@@ -17,7 +17,7 @@
      (toml "https://github.com/tree-sitter/tree-sitter-toml")
      ;; 404 on github, no yaml repo in tree-sitter project
      ;; (yaml "https://github.com/tree-sitter/tree-sitter-yaml")
-     (json "https://github.com/tree-sitter/tree-sitter-json")))
+     ))
 
 (defun +fate/treesit-manual-install ()
   "Manually install C++ grammar for tree-sitter on macOS."
@@ -74,7 +74,6 @@
         (js-mode         . js-ts-mode)
         (js2-mode        . js-ts-mode)
         (typescript-mode . typescript-ts-mode)
-        (json-mode       . json-ts-mode)
         ;; 404 on github, no yaml repo in tree-sitter project
         ;; default highlighting is good enough
         ;; (yaml-mode       . yaml-ts-mode)
