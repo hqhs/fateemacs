@@ -252,20 +252,30 @@ The formatter should read stdin and write to stdout.")
            (cmd (car +fate-format-command))
            (args (cdr +fate-format-command))
            (content (buffer-substring-no-properties (point-min) (point-max)))
+           (stderr-buf (generate-new-buffer " *fate-fmt-stderr*"))
            (proc (make-process
                   :name "fate-fmt"
                   :buffer output-buf
                   :command (cons cmd args)
                   :connection-type 'pipe
                   :noquery t
+                  :stderr stderr-buf
                   :sentinel
                   (lambda (proc _event)
                     (unless (process-live-p proc)
                       (if (zerop (process-exit-status proc))
                           (+fate--format-apply buf output-buf saved-hash)
-                        (message "Fate fmt: %s failed (exit %d)" cmd (process-exit-status proc))
+                        (let ((err (and (buffer-live-p stderr-buf)
+                                        (with-current-buffer stderr-buf
+                                          (string-trim (buffer-string))))))
+                          (message "Fate fmt: %s failed (exit %d)%s"
+                                   cmd (process-exit-status proc)
+                                   (if (and err (not (string-empty-p err)))
+                                       (concat "\n" err) "")))
                         (when (buffer-live-p output-buf)
-                          (kill-buffer output-buf))))))))
+                          (kill-buffer output-buf)))
+                      (when (buffer-live-p stderr-buf)
+                        (kill-buffer stderr-buf)))))))
       (setq +fate--format-process proc)
       (process-send-string proc content)
       (process-send-eof proc))))
