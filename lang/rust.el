@@ -2,8 +2,13 @@
 
 (use-package rust-ts-mode
   :mode "\\.rs\\'"
-  :hook ((rust-ts-mode . eglot-ensure))
+  :hook ((rust-ts-mode . +fate--rust-maybe-eglot))
   :config
+
+  (defun +fate--rust-maybe-eglot ()
+    "Start eglot only if the file belongs to a Cargo project."
+    (when (locate-dominating-file default-directory "Cargo.toml")
+      (eglot-ensure)))
 
   (add-hook 'rust-ts-mode-hook
             (lambda ()

@@ -13,12 +13,17 @@
 ;;; Helper
 
 (defun +fate-test--wait-for-process (buf &optional timeout)
-  "Wait up to TIMEOUT seconds (default 5) for format process in BUF to finish."
+  "Wait up to TIMEOUT seconds (default 5) for format process in BUF to finish.
+Keeps draining output after process exits to ensure sentinel has run."
   (let ((deadline (+ (float-time) (or timeout 5))))
     (with-current-buffer buf
       (while (and +fate--format-process
                   (process-live-p +fate--format-process)
                   (< (float-time) deadline))
+        (accept-process-output +fate--format-process 0.1))
+      ;; Process is dead, but sentinel may not have run yet.
+      ;; Drain remaining output to trigger it.
+      (when +fate--format-process
         (accept-process-output +fate--format-process 0.1)))))
 
 ;;; Tests
