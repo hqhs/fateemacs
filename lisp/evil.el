@@ -34,6 +34,7 @@
           compile
           buff-menu
           custom
+          occur
           (org :after org)     ; Only after org is loaded
           help
           info

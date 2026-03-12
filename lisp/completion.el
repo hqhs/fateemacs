@@ -4,6 +4,11 @@
 (fido-vertical-mode 1)
 (setq icomplete-prospects-height 15)
 
+;; C-j/C-k to navigate candidates in minibuffer
+(with-eval-after-load 'icomplete
+  (define-key icomplete-minibuffer-map (kbd "C-j") #'icomplete-forward-completions)
+  (define-key icomplete-minibuffer-map (kbd "C-k") #'icomplete-backward-completions))
+
 ;; TAB completes, then indents
 (setq tab-always-indent 'complete)
 

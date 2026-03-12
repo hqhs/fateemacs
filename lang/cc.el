@@ -68,9 +68,13 @@
   )
 
 ;; Format C/C++ via custom formatter (uses clang-format CLI directly)
+;; Skip .in template files (e.g. config.hpp.in) — they contain
+;; @VAR@/${VAR} placeholders that clang-format mangles.
 (dolist (hook '(c-mode-hook c++-mode-hook))
   (add-hook hook
             (lambda ()
-              (setq-local +fate-format-command
-                          (list "clang-format")))))
+              (unless (and buffer-file-name
+                           (string-match-p "\\.in\\'" buffer-file-name))
+                (setq-local +fate-format-command
+                            (list "clang-format"))))))
 
