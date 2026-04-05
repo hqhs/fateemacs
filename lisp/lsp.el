@@ -49,5 +49,5 @@
   ;; Optional: Add any additional customization
   :custom
   (eglot-connect-timeout 30)
-  (eglot-sync-connect nil)
+  (eglot-sync-connect 3)
   (eglot-autoreconnect t))

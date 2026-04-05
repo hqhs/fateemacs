@@ -22,12 +22,13 @@ emacs -nw
 external tools:
 ```
 # Ubuntu/Debian
-sudo apt install global ripgrep
-```
+sudo apt install universal-ctags ripgrep
 
-```
+# Arch
+sudo pacman -S ctags ripgrep
+
 # macOS
-brew install global ripgrep
+brew install universal-ctags ripgrep
 ```
 
 ### Fate emacs

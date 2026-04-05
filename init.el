@@ -98,6 +98,7 @@ If HOOK-OR-FUNCTION is a hook symbol, adds to hook. If a function symbol, advise
 (+fate-load-lisp "magit.el")
 (+fate-load-lisp "project.el") ;; built-in and lighter alternative to projectile
 (+fate-load-lisp "lsp.el")
+(+fate-load-lisp "tags.el")
 (+fate-load-lisp "completion.el")
 (+fate-load-lisp "prog-conf.el") ;; prog-mode is "base" configuration for toher major modes like rust, cc, go, etc.
 (+fate-load-lisp "keybindings.el")

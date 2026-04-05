@@ -71,13 +71,21 @@
 
   ;; search
   (kbd "<leader>si") #'imenu
-  (kbd "<leader>sp") #'project-find-regexp
+  (kbd "<leader>sp") #'+fate/project-search
   (kbd "<leader>sP") #'+fate/search-other-project
   (kbd "<leader>sf") #'occur
   (kbd "<leader>*")  #'+fate/search-project-for-symbol-at-point
   (kbd "<leader>sd") #'+fate/search-cwd
   (kbd "<leader>sD") #'+fate/search-other-cwd
   ;; (kbd "<leader>'")  #'vertico-repeat
+
+  ;; tags (jump)
+  (kbd "<leader>jd") #'+fate/tags-find-definition
+  (kbd "<leader>ja") #'tags-apropos
+  (kbd "<leader>js") #'tags-search
+  (kbd "<leader>jl") #'list-tags
+  (kbd "<leader>jv") #'visit-tags-table
+  (kbd "<leader>jg") #'+fate/tags-generate
 
   ;; toggle functions
   (kbd "<leader>tl") #'display-line-numbers-mode

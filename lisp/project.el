@@ -49,6 +49,7 @@
 
 ;; Optional: Configure project VC integration
 (setq project-vc-merge-submodules nil)  ; Don't descend into git submodules
+(setq xref-search-program 'ripgrep)
 (setq project-vc-ignores '(".git" ".hg" ".bzr" "_darcs"))
 
 ;; Optional: Dired integration
