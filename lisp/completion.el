@@ -17,11 +17,19 @@
   :ensure nil ;; vendored
   :hook (prog-mode . corfu-mode)
   :custom
-  (corfu-auto nil)            ; Manual trigger only (C-SPC)
+  (corfu-auto t)              ; Auto-complete as you type
+  (corfu-auto-delay 0.2)      ; Seconds before popup appears
+  (corfu-auto-prefix 2)       ; Min chars before auto-trigger
   (corfu-cycle t)             ; Cycle through candidates
   (corfu-preselect 'prompt)   ; Don't preselect first candidate
   (corfu-quit-no-match t)     ; Quit when no match
   (corfu-count 10))           ; Max candidates shown
+
+(defun +fate/toggle-corfu-auto ()
+  "Toggle automatic completion popup globally."
+  (interactive)
+  (setq corfu-auto (not corfu-auto))
+  (message "Corfu auto-completion %s" (if corfu-auto "enabled" "disabled")))
 
 ;; Custom dabbrev capf (replaces cape-dabbrev)
 (require 'dabbrev)
