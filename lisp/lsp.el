@@ -9,6 +9,13 @@
 	;; (kbd "K") to display doc for thing at point
 	eldoc-display-functions '(eldoc-display-in-buffer)))
 
+(use-package yasnippet
+  :ensure nil ;; vendored
+  :hook (prog-mode . yas-minor-mode)
+  :config
+  (setq yas-snippet-dirs (list (expand-file-name "snippets" fate-emacs-dir)))
+  (yas-reload-all))
+
 (use-package flymake
   :ensure nil ;; built-in
   :init
@@ -38,7 +45,8 @@
                        "--clang-tidy=false"
                        "--completion-style=detailed"
                        "--header-insertion=never"
-                       "-j=4"))
+                       "-j=4"
+                       "--pch-storage=memory"))
           (c-mode . ("clangd"
                      "--background-index"
                      "--clang-tidy=false"
@@ -63,5 +71,5 @@
   ;; Optional: Add any additional customization
   :custom
   (eglot-connect-timeout 30)
-  (eglot-sync-connect 3)
+  (eglot-sync-connect 1)
   (eglot-autoreconnect t))
