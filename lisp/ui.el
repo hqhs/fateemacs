@@ -31,10 +31,9 @@
 ;; Font
 (set-face-attribute 'default nil
                     :family "Fira Code"
-                    :height 180
+                    :height 160
                     :weight 'normal
                     :width  'normal)
 
 ;; Theme: checked-in monokai (no external dep)
 (load-theme 'monokai t)
-

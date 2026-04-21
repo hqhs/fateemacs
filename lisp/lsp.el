@@ -27,8 +27,18 @@
   ;; Define server programs with all options preserved
   (setq eglot-server-programs
         `(;; C/C++ with preserved options
-          (c++-mode . ("clangd" "--header-insertion=never"))
-          (c-mode . ("clangd" "--header-insertion=never"))
+          (c++-mode . ("clangd"
+                       "--background-index"
+                       "--clang-tidy=false"
+                       "--completion-style=detailed"
+                       "--header-insertion=never"
+                       "-j=4"))
+          (c-mode . ("clangd"
+                     "--background-index"
+                     "--clang-tidy=false"
+                     "--completion-style=detailed"
+                     "--header-insertion=never"
+                     "-j=4"))
           ;; Preserve any other language servers from eglot defaults
           ,@(cl-remove-if (lambda (entry)
                            (and (listp (car entry))
