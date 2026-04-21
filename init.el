@@ -37,10 +37,6 @@
   (global-flycheck-mode -1))
 (push '(flycheck nil) package-load-list)
 
-(setq flymake-mode nil)
-(with-eval-after-load 'flymake
-  (flymake-mode -1))
-(push '(flymake nil) package-load-list)
 
 ;; enhance security
 

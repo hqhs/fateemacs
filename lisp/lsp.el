@@ -9,13 +9,19 @@
 	;; (kbd "K") to display doc for thing at point
 	eldoc-display-functions '(eldoc-display-in-buffer)))
 
+(use-package flymake
+  :ensure nil ;; built-in
+  :init
+  (setq flymake-no-changes-timeout 1.0
+        flymake-start-on-save-only nil))
+
 (use-package eglot
   :ensure nil ;; built-in
   :commands (eglot eglot-ensure)
   :init
   (setq eglot-autoshutdown t
         eglot-events-buffer-size 0
-        eglot-stay-out-of '(flymake)
+        eglot-stay-out-of nil
         eglot-ignored-server-capabilities '(:hoverProvider
                                             :documentHighlightProvider
                                             :documentFormattingProvider
@@ -50,10 +56,8 @@
   :hook
   ((eglot-managed-mode
     . (lambda ()
-        ;; Disable inlay hints
         (eglot-inlay-hints-mode -1)
-        ;; Disable automatic eldoc but keep eglot's eldoc setup
-        ;; This preserves the ability to manually trigger docs with eldoc
+        (flymake-mode 1)
         (eldoc-mode -1))))
 
   ;; Optional: Add any additional customization
