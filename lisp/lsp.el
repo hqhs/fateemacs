@@ -19,8 +19,7 @@
 (use-package flymake
   :ensure nil ;; built-in
   :init
-  (setq flymake-no-changes-timeout 1.0
-        flymake-start-on-save-only nil))
+  (setq flymake-no-changes-timeout nil))
 
 (use-package eglot
   :ensure nil ;; built-in
