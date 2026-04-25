@@ -88,11 +88,8 @@
   (kbd "<leader>jg") #'+fate/tags-generate
 
   ;; toggle functions
-  (kbd "<leader>e") #'flymake-show-buffer-diagnostics
-  (kbd "<leader>E") #'flymake-show-project-diagnostics
   (kbd "<leader>tl") #'display-line-numbers-mode
   (kbd "<leader>tw") #'whitespace-mode
-  (kbd "<leader>tf") #'flymake-mode
   (kbd "<leader>ta") #'+fate/toggle-corfu-auto
   (kbd "<leader>tF") #'auto-fill-mode
   (kbd "<leader>th") #'hl-line-mode

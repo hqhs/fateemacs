@@ -16,18 +16,13 @@
   (setq yas-snippet-dirs (list (expand-file-name "snippets" fate-emacs-dir)))
   (yas-reload-all))
 
-(use-package flymake
-  :ensure nil ;; built-in
-  :init
-  (setq flymake-no-changes-timeout nil))
-
 (use-package eglot
   :ensure nil ;; built-in
   :commands (eglot eglot-ensure)
   :init
   (setq eglot-autoshutdown t
         eglot-events-buffer-size 0
-        eglot-stay-out-of nil
+        eglot-stay-out-of '(flymake)
         eglot-ignored-server-capabilities '(:hoverProvider
                                             :documentHighlightProvider
                                             :documentFormattingProvider
@@ -64,7 +59,6 @@
   ((eglot-managed-mode
     . (lambda ()
         (eglot-inlay-hints-mode -1)
-        (flymake-mode 1)
         (eldoc-mode -1))))
 
   ;; Optional: Add any additional customization

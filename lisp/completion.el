@@ -16,14 +16,15 @@
 (use-package corfu
   :ensure nil ;; vendored
   :hook (prog-mode . corfu-mode)
-  :config
-  (setq corfu-auto t
-        corfu-auto-delay 0.2
-        corfu-auto-prefix 2
-        corfu-cycle t
-        corfu-preselect 'prompt
-        corfu-quit-no-match t
-        corfu-count 10))
+  :custom
+  (corfu-auto t)
+  (corfu-auto-delay 0.2)
+  (corfu-auto-prefix 2)
+  (corfu-cycle t)
+  (corfu-preview-current t)
+  (corfu-preselect 'prompt)
+  (corfu-quit-no-match t)
+  (corfu-count 10))
 
 (defun +fate/toggle-corfu-auto ()
   "Toggle automatic completion popup globally."
