@@ -54,6 +54,21 @@
                                     (eq (car entry) 'c-mode))))
                          eglot-server-programs)))
 
+  ;; clangd occasionally answers completion requests with -32602
+  ;; "trying to get preamble for non-added document" while the preamble
+  ;; is still building. The error is transient — swallow it so corfu
+  ;; doesn't dump a backtrace into the echo area.
+  (advice-add 'eglot-completion-at-point :around
+              (lambda (orig &rest args)
+                (condition-case err
+                    (apply orig args)
+                  (jsonrpc-error
+                   (unless (string-match-p
+                            "non-added document"
+                            (or (alist-get 'jsonrpc-error-message (cdr err)) ""))
+                     (signal (car err) (cdr err)))
+                   nil))))
+
   ;; Hooks setup
   :hook
   ((eglot-managed-mode

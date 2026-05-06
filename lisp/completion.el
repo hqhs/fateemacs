@@ -32,21 +32,3 @@
   (setq corfu-auto (not corfu-auto))
   (message "Corfu auto-completion %s" (if corfu-auto "enabled" "disabled")))
 
-;; Custom dabbrev capf (replaces cape-dabbrev)
-(require 'dabbrev)
-
-(defun +fate/dabbrev-capf ()
-  "Completion-at-point function for dynamic abbreviation."
-  (let ((bounds (bounds-of-thing-at-point 'symbol)))
-    (when bounds
-      (dabbrev--reset-global-variables)
-      (let ((expansions (dabbrev--find-all-expansions
-                         (buffer-substring-no-properties (car bounds) (cdr bounds))
-                         nil)))
-        (when expansions
-          (list (car bounds) (cdr bounds) expansions))))))
-
-(add-hook 'prog-mode-hook
-          (lambda () (add-hook 'completion-at-point-functions #'+fate/dabbrev-capf 20 t)))
-(add-hook 'text-mode-hook
-          (lambda () (add-hook 'completion-at-point-functions #'+fate/dabbrev-capf 20 t)))
