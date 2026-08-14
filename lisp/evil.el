@@ -30,6 +30,7 @@
           xref
           dired
           magit
+          ediff              ; reached from magit via `e' / `E'
           ibuffer
           compile
           buff-menu

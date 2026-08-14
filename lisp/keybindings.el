@@ -105,6 +105,13 @@
   (kbd "<leader>gg") #'magit-status
   (kbd "<leader>gb") #'magit-blame
 
+  ;; diff-hl: uncommitted changes in the current buffer.
+  ;; ]c / [c are the vim bindings for next/previous change.
+  (kbd "]c") #'diff-hl-next-hunk
+  (kbd "[c") #'diff-hl-previous-hunk
+  (kbd "<leader>gh") #'diff-hl-show-hunk    ;; popup the old text of this hunk
+  (kbd "<leader>gr") #'diff-hl-revert-hunk
+
   ;; project
   (kbd "<leader>SPC") #'project-find-file
   (kbd "<leader>pp")  #'project-switch-project
