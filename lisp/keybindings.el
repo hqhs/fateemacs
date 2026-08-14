@@ -49,6 +49,11 @@
   (kbd "<leader>bl") #'list-bookmarks
   (kbd "<leader>bm") #'bookmark-set
 
+  ;; session marks: per-project, in-memory, relocate with edits
+  (kbd "<leader>mm") #'+fate/mark-set
+  (kbd "<leader>mj") #'+fate/mark-jump
+  (kbd "<leader>mc") #'+fate/mark-clear
+
   ;; outline!
   (kbd "<leader>oa") #'outline-show-all
   (kbd "<leader>oh") #'outline-hide-sublevels

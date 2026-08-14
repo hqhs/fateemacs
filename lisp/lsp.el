@@ -34,25 +34,31 @@
   ;; Define server programs with all options preserved
   (setq eglot-server-programs
         `(;; C/C++ with preserved options
-          (c++-mode . ("clangd"
-                       "--background-index"
-                       "--clang-tidy=false"
-                       "--completion-style=detailed"
-                       "--header-insertion=never"
-                       "-j=4"
-                       "--pch-storage=memory"))
-          (c-mode . ("clangd"
-                     "--background-index"
-                     "--clang-tidy=false"
-                     "--completion-style=detailed"
-                     "--header-insertion=never"
-                     "-j=4"))
+          ((c++-mode c++-ts-mode) . ("clangd"
+                                     "--background-index"
+                                     "--clang-tidy=false"
+                                     "--completion-style=detailed"
+                                     "--header-insertion=never"
+                                     "-j=4"
+                                     "--pch-storage=memory"))
+          ((c-mode c-ts-mode) . ("clangd"
+                                 "--background-index"
+                                 "--clang-tidy=false"
+                                 "--completion-style=detailed"
+                                 "--header-insertion=never"
+                                 "-j=4"))
           ;; Preserve any other language servers from eglot defaults
+          ;; Entry keys come in three shapes: MODE, (MODE ...), and
+          ;; ((MODE :language-id "...") ...). Normalise before comparing.
           ,@(cl-remove-if (lambda (entry)
-                           (and (listp (car entry))
-                                (or (member 'c++-mode (car entry))
-                                    (eq (car entry) 'c-mode))))
-                         eglot-server-programs)))
+                            (let* ((key (car entry))
+                                   (modes (mapcar (lambda (m)
+                                                    (if (consp m) (car m) m))
+                                                  (if (listp key) key (list key)))))
+                              (cl-intersection modes
+                                               '(c-mode c-ts-mode
+                                                 c++-mode c++-ts-mode))))
+                          eglot-server-programs)))
 
   ;; clangd occasionally answers completion requests with -32602
   ;; "trying to get preamble for non-added document" while the preamble

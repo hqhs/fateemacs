@@ -6,8 +6,14 @@
 ;;; Load the code under test
 (let* ((test-dir (file-name-directory load-file-name))
        (root-dir (file-name-directory (directory-file-name test-dir)))
-       (lisp-dir (expand-file-name "lisp/" root-dir)))
+       (lisp-dir (expand-file-name "lisp/" root-dir))
+       (vendor-dir (expand-file-name "vendor/" root-dir)))
   (defvar fate-cache-dir (expand-file-name "cache/" root-dir))
+  ;; prog-conf.el configures vendored packages; put them on `load-path' the
+  ;; same way lisp/straight.el does at startup.
+  (dolist (dir (directory-files vendor-dir t "^[^.]"))
+    (when (file-directory-p dir)
+      (add-to-list 'load-path dir)))
   (load (expand-file-name "prog-conf.el" lisp-dir) nil t))
 
 ;;; Helper

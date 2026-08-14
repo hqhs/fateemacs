@@ -10,7 +10,9 @@
       (insert "->")
     (insert "-")))
 
-;; Use cc-mode instead of tree-sitter modes
+;; `auto-mode-alist' still names the cc-mode modes; `major-mode-remap-alist'
+;; in prog-conf.el redirects them to the treesit modes at file-visit time.
+;; The cc-mode style settings below only apply if that remap is removed.
 (use-package cc-mode
   :mode (("\\.c\\'" . c-mode)
          ("\\.h\\'" . c-or-c++-mode) ;; Use automatic detection for headers
@@ -67,14 +69,34 @@
     (define-key (symbol-value mode) (kbd "-") '+fate/c-electric-arrow))
   )
 
+;; C/C++ run on treesit; cc-mode's `c-offsets-alist' style does not apply.
+(use-package c-ts-mode
+  :ensure nil ;; built-in
+  :init
+  ;; Braces on the same line, 2-column bodies -- closest c-ts-mode analogue of
+  ;; the "custom-style" above. Live typing only; clang-format owns the file on
+  ;; save, so this just needs to not fight it.
+  (setq c-ts-mode-indent-style 'k&r)
+  :config
+  (dolist (mode '(c-ts-mode-map c++-ts-mode-map))
+    (define-key (symbol-value mode) (kbd "-") '+fate/c-electric-arrow)))
+
 ;; Format C/C++ via custom formatter (uses clang-format CLI directly)
 ;; Skip .in template files (e.g. config.hpp.in) — they contain
 ;; @VAR@/${VAR} placeholders that clang-format mangles.
-(dolist (hook '(c-mode-hook c++-mode-hook))
+(dolist (hook '(c-mode-hook c++-mode-hook c-ts-mode-hook c++-ts-mode-hook))
   (add-hook hook
             (lambda ()
               (unless (and buffer-file-name
                            (string-match-p "\\.in\\'" buffer-file-name))
                 (setq-local +fate-format-command
                             (list "clang-format"))))))
+
+;; NOTE(hqhs): `indent-bars' guesses indentation width per major mode, and for
+;; cc-mode it only accepts `c-basic-offset' when that is buffer-local -- ours is
+;; a `setq-default', so the guess falls through to `standard-indent' (4) and the
+;; bars land on the wrong columns. State the real offset explicitly instead of
+;; depending on which mode is active.
+(dolist (hook '(c-mode-hook c++-mode-hook c-ts-mode-hook c++-ts-mode-hook))
+  (add-hook hook (lambda () (setq-local indent-bars-spacing-override 2))))
 

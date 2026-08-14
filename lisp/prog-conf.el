@@ -4,10 +4,11 @@
 (setq treesit-font-lock-level 3)
 (setq treesit-language-source-alist
    '((bash "https://github.com/tree-sitter/tree-sitter-bash")
-     ;; NOTE(hqhs): treesit for c/c++ is optional because auto install doesn't
-     ;; work
-     ;; (c "https://github.com/tree-sitter/tree-sitter-c")
-     ;; (c++ "https://github.com/tree-sitter/tree-sitter-cpp" "v0.23.4" nil "c++")
+     (c "https://github.com/tree-sitter/tree-sitter-c")
+     ;; NOTE(hqhs): the grammar symbol is `cpp', not `c++' -- that is what
+     ;; `c++-ts-mode' looks for. The old `c++' entry here installed a dylib
+     ;; nothing ever loaded, which is why auto-install appeared broken.
+     (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
      (rust "https://github.com/tree-sitter/tree-sitter-rust")
      (go "https://github.com/tree-sitter/tree-sitter-go")
      (gomod "https://github.com/camdencheek/tree-sitter-go-mod")
@@ -18,40 +19,6 @@
      ;; 404 on github, no yaml repo in tree-sitter project
      ;; (yaml "https://github.com/tree-sitter/tree-sitter-yaml")
      ))
-
-(defun +fate/treesit-manual-install ()
-  "Manually install C++ grammar for tree-sitter on macOS."
-  (interactive)
-  ;; FIXME(hqhs): breaks if `--init-directory' is not ~/.emacs.d
-  (let* ((default-directory "~/.emacs.d/tree-sitter/")
-         (cpp-dir (expand-file-name "cpp-grammar"))
-         (process-environment
-          (append process-environment
-                  (list "CC=cc"
-                        "CXX=c++"
-                        ;; These flags are important for macOS compilation
-                        "CFLAGS=-fPIC -std=c11"
-                        "CXXFLAGS=-fPIC -std=c++11"))))
-
-    ;; Create directory
-    (make-directory cpp-dir t)
-
-    ;; Clone repo if needed
-    (unless (file-exists-p (expand-file-name ".git" cpp-dir))
-      (call-process "git" nil t t "clone"
-                   "https://github.com/tree-sitter/tree-sitter-cpp.git"
-                   cpp-dir))
-
-    (let ((default-directory cpp-dir))
-      ;; On macOS, we need to:
-      ;; 1. Compile scanner.c with C11 standard
-      ;; 2. Compile parser.c
-      ;; 3. Link everything into a dylib
-      (shell-command
-       (concat
-        "cc -fPIC -std=c11 -c -I./src/ ./src/scanner.c && "
-        "cc -fPIC -std=c11 -c -I./src/ ./src/parser.c && "
-        "c++ -fPIC -std=c++11 -dynamiclib *.o -o ../libtree-sitter-cpp.dylib")))))
 
 ;; Installation helper
 (defun +fate/ensure-treesit-languages ()
@@ -66,9 +33,9 @@
 
 ;; Language mode remapping
 (setq major-mode-remap-alist
-      '(;; NOTE(hqhs): enabled optionally based on availability in cc.el
-        ;; (c-mode          . c-ts-mode)
-        ;; (c++-mode        . c++-ts-mode)
+      '((c-mode          . c-ts-mode)
+        (c++-mode        . c++-ts-mode)
+        (c-or-c++-mode   . c-or-c++-ts-mode) ;; .h files, content-sniffed
         (python-mode     . python-ts-mode)
         (javascript-mode . js-ts-mode)
         (js-mode         . js-ts-mode)
@@ -112,9 +79,40 @@
               display-line-numbers-width-start nil
               display-line-numbers-grow-only nil
               display-line-numbers-current-absolute nil
-              display-line-numbers-type 'relative)
-;; I use evilem motions instead
-;; (add-hook 'prog-mode-hook #'display-line-numbers-mode)
+              display-line-numbers-type t) ;; t = absolute
+(add-hook 'prog-mode-hook #'display-line-numbers-mode)
+
+;; Indentation guide bars
+;; NOTE(hqhs): character display rather than stipples. This is a macOS NS
+;; build (Emacs 30), which only has partial :stipple support -- garbled or
+;; invisible bars. Full NS stipple support lands in Emacs 31; at that point
+;; drop `indent-bars-prefer-character' to get the fancy patterned bars.
+(use-package indent-bars
+  :ensure nil ;; vendored
+  :hook (prog-mode . indent-bars-mode)
+  :custom
+  (indent-bars-prefer-character t)
+  (indent-bars-no-stipple-char ?\│)
+  (indent-bars-color '(highlight :face-bg t :blend 0.25))
+  (indent-bars-highlight-current-depth '(:blend 0.65))
+  (indent-bars-display-on-blank-lines t)
+  ;; Bar on column 0 too. Default (nil) starts at the first indent position,
+  ;; so the outermost body level gets no bar at all.
+  (indent-bars-starting-column 0)
+  ;; Continuation lines aligned under an open paren (`c-lineup-arglist' style)
+  ;; would otherwise spray a bar every `indent-bars-spacing' columns across the
+  ;; whole alignment. Cap depth at the line that opened the list instead.
+  (indent-bars-no-descend-lists t)
+  (indent-bars-no-descend-string t)
+  (indent-bars-treesit-support t)
+  (indent-bars-treesit-ignore-blank-lines-types '("module" "translation_unit"))
+  :config
+  ;; No autoload files are generated for vendored packages, so the treesit
+  ;; extension has to be pulled in by hand.
+  (when (and indent-bars-treesit-support
+             (fboundp 'treesit-available-p)
+             (treesit-available-p))
+    (require 'indent-bars-ts)))
 
 (electric-pair-mode 1)
 
@@ -152,8 +150,75 @@
             :close hs-hide-block)
           evil-fold-list)))
 
-;; Which function mode setup
-(which-function-mode 1)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Treesit scope breadcrumb in the header line
+;;
+;; Replaces `which-function-mode', which only reported the enclosing defun in
+;; the mode line. This walks the treesit ancestor chain instead, so nested
+;; if/for/while show up too:
+;;
+;;   loco › Half › f16_from_f32 › if (e >= 0x1f) › for (int i = 0; i < 4; ++i)
+
+(defvar +fate-scope-node-types
+  '(;; c / c++
+    "function_definition" "class_specifier" "struct_specifier"
+    "namespace_definition" "enum_specifier"
+    "if_statement" "for_statement" "while_statement" "do_statement"
+    "switch_statement" "case_statement" "for_range_loop"
+    ;; rust
+    "function_item" "impl_item" "trait_item" "mod_item"
+    "if_expression" "for_expression" "while_expression" "match_expression"
+    ;; go
+    "function_declaration" "method_declaration" "type_declaration"
+    "for_statement" "if_statement" "expression_switch_statement"
+    ;; python
+    "class_definition" "with_statement" "try_statement")
+  "Treesit node types that count as a scope for `+fate/scope-path'.")
+
+(defvar +fate-scope-max-label 40
+  "Maximum width of a single component in `+fate/scope-path'.")
+
+(defvar +fate-scope-separator (propertize " › " 'face 'shadow)
+  "Separator between components in `+fate/scope-path'.")
+
+(defun +fate--scope-label (node)
+  "Return a short label for treesit NODE.
+Prefers the defun name; falls back to the node's first source line."
+  (or (ignore-errors (treesit-defun-name node))
+      (save-excursion
+        (goto-char (treesit-node-start node))
+        (let ((text (buffer-substring-no-properties (point) (line-end-position))))
+          ;; Drop the trailing brace and collapse runs of whitespace.
+          (setq text (replace-regexp-in-string "[ \t]*{[ \t]*\\'" "" text))
+          (setq text (string-trim (replace-regexp-in-string "[ \t]+" " " text)))
+          (truncate-string-to-width text +fate-scope-max-label nil nil t)))))
+
+(defun +fate/scope-path ()
+  "Return the treesit scope path at point, or nil outside any scope."
+  (when-let* (((fboundp 'treesit-parser-list))
+              ((treesit-parser-list))
+              (node (treesit-node-at (point))))
+    (let (parts)
+      (while node
+        (when (member (treesit-node-type node) +fate-scope-node-types)
+          (let ((label (+fate--scope-label node)))
+            ;; A defun's name node can repeat its parent's label.
+            (unless (equal label (car parts))
+              (push label parts))))
+        (setq node (treesit-node-parent node)))
+      (when parts
+        (string-join parts +fate-scope-separator)))))
+
+(define-minor-mode +fate/scope-header-mode
+  "Show the enclosing treesit scope path in the header line."
+  :lighter nil
+  (setq header-line-format
+        (when +fate/scope-header-mode
+          ;; Kept unconditionally present so the buffer text does not shift
+          ;; up and down as point moves in and out of a scope.
+          '(:eval (or (+fate/scope-path) "")))))
+
+(add-hook 'prog-mode-hook #'+fate/scope-header-mode)
 
 (use-package compile
   :ensure nil ;; built-in

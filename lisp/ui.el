@@ -2,8 +2,9 @@
 
 (setq ring-bell-function 'ignore)
 (setq-default display-fill-column-indicator-column 100)
-(setq-default display-line-numbers-type 'relative)
-;; (global-display-line-numbers-mode)
+;; Line numbers: enabled per-buffer from `prog-mode-hook' in prog-conf.el (not
+;; globally -- dired/magit/help buffers do not want them), and configured
+;; there too, so there is only one place that sets them.
 
 (defvar +fate/original-background nil
   "Stores the original background color.")

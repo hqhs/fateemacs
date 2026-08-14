@@ -69,8 +69,8 @@ per-change.
 ### Current vendored packages
 
 annalist, avy, cmake-mode, compat, corfu, dash, evil, evil-collection,
-evil-easymotion, evil-snipe, evil-surround, glsl-mode, goto-chg, magit,
-transient, with-editor, yaml-mode, yasnippet.
+evil-easymotion, evil-snipe, evil-surround, glsl-mode, goto-chg,
+indent-bars, magit, transient, with-editor, yaml-mode, yasnippet.
 
 Completion UI is Corfu. No LSP client installed yet; use built-in eglot
 when one is needed.
