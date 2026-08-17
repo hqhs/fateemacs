@@ -18,6 +18,9 @@
 (evil-define-key '(normal visual operator) 'global
   (kbd "#") #'+fate/search-symbol-backward
   (kbd "*") #'+fate/search-symbol-forward
+  ;; with no search pattern yet, these search the symbol at point
+  (kbd "n") #'+fate/search-next
+  (kbd "N") #'+fate/search-previous
   ;; UI
   (kbd "<leader>ub") #'+fate/toggle-background-transparency
   ;;

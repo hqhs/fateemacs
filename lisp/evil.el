@@ -9,7 +9,6 @@
         evil-normal-state-cursor 'box
         evil-insert-state-cursor 'box
         evil-visual-state-cursor 'box
-        evil-ex-interactive-search-highlight 'selected-window
         evil-undo-system 'undo-redo
         evil-normal-state-tag   (propertize "[NORMAL]" 'face '(:inherit (success bold)))
         evil-emacs-state-tag    (propertize "[EMACS]" 'face '(:inherit (warning bold)))
@@ -19,6 +18,37 @@
         evil-operator-state-tag (propertize "[OPERATOR]" 'face '(:inherit (font-lock-function-name-face bold))))
   :config
   (evil-mode 1))
+
+;; `n'/`N' with no search pattern adopt the symbol at point, so that the
+;; occurrence highlighting in prog-conf.el and search are one concept rather
+;; than two: whatever is lit is what `n' will jump through.
+;;
+;; NOTE(hqhs): these live here rather than in autoloads.el because
+;; `evil-define-motion' is a macro and autoloads.el is loaded before evil.
+;; They have to be motions, not plain commands, or `dn'/`cn' stop working.
+
+(defun +fate--search-pattern ()
+  "Return the pattern `evil-search-next' would repeat, or nil if there is none."
+  (car-safe (if evil-regexp-search regexp-search-ring search-ring)))
+
+(evil-define-motion +fate/search-next (count)
+  "Repeat the last search.
+With no previous search, search forward for the symbol at point."
+  :jump t
+  :type exclusive
+  (if (+fate--search-pattern)
+      (evil-search-next count)
+    ;; t = match symbol boundaries, same as the occurrence highlighting.
+    (evil-search-word-forward count t)))
+
+(evil-define-motion +fate/search-previous (count)
+  "Repeat the last search in the opposite direction.
+With no previous search, search backward for the symbol at point."
+  :jump t
+  :type exclusive
+  (if (+fate--search-pattern)
+      (evil-search-previous count)
+    (evil-search-word-backward count t)))
 
 (use-package evil-collection
   :after evil

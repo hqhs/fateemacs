@@ -220,6 +220,62 @@ Prefers the defun name; falls back to the node's first source line."
 
 (add-hook 'prog-mode-hook #'+fate/scope-header-mode)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Highlight other occurrences of the symbol at point
+;;
+;; An extension of search rather than a separate feature: the same
+;; `lazy-highlight' face isearch uses for its other matches, and `n'/`N' with
+;; no pattern adopt the symbol under point (see lisp/evil.el). Plain text
+;; matching on symbol boundaries, so comments and strings count.
+;;
+;; Scoped to the visible window: one screen costs ~0.02ms against ~1.5ms for a
+;; 4k-line buffer, and offscreen matches cannot be seen anyway. That is cheap
+;; enough to run straight off `post-command-hook' with no idle timer.
+
+(defvar-local +fate--occurrence-overlays nil)
+
+(defvar-local +fate--occurrence-state nil
+  "The (SYMBOL WINDOW-START WINDOW-END) the current overlays were built for.")
+
+(defun +fate--occurrence-clear ()
+  (mapc #'delete-overlay +fate--occurrence-overlays)
+  (setq +fate--occurrence-overlays nil
+        +fate--occurrence-state nil))
+
+(defun +fate--occurrence-update ()
+  "Highlight occurrences of the symbol at point within the visible window."
+  (if (or isearch-mode                            ; isearch highlights its own
+          (use-region-p)                          ; do not fight the selection
+          (not (eq (current-buffer) (window-buffer))))
+      (+fate--occurrence-clear)
+    (let* ((symbol (thing-at-point 'symbol t))
+           (beg (window-start))
+           (end (window-end nil t))
+           (state (list symbol beg end)))
+      ;; Rebuild only when the symbol or the visible region actually changed;
+      ;; moving within one symbol is then free.
+      (unless (equal state +fate--occurrence-state)
+        (+fate--occurrence-clear)
+        (setq +fate--occurrence-state state)
+        (when symbol
+          (let ((re (concat "\\_<" (regexp-quote symbol) "\\_>")))
+            (save-excursion
+              (goto-char beg)
+              (while (re-search-forward re end t)
+                (let ((ov (make-overlay (match-beginning 0) (match-end 0))))
+                  (overlay-put ov 'face 'lazy-highlight)
+                  (push ov +fate--occurrence-overlays))))))))))
+
+(define-minor-mode +fate/occurrence-mode
+  "Highlight other occurrences of the symbol at point."
+  :lighter nil
+  (if +fate/occurrence-mode
+      (add-hook 'post-command-hook #'+fate--occurrence-update nil t)
+    (remove-hook 'post-command-hook #'+fate--occurrence-update t)
+    (+fate--occurrence-clear)))
+
+(add-hook 'prog-mode-hook #'+fate/occurrence-mode)
+
 (use-package compile
   :ensure nil ;; built-in
   :custom

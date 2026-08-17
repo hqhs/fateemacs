@@ -31,21 +31,25 @@
 
 ;;; +fate/search-symbol-forward / backward
 
+;; The second argument is evil's symbol-vs-word boundary flag, so it must be
+;; literally t -- passing the symbol text there degraded to a word search
+;; whenever `thing-at-point' returned nil.
+
 (ert-deftest test-fate/search-symbol-forward-calls-evil ()
-  "Should delegate to evil-search-word-forward."
+  "Should delegate to evil-search-word-forward with symbol boundaries."
   (let ((called-with nil))
     (cl-letf (((symbol-function 'evil-search-word-forward)
-               (lambda (count sym) (setq called-with (list count sym)))))
-      (+fate/search-symbol-forward 1 "foo")
-      (should (equal called-with '(1 "foo"))))))
+               (lambda (count symbolp) (setq called-with (list count symbolp)))))
+      (+fate/search-symbol-forward 1)
+      (should (equal called-with '(1 t))))))
 
 (ert-deftest test-fate/search-symbol-backward-calls-evil ()
-  "Should delegate to evil-search-word-backward."
+  "Should delegate to evil-search-word-backward with symbol boundaries."
   (let ((called-with nil))
     (cl-letf (((symbol-function 'evil-search-word-backward)
-               (lambda (count sym) (setq called-with (list count sym)))))
-      (+fate/search-symbol-backward 1 "bar")
-      (should (equal called-with '(1 "bar"))))))
+               (lambda (count symbolp) (setq called-with (list count symbolp)))))
+      (+fate/search-symbol-backward 1)
+      (should (equal called-with '(1 t))))))
 
 ;;; +fate/region-active-p
 

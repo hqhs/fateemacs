@@ -21,17 +21,24 @@
       (user-error "No symbol at point"))
     (+fate--rg-search (project-root (project-current t)) nil symbol)))
 
-;;;###autoload
-(defun +fate/search-symbol-forward (count symbol)
-  (interactive (list (prefix-numeric-value current-prefix-arg)
-		     (thing-at-point 'symbol t)))
-  (evil-search-word-forward count symbol))
+;; NOTE(hqhs): the second argument of `evil-search-word-{forward,backward}' is
+;; a flag selecting symbol- over word-boundaries -- it is NOT the text to
+;; search for; the command picks that up at point itself. Passing
+;; `thing-at-point' here happened to work because a non-empty string is
+;; truthy, but returned nil on whitespace and silently downgraded the search
+;; from symbols to words.
 
 ;;;###autoload
-(defun +fate/search-symbol-backward (count symbol)
-  (interactive (list (prefix-numeric-value current-prefix-arg)
-		     (thing-at-point 'symbol t)))
-  (evil-search-word-backward count symbol))
+(defun +fate/search-symbol-forward (count)
+  "Search forward for the symbol at point, COUNT times."
+  (interactive "p")
+  (evil-search-word-forward count t))
+
+;;;###autoload
+(defun +fate/search-symbol-backward (count)
+  "Search backward for the symbol at point, COUNT times."
+  (interactive "p")
+  (evil-search-word-backward count t))
 
 (defun +fate/region-active-p ()
   "Check if the region is active."
