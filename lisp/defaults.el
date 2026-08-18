@@ -84,14 +84,31 @@
 
 ;; But turn on auto-save, so we have a fallback in case of crashes or lost data.
 ;; Use `recover-file' or `recover-session' to recover them.
-(setq auto-save-default nil ; FIXME(hqhs): doesn't work
+(setq auto-save-default t
       ;; Don't auto-disable auto-save after deleting big chunks. This defeats
       ;; the purpose of a failsafe. This adds the risk of losing the data we
       ;; just deleted, but I believe that's VCS's jurisdiction, not ours.
       auto-save-include-big-deletions t
-      ;; Keep it out of `doom-emacs-dir' or the local directory.
+      ;; Keep it out of `fate-emacs-dir' or the local directory.
       auto-save-list-file-prefix (concat fate-cache-dir "autosave/")
-      tramp-auto-save-directory  (concat fate-cache-dir "tramp-autosave/"))
+      tramp-auto-save-directory  (concat fate-cache-dir "tramp-autosave/")
+      ;; Emacs builds auto-save names by concatenating the prefix with the full
+      ;; buffer path, which overruns filesystem name limits on deep trees. `sha1'
+      ;; compresses that to ~40 characters. The TRAMP rule comes first because
+      ;; the default one would write remote auto-saves into
+      ;; `temporary-file-directory', which TRAMP prompts about every single time.
+      auto-save-file-name-transforms
+      `(("\\`/[^/]*:\\([^/]*/\\)*\\([^/]*\\)\\'"
+         ,(file-name-concat (concat fate-cache-dir "autosave/") "tramp-\\2-") sha1)
+        ("\\`/\\([^/]+/\\)*\\([^/]+\\)\\'"
+         ,(file-name-concat (concat fate-cache-dir "autosave/") "\\2-") sha1)))
+
+;; The transforms above are useless if the directory is missing, which is the
+;; bug that made auto-save look broken. #o700: auto-saves hold unsaved work.
+(add-hook 'auto-save-hook
+          (lambda ()
+            (with-file-modes #o700
+              (make-directory auto-save-list-file-prefix t))))
 
 ;;; Runtime optimizations
 
@@ -179,8 +196,12 @@
 (setq user-full-name "John Doe"
       user-mail-address "john@doe.com")
 
-(setq gnutls-verify-error noninteractive
-      gnutls-algorithm-priority
+;; NOTE(hqhs): `gnutls-verify-error' is deliberately absent here. init.el sets
+;; it to t; Doom sets it to `noninteractive' (i.e. nil in an interactive
+;; session) to avoid breaking package installs, and since defaults.el loads
+;; after init.el that value used to silently win. `tls-checktrust' below picks
+;; up init.el's setting.
+(setq gnutls-algorithm-priority
       (when (boundp 'libgnutls-version)
         (concat "SECURE128:+SECURE192:-VERS-ALL"
                 (if (>= libgnutls-version 30605)
@@ -205,11 +226,94 @@
     (setq use-short-answers t)
   ;; DEPRECATED: wemove when we drop 28.x support
   (advice-add #'yes-or-no-p :override #'y-or-n-p))
+;; By default SPC answers "yes" at a `y-or-n-p' prompt. With SPC as the leader
+;; key that is far too easy to hit by accident.
+(define-key y-or-n-p-map " " nil)
 
+;; The stock undo limits are small enough that a long editing session in a large
+;; file silently truncates its own history. Doom's numbers (emacs/undo module).
+(setq undo-limit 256000          ; 256kb (default 160kb)
+      undo-strong-limit 2000000  ; 2mb   (default 240kb)
+      undo-outer-limit 36000000) ; 36mb  (default 24mb)
+
+;; `global-auto-revert-mode' either burns a file watcher per buffer or polls the
+;; entire buffer list every `auto-revert-interval' seconds; both degrade as the
+;; buffer list grows into the hundreds. Doom's answer is to revert lazily
+;; instead: only buffers that are actually on screen, and only at the moments
+;; something could have changed underneath them. Doom needs custom switch-buffer
+;; hooks for this; Emacs 27+ gives us the same signals for free.
 (use-package autorevert
   :ensure nil ;; built-in
-  :init
-  (global-auto-revert-mode 1))
+  :demand t
+  :custom
+  (auto-revert-verbose t)             ; let us know when it happens
+  (auto-revert-use-notify nil)
+  (auto-revert-stop-on-user-input nil)
+  (revert-without-query (list "."))   ; only prompt when the buffer is unsaved
+  :config
+  (defun +fate--auto-revert-buffer-h ()
+    "Revert the current buffer if the file changed underneath it."
+    (unless (or auto-revert-mode
+                (active-minibuffer-window)
+                (and buffer-file-name
+                     auto-revert-remote-files
+                     (file-remote-p buffer-file-name nil t)))
+      (let ((auto-revert-mode t))
+        (auto-revert-handler))))
+
+  (defun +fate--auto-revert-visible-buffers-h (&rest _)
+    "Revert every buffer currently displayed in a window."
+    (dolist (win (window-list nil 'no-minibuffer))
+      (with-current-buffer (window-buffer win)
+        (+fate--auto-revert-buffer-h))))
+
+  ;; Buffer shown in a window / window selected / anything saved / frame
+  ;; refocused after using another app.
+  (add-hook 'window-buffer-change-functions #'+fate--auto-revert-visible-buffers-h)
+  (add-hook 'window-selection-change-functions #'+fate--auto-revert-visible-buffers-h)
+  (add-hook 'after-save-hook #'+fate--auto-revert-visible-buffers-h)
+  (add-function :after after-focus-change-function
+                #'+fate--auto-revert-visible-buffers-h))
+
+(use-package saveplace
+  :ensure nil ;; built-in
+  :custom
+  (save-place-file (expand-file-name "saveplace" fate-cache-dir))
+  :config
+  (save-place-mode 1)
+
+  ;; Restoring point near the bottom of a file leaves it pinned to the last
+  ;; screen line otherwise.
+  (advice-add 'save-place-find-file-hook :after-while
+              (lambda (&rest _)
+                (if buffer-file-name (ignore-errors (recenter)))))
+
+  ;; If something else already moved point (a jump straight into a location),
+  ;; it knows better than the cache does.
+  (advice-add 'save-place-find-file-hook :before-while
+              (lambda (&rest _) (bobp)))
+
+  ;; `save-place-alist-to-file' runs the whole alist through `pp', which is slow
+  ;; for long lists and pointless for a cache file.
+  (advice-add 'save-place-alist-to-file :around
+              (lambda (fn &rest args)
+                (cl-letf (((symbol-function 'pp) #'prin1))
+                  (apply fn args)))))
+
+(use-package which-key
+  :ensure nil ;; built-in as of Emacs 30
+  :custom
+  (which-key-idle-delay 1.0)
+  (which-key-idle-secondary-delay 0.1)
+  (which-key-sort-order #'which-key-key-order-alpha)
+  (which-key-sort-uppercase-first nil) ; jarring to separate keys by case
+  (which-key-add-column-padding 1)     ; less packed UI
+  (which-key-min-display-lines 7)      ; prevent a short+wide which-key pane
+  (which-key-side-window-slot -10)     ; don't replace popups
+  (which-key-compute-remaps t)         ; show remapped commands
+  (which-key-ellipsis "…")
+  :config
+  (which-key-mode 1))
 
 (use-package uniquify
   :ensure nil ;; built-in
@@ -221,7 +325,16 @@
   :custom
   (recentf-max-saved-items 200)
   (recentf-save-file (expand-file-name "recentf" fate-cache-dir))
+  ;; Cleaning up on a timer stats every remembered file while you are working.
+  ;; Quitting is the one moment when that latency costs nothing.
+  (recentf-auto-cleanup 'never)
   :config
+  ;; Text properties inflate the save file for no benefit. Must come first in
+  ;; `recentf-filename-handlers' -- `add-to-list' prepends.
+  (add-to-list 'recentf-filename-handlers #'substring-no-properties)
+  ;; Negative depth so the cleanup runs before `recentf-save-list', which
+  ;; `recentf-mode' puts on `kill-emacs-hook' at the default depth.
+  (add-hook 'kill-emacs-hook #'recentf-cleanup -50)
   (recentf-mode 1))
 
 (use-package savehist
@@ -231,7 +344,33 @@
   (history-length 1000)
   (history-delete-duplicates t)
   (savehist-save-minibuffer-history t)
+  (savehist-autosave-interval nil) ; save on kill only
+  (savehist-additional-variables
+   '(kill-ring                       ; persist clipboard
+     register-alist                  ; persist macros
+     mark-ring global-mark-ring      ; persist marks
+     search-ring regexp-search-ring)); persist searches
   :config
+  (add-hook 'savehist-save-hook
+            (lambda ()
+              "Strip text properties from `kill-ring' and `register-alist'.
+They are the bulk of the save file's size and carry nothing we can use on the
+way back in."
+              (setq kill-ring
+                    (mapcar #'substring-no-properties
+                            (cl-remove-if-not #'stringp kill-ring))
+                    register-alist
+                    (cl-loop for (reg . item) in register-alist
+                             if (stringp item)
+                             collect (cons reg (substring-no-properties item))
+                             else collect (cons reg item)))))
+  (add-hook 'savehist-save-hook
+            (lambda ()
+              "Drop registers holding unwritable values (window configurations).
+savehist discards `register-alist' wholesale otherwise. Set buffer-locally: this
+hook runs in savehist's temp buffer, so the live session keeps its registers."
+              (setq-local register-alist
+                          (cl-remove-if-not #'savehist-printable register-alist))))
   (savehist-mode 1))
 
 (use-package repeat

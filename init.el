@@ -55,8 +55,10 @@
 (defvar fate-cache-dir (expand-file-name "cache/" fate-emacs-dir)
   "The root to store runtime data, such as autosave files.")
 
-(setq auto-save-file-name-transforms
-      `((".*" ,(concat fate-cache-dir "auto-save/") t)))
+;; NOTE(hqhs): `auto-save-file-name-transforms' is set in lisp/defaults.el,
+;; next to `auto-save-list-file-prefix' and the directory that gets created for
+;; it. It used to be set here, pointing at a "auto-save/" directory nothing ever
+;; created, which is why auto-save silently did nothing.
 
 (defun +fate-load-lisp (file)
   (load (expand-file-name file fate-lisp-dir)))
@@ -95,6 +97,7 @@ If HOOK-OR-FUNCTION is a hook symbol, adds to hook. If a function symbol, advise
 (+fate-load-lisp "project.el") ;; built-in and lighter alternative to projectile
 (+fate-load-lisp "lsp.el")
 (+fate-load-lisp "tags.el")
+(+fate-load-lisp "jumps.el") ;; after tags.el/project.el: it advises their commands
 (+fate-load-lisp "completion.el")
 (+fate-load-lisp "prog-conf.el") ;; prog-mode is "base" configuration for toher major modes like rust, cc, go, etc.
 (+fate-load-lisp "keybindings.el")
