@@ -54,6 +54,16 @@ prompt that is aborted -- so they leave no junk in the jump list."
   ;; `xref-find-definitions' and `xref-find-references' already carry `:jump'
   ;; (see `evil-integration.el'), so they are absent from these lists.
 
+  ;; `*'/`#' delegate to the `evil-search-word-*' motions, which do carry
+  ;; `:jump' -- but the property is read off `this-command', which is the
+  ;; wrapper, so the jump was never recorded. Tag the wrappers directly, the way
+  ;; evil tags `xref-find-definitions'. `n'/`N' (`+fate/search-next' and
+  ;; friends, in evil.el) don't need this: they are `evil-define-motion's and
+  ;; declare `:jump t' themselves.
+  (dolist (cmd '(+fate/search-symbol-forward
+                 +fate/search-symbol-backward))
+    (evil-set-command-property cmd :jump t))
+
   ;; Always lands somewhere, or signals.
   (dolist (fn '(imenu
                 outline-up-heading))
