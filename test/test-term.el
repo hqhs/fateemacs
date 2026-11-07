@@ -7,6 +7,7 @@
 ;; fails at startup instead of when the terminal is first asked for.
 
 (require 'ert)
+(require 'cl-lib)
 
 (defvar test-fate--repo-dir
   (file-name-directory (directory-file-name (file-name-directory load-file-name))))
@@ -52,5 +53,60 @@ inside `module-load'."
                                                 temporary-file-directory)))
     (let ((err (should-error (+fate/term) :type 'user-error)))
       (should (string-match-p "build-term\\.sh" (error-message-string err))))))
+
+;;; Evil wiring. Both of these regressed once: requiring evil-ghostel does not
+;;; enable it, and the global `jk' escape shadows j/k in every insert state --
+;;; including a terminal buffer, where the handler's `insert' writes into
+;;; renderer-owned text and the keystroke never reaches the shell.
+;;;
+;;; `+fate--term-setup-evil' exists so this is checkable under `emacs -Q':
+;;; stub the two symbols it touches and assert what it did. They need real
+;;; `defvar's -- `let' over an undefined symbol binds lexically, which the
+;;; function under test would not see.
+
+(defvar ghostel-mode-hook nil)
+(defvar evil-ghostel-mode-map (make-sparse-keymap))
+
+(defun test-fate--plist-get-equal (plist key)
+  "Like `plist-get', but compare keys with `equal'; here they are key vectors."
+  (let (found)
+    (while (and plist (not found))
+      (if (equal (car plist) key)
+          (setq found (cadr plist))
+        (setq plist (cddr plist))))
+    found))
+
+(defun test-fate--capture-setup-evil ()
+  "Run the evil wiring with `evil-define-key*' stubbed; return its args."
+  (let ((calls nil))
+    (cl-letf (((symbol-function 'evil-define-key*)
+               (lambda (&rest args) (push args calls))))
+      (+fate--term-setup-evil))
+    (car calls)))
+
+(ert-deftest test-fate/term-setup-evil-enables-mode-per-buffer ()
+  "The wiring must hook `evil-ghostel-mode' onto `ghostel-mode'.
+It is a plain buffer-local minor mode with no self-enabling hook, so
+`require' alone leaves the entire evil integration inert."
+  (let ((ghostel-mode-hook nil))
+    (test-fate--capture-setup-evil)
+    (should (memq 'evil-ghostel-mode ghostel-mode-hook))))
+
+(ert-deftest test-fate/term-setup-evil-unshadows-j-and-k ()
+  "j and k must be rebound for insert state so they reach the terminal.
+They have to land on `self-insert-command', not on ghostel's private
+sender, so they flow through ghostel's own `[remap self-insert-command]'
+like every other printable key."
+  (let* ((ghostel-mode-hook nil)
+         (call (test-fate--capture-setup-evil)))
+    (should call)
+    ;; (STATE MAP KEY DEF KEY DEF ...)
+    (should (eq (nth 0 call) 'insert))
+    (should (eq (nth 1 call) evil-ghostel-mode-map))
+    (let ((bindings (nthcdr 2 call)))
+      (should (eq (test-fate--plist-get-equal bindings (kbd "j"))
+                  'self-insert-command))
+      (should (eq (test-fate--plist-get-equal bindings (kbd "k"))
+                  'self-insert-command)))))
 
 ;;; test-term.el ends here

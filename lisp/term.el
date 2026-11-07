@@ -34,12 +34,34 @@
   (setq ghostel-module-auto-install nil
         ghostel-module-directory +fate-ghostel-dir)
   :config
+  ;; No autoloads are generated for vendored packages, so require by hand.
+  (with-eval-after-load 'evil
+    (require 'evil-ghostel)
+    (+fate--term-setup-evil)))
+
+(defun +fate--term-setup-evil ()
+  "Wire evil-ghostel into ghostel buffers.
+Split out of the `ghostel' :config block so it can be tested without
+loading the terminal stack."
   ;; Evil integration, modeled on evil-collection-vterm: operators clamp to
   ;; the shell's input region and apply over the PTY, and full-screen TUIs
   ;; fall through to the application instead of being swallowed by Evil.
-  ;; No autoloads are generated for vendored packages, so require it by hand.
-  (with-eval-after-load 'evil
-    (require 'evil-ghostel)))
+  ;; `evil-ghostel-mode' is a plain buffer-local minor mode with no
+  ;; self-enabling hook, so requiring the file alone leaves it all inert.
+  (add-hook 'ghostel-mode-hook #'evil-ghostel-mode)
+
+  ;; The `jk' escape in lisp/evil.el binds j and k in *every* insert state,
+  ;; and its handler reaches for `insert' -- which in a ghostel buffer writes
+  ;; into renderer-owned text instead of the shell, so plain `j' and `k' never
+  ;; arrive at the terminal. Evil's state maps outrank the major mode's, so
+  ;; the only way to get those two keys back is to outrank evil in turn: an
+  ;; auxiliary binding on evil-ghostel's own minor-mode map. Binding to
+  ;; `self-insert-command' rather than to ghostel's private sender keeps them
+  ;; going through ghostel's `[remap self-insert-command]', like every other
+  ;; printable key.
+  (evil-define-key* 'insert evil-ghostel-mode-map
+                    (kbd "j") #'self-insert-command
+                    (kbd "k") #'self-insert-command))
 
 (defun +fate/term ()
   "Open a ghostel terminal buffer.
