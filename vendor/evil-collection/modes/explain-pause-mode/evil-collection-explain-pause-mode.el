@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -39,11 +39,11 @@
   (evil-collection-define-key 'normal 'explain-pause-top-mode-map
     "a" 'explain-pause-top-auto-refresh
     "c" 'explain-pause-top-clear
-    "o" 'explain-pause-top-sort
-
-    "q" 'quit-window
-    "ZZ" 'quit-window
-    "ZQ" 'quit-window))
+    "o" 'explain-pause-top-sort)
+  (evil-collection-bind 'explain-pause-top-mode-map
+                        'quit 'quit-window
+                        'quit-save 'quit-window
+                        'quit-cancel 'quit-window))
 
 (provide 'evil-collection-explain-pause-mode)
 

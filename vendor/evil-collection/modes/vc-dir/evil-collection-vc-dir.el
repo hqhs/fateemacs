@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <ambrevar@gmail.com>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, vc-dir, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -49,7 +49,6 @@
     "R" 'vc-register
     "s" 'vc-register ;; Like `magit-stage'?
     "gu" 'vc-update
-    "gr" 'revert-buffer
 
     "F" 'vc-update ;; This is the same as `vc-update' bound to "gu".
     "p" 'vc-push
@@ -65,33 +64,9 @@
     "x" 'vc-revert
     "b" 'vc-annotate ;; Like `magit-blame'
 
-    ;; Marking.
-    "m" 'vc-dir-mark
-    "M" 'vc-dir-mark-all-files
-    "u" 'vc-dir-unmark
-    "U" 'vc-dir-unmark-all-files
-
-    ;; Rebind paragraph-movement commands.
-    "]]" 'vc-dir-next-directory
-    "[[" 'vc-dir-previous-directory
-    "gj" 'vc-dir-next-directory
-    "gk" 'vc-dir-previous-directory
-    (kbd "C-j") 'vc-dir-next-directory
-    (kbd "C-k") 'vc-dir-previous-directory
-
-    ;; The remainder.
-    "gf" 'vc-dir-find-file
-    "\C-m" 'vc-dir-find-file
-
-    (kbd "S-<return>") 'vc-dir-find-file-other-window
-    "go" 'vc-dir-find-file-other-window
-    "gO" 'vc-dir-display-file
-    (kbd "M-<return>") 'vc-dir-display-file
-
     "\C-c\C-c" 'vc-dir-kill-dir-status-process
     [down-mouse-3] 'vc-dir-menu
     [mouse-2] 'vc-dir-find-file-other-window
-    "t" 'vc-dir-toggle-mark
     [follow-link] 'mouse-face
 
     "(" 'vc-dir-hide-up-to-date
@@ -107,7 +82,23 @@
     ;; Branching
     "Bc" 'vc-create-tag
     "Bl" 'vc-print-branch-log
-    "Bs" 'vc-retrieve-tag))
+    "Bs" 'vc-retrieve-tag)
+
+  (evil-collection-bind 'vc-dir-mode-map
+                        'mark 'vc-dir-mark
+                        'mark-all 'vc-dir-mark-all-files
+                        'toggle 'vc-dir-toggle-mark
+                        'unmark 'vc-dir-unmark
+                        'unmark-all 'vc-dir-unmark-all-files
+                        'next-item 'vc-dir-next-directory
+                        'prev-item 'vc-dir-previous-directory
+                        'next-section 'vc-dir-next-directory
+                        'prev-section 'vc-dir-previous-directory
+                        'action 'vc-dir-find-file
+                        'action-other 'vc-dir-find-file-other-window
+                        'action-stay 'vc-dir-display-file
+                        'find-file 'vc-dir-find-file
+                        'refresh 'revert-buffer))
 
 (provide 'evil-collection-vc-dir)
 ;;; evil-collection-vc-dir.el ends here

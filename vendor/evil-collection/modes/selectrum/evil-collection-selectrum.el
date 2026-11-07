@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -47,18 +47,19 @@
 
     (evil-collection-define-key 'insert 'selectrum-minibuffer-map
       (kbd "C-j") 'selectrum-next-candidate
-      (kbd "C-k") 'selectrum-previous-candidate
-      (kbd "C-n") 'selectrum-next-candidate
-      (kbd "C-p") 'selectrum-previous-candidate)
+      (kbd "C-k") 'selectrum-previous-candidate)
 
     (evil-collection-define-key 'normal 'selectrum-minibuffer-map
       (kbd "j") 'selectrum-next-candidate
       (kbd "k") 'selectrum-previous-candidate
-      (kbd "gj") 'selectrum-next-group
-      (kbd "gk") 'selectrum-previous-group
       (kbd "G") 'selectrum-goto-end
       (kbd "gg") 'selectrum-goto-beginning
       (kbd "gy") 'selectrum-kill-ring-save)
+    (evil-collection-bind 'selectrum-minibuffer-map
+                          'next-item 'selectrum-next-group
+                          'prev-item 'selectrum-previous-group
+                          'completion-previous 'selectrum-previous-candidate
+                          'completion-next     'selectrum-next-candidate)
 
     (when evil-want-C-u-scroll
       (evil-collection-define-key '(insert normal) 'selectrum-minibuffer-map

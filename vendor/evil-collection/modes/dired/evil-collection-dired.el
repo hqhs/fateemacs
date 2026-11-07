@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, dired, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -40,8 +40,10 @@
 ;;;###autoload
 (defun evil-collection-dired-setup ()
   "Set up `evil' bindings for `dired'."
+  (evil-collection-bind 'dired-mode-map
+                        'quit 'quit-window
+                        'rename 'dired-do-rename)
   (evil-collection-define-key 'normal 'dired-mode-map
-    "q" 'quit-window
     "j" 'dired-next-line
     "k" 'dired-previous-line
     [mouse-2] 'dired-mouse-find-file-other-window
@@ -62,7 +64,6 @@
     "O" 'dired-do-chown
     "P" 'dired-do-print
     "Q" 'dired-do-find-regexp-and-replace
-    "R" 'dired-do-rename
     "S" 'dired-do-symlink
     "T" 'dired-do-touch
     "X" 'dired-do-shell-command
@@ -109,43 +110,21 @@
     "*u" 'dired-unmark
     "*?" 'dired-unmark-all-files
     "*!" 'dired-unmark-all-marks
-    "U" 'dired-unmark-all-marks
     (kbd "* <delete>") 'dired-unmark-backward
     (kbd "* C-n") 'dired-next-marked-file
     (kbd "* C-p") 'dired-prev-marked-file
     "*t" 'dired-toggle-marks
     ;; Lower keys for commands not operating on all the marked files
     "a" 'dired-find-alternate-file
-    "d" 'dired-flag-file-deletion
-    "gf" 'dired-find-file
-    (kbd "C-m") 'dired-find-file
-    "gr" 'revert-buffer
     "i" 'dired-toggle-read-only
     "I" 'dired-maybe-insert-subdir
-    "J" 'dired-goto-file
-    "K" 'dired-do-kill-lines
     "r" 'dired-do-redisplay
-    "m" 'dired-mark
-    "t" 'dired-toggle-marks
-    "u" 'dired-unmark                   ; also "*u"
-    "W" 'browse-url-of-dired-file
-    "x" 'dired-do-flagged-delete
     "gy" 'dired-show-file-type ;; FIXME: This could probably go on a better key.
     "Y" 'dired-copy-filename-as-kill
     "+" 'dired-create-directory
-    ;; open
-    (kbd "RET") 'dired-find-file
-    (kbd "S-<return>") 'dired-find-file-other-window
-    (kbd "M-RET") 'dired-display-file
-    "gO" 'dired-find-file-other-window
-    "go" 'dired-view-file
     ;; sort
     "o" 'dired-sort-toggle-or-edit
     ;; moving
-    "gj" 'dired-next-dirline
-    "gk" 'dired-prev-dirline
-    "[[" 'dired-prev-dirline
-    "]]" 'dired-next-dirline
     "<" 'dired-prev-dirline
     ">" 'dired-next-dirline
     "^" 'dired-up-directory
@@ -167,8 +146,30 @@
     [remap read-only-mode] 'dired-toggle-read-only
     ;; `toggle-read-only' is an obsolete alias for `read-only-mode'
     [remap toggle-read-only] 'dired-toggle-read-only
-    "g?" 'dired-summary
-    (kbd "<delete>") 'dired-unmark-backward
+    (kbd "<delete>") 'dired-unmark-backward)
+
+  (evil-collection-bind 'dired-mode-map
+                        'mark 'dired-mark
+                        'unmark 'dired-unmark
+                        'unmark-all 'dired-unmark-all-marks
+                        'toggle 'dired-toggle-marks
+                        'toggle-all 'dired-toggle-marks
+                        'mark-delete 'dired-flag-file-deletion
+                        'execute-marks 'dired-do-flagged-delete
+                        'next-item 'dired-next-dirline
+                        'prev-item 'dired-prev-dirline
+                        'next-section 'dired-next-dirline
+                        'prev-section 'dired-prev-dirline
+                        'action 'dired-find-file
+                        'action-other 'dired-find-file-other-window
+                        'action-stay 'dired-view-file
+                        'find-file 'dired-find-file
+                        'describe-mode 'dired-summary
+                        'refresh 'revert-buffer
+                        'jump 'dired-goto-file
+                        'browse-url 'browse-url-of-dired-file)
+
+  (evil-collection-define-key 'normal 'dired-mode-map
     [remap undo] 'dired-undo
     [remap advertised-undo] 'dired-undo
     ;; thumbnail manipulation (image-dired)
@@ -190,6 +191,10 @@
     ";s" 'epa-dired-do-sign
     ";e" 'epa-dired-do-encrypt)
 
+  (when (>= emacs-major-version 30)
+    (evil-collection-define-key 'normal 'dired-mode-map
+      "E" 'dired-do-open))
+
   ;; dired-x commands
   (with-eval-after-load 'dired-x
     (evil-collection-define-key 'normal 'dired-mode-map
@@ -197,19 +202,23 @@
       "*." 'dired-mark-extension
       "*O" 'dired-mark-omitted))
 
+  ;; dired-do-kill-lines hides matching rows from view; when dired-narrow
+  ;; is loaded, its richer regex narrowing takes over `s' below.
+  (evil-collection-bind 'dired-mode-map 'search-or-filter 'dired-do-kill-lines)
+
   ;; dired-narrow commands
   (with-eval-after-load 'dired-narrow
-    (evil-collection-define-key 'normal 'dired-mode-map
-      "s" 'dired-narrow-regexp))
+    (evil-collection-bind 'dired-mode-map 'search-or-filter 'dired-narrow-regexp))
 
   ;; dired-subtree commands
   (with-eval-after-load 'dired-subtree
     (evil-collection-define-key 'normal 'dired-mode-map
-      (kbd "TAB") 'dired-subtree-toggle
       "gh" 'dired-subtree-up
       "gl" 'dired-subtree-down
       (kbd "M-j") 'dired-subtree-next-sibling
-      (kbd "M-k") 'dired-subtree-previous-sibling))
+      (kbd "M-k") 'dired-subtree-previous-sibling)
+    (evil-collection-bind 'dired-mode-map
+                          'section-toggle 'dired-subtree-toggle))
 
   (with-eval-after-load 'dired-filter
     (evil-collection-define-key 'normal 'dired-mode-map

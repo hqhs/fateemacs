@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -36,11 +36,12 @@
 (defun evil-collection-imenu-list-setup ()
   "Set up `evil' bindings for `imenu-list'."
   (evil-collection-define-key 'normal 'imenu-list-major-mode-map
-    (kbd "RET") 'imenu-list-goto-entry
-    (kbd "TAB") 'hs-toggle-hiding
-    "d" 'imenu-list-display-entry
-    "gr" 'imenu-list-refresh
-    "q" 'imenu-list-quit-window))
+    "d" 'imenu-list-display-entry)
+  (evil-collection-bind 'imenu-list-major-mode-map
+                        'action 'imenu-list-goto-entry
+                        'quit 'imenu-list-quit-window
+                        'refresh 'imenu-list-refresh
+                        'section-toggle 'hs-toggle-hiding))
 
 
 (provide 'evil-collection-imenu-list)

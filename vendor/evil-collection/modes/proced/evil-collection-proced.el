@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, proced, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -38,25 +38,15 @@
   (evil-collection-set-readonly-bindings 'proced-mode-map)
   (evil-set-initial-state 'proced-mode 'normal)
   (evil-collection-define-key 'normal 'proced-mode-map
-    (kbd "RET") 'proced-refine
-
     ;; mark
     ;; TODO: Implement a proced-toggle-mark?
-    "m" 'proced-mark ; Mentioned in documentation, should be followed.
     "*" 'proced-mark-all
     "M" 'proced-mark-all
-    "U" 'proced-unmark-all
-    "~" 'proced-toggle-marks
     "c" 'proced-mark-children
     "C" 'proced-mark-children           ; Emacs has "C"
     "p" 'proced-mark-parents
     "P" 'proced-mark-parents            ; Emacs has "P"
     (kbd "<delete>") 'proced-unmark-backward
-
-    ;; motion
-    ;; TODO: Implement beginning-of-buffer / end-of-buffer.
-    (kbd "SPC") 'evil-scroll-down
-    (kbd "S-SPC") 'evil-scroll-up
 
     "zt" 'proced-toggle-tree
 
@@ -67,7 +57,6 @@
     "x" 'proced-send-signal ; Emacs has "k" and "x", "k" is mentioned in documentation
 
     ;; filter
-    "s" 'proced-filter-interactive ; Refers to "[s]elect", Emacs has "f" mentioned in documentation.
     "S" 'proced-format-interactive
 
     ;; sort
@@ -79,10 +68,19 @@
     "ot" 'proced-sort-time
     "ou" 'proced-sort-user
 
-    "r" 'proced-renice
+    "r" 'proced-renice)
 
-    ;; refresh
-    "gr" 'revert-buffer))
+  ;; motion
+  ;; TODO: Implement beginning-of-buffer / end-of-buffer.
+  (evil-collection-bind 'proced-mode-map
+                        'scroll-down 'evil-scroll-down
+                        'scroll-up 'evil-scroll-up
+                        'mark 'proced-mark
+                        'toggle-all 'proced-toggle-marks
+                        'unmark-all 'proced-unmark-all
+                        'action 'proced-refine
+                        'refresh 'revert-buffer
+                        'search-or-filter 'proced-filter-interactive))
 
 (provide 'evil-collection-proced)
 ;;; evil-collection-proced.el ends here

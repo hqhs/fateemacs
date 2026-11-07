@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, geiser, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -51,54 +51,57 @@
 (defun evil-collection-geiser-setup ()
   "Set up bindings for `geiser'."
   (unless evil-move-beyond-eol
-    (advice-add 'geiser-eval-last-sexp :around 'evil-collection-geiser-last-sexp)
-    (advice-add 'geiser-eval-last-sexp-and-print :around 'evil-collection-geiser-last-sexp))
+    (advice-add 'geiser-eval-last-sexp :around #'evil-collection-geiser-last-sexp)
+    (advice-add 'geiser-eval-last-sexp-and-print :around #'evil-collection-geiser-last-sexp))
 
   (evil-set-initial-state 'geiser-debug-mode 'normal)
   (evil-set-initial-state 'geiser-doc-mode 'normal)
 
-  (evil-collection-define-key 'normal 'geiser-debug-mode-map
-    "q" 'quit-window)
+  (evil-collection-bind 'geiser-debug-mode-map 'quit 'quit-window)
+
+  (evil-collection-bind 'geiser-doc-mode-map
+                        'find-definition 'geiser-edit-symbol-at-point
+                        'pop-definition 'geiser-pop-symbol-stack
+                        'goto-repl 'geiser-doc-switch-to-repl)
 
   (evil-collection-define-key 'normal 'geiser-doc-mode-map
-    (kbd "<tab>") 'forward-button
-    (kbd "<S-tab>") 'backward-button
-    "gd" 'geiser-edit-symbol-at-point
-    (kbd "C-t") 'geiser-pop-symbol-stack
-    "gr" 'geiser-doc-refresh
-    "q" 'View-quit
-    "gz" 'geiser-doc-switch-to-repl
     ">" 'geiser-doc-next
     "<" 'geiser-doc-previous
-    "gj" 'forward-button
-    "gk" 'backward-button
-    (kbd "C-j") 'forward-button
-    (kbd "C-k") 'backward-button
-    "]]" 'geiser-doc-next-section
-    "[[" 'geiser-doc-previous-section
-    "x" 'geiser-doc-kill-page
     "X" 'geiser-doc-clean-history)
+  (evil-collection-bind 'geiser-doc-mode-map
+                        'next-button 'forward-button
+                        'previous-button 'backward-button
+                        'next-item 'forward-button
+                        'prev-item 'backward-button
+                        'next-section 'geiser-doc-next-section
+                        'prev-section 'geiser-doc-previous-section
+                        'next-section-2 'forward-button
+                        'prev-section-2 'backward-button
+                        'quit 'View-quit
+                        'refresh 'geiser-doc-refresh
+                        'delete 'geiser-doc-kill-page
+                        'delete-2 'geiser-doc-kill-page)
 
-  (evil-collection-define-key 'insert 'geiser-repl-mode-map
-    (kbd "S-<return>") 'geiser-repl--newline-and-indent)
+  (evil-collection-bind 'geiser-repl-mode-map
+                        'repl-submit 'geiser-repl-maybe-send
+                        'repl-newline 'geiser-repl--newline-and-indent
+                        'repl-force-newline 'geiser-repl--newline-and-indent
+                        'find-definition 'geiser-edit-symbol-at-point
+                        'pop-definition 'geiser-pop-symbol-stack
+                        'lookup-doc 'geiser-doc-symbol-at-point
+                        'next-item 'geiser-repl-next-prompt
+                        'prev-item 'geiser-repl-previous-prompt
+                        'next-section 'geiser-repl-next-prompt
+                        'prev-section 'geiser-repl-previous-prompt)
 
-  (evil-collection-define-key 'normal 'geiser-repl-mode-map
-    "gd" 'geiser-edit-symbol-at-point
-    (kbd "C-t") 'geiser-pop-symbol-stack
-    "gj" 'geiser-repl-next-prompt
-    "gk" 'geiser-repl-previous-prompt
-    (kbd "C-j") 'geiser-repl-next-prompt
-    (kbd "C-k") 'geiser-repl-previous-prompt
-    "]]" 'geiser-repl-next-prompt
-    "[[" 'geiser-repl-previous-prompt
-    "K" 'geiser-doc-symbol-at-point)
+  (evil-collection-bind 'geiser-mode-map
+                        'find-definition 'geiser-edit-symbol-at-point
+                        'pop-definition 'geiser-pop-symbol-stack
+                        'lookup-doc 'geiser-doc-symbol-at-point
+                        'goto-repl 'geiser-mode-switch-to-repl)
 
   (evil-collection-define-key 'normal 'geiser-mode-map
-    "gd" 'geiser-edit-symbol-at-point
-    (kbd "C-t") 'geiser-pop-symbol-stack
-    "gZ" 'geiser-mode-switch-to-repl-and-enter
-    "gz" 'geiser-mode-switch-to-repl
-    "K" 'geiser-doc-symbol-at-point))
+    "gZ" 'geiser-mode-switch-to-repl-and-enter))
 
 (provide 'evil-collection-geiser)
 ;;; evil-collection-geiser.el ends here

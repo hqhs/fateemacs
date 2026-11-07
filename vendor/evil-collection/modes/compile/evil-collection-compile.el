@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, compile, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -44,22 +44,19 @@
     (evil-collection-define-key nil keymap
       "g" nil)
 
-    (evil-collection-define-key 'normal keymap
-      (kbd "RET") 'compile-goto-error
-
-      "go" 'compilation-display-error
-      (kbd "S-<return>") 'compilation-display-error
-
-      (kbd "TAB") 'compilation-next-error
-      (kbd "S-TAB") 'compilation-previous-error
-
-      "gj" 'compilation-next-error
-      "gk" 'compilation-previous-error
-      (kbd "C-j") 'compilation-next-error
-      (kbd "C-k") 'compilation-previous-error
-      "[[" 'compilation-previous-file
-      "]]" 'compilation-next-file
-      "gr" 'recompile)))
+    (evil-collection-bind keymap
+                          'action 'compile-goto-error
+                          'action-other 'compilation-display-error
+                          'action-stay 'compilation-display-error
+                          'next-item 'compilation-next-error
+                          'prev-item 'compilation-previous-error
+                          'next-section 'compilation-next-file
+                          'prev-section 'compilation-previous-file
+                          'next-section-2 'compilation-next-error
+                          'prev-section-2 'compilation-previous-error
+                          'cycle-next 'compilation-next-error
+                          'cycle-previous 'compilation-previous-error
+                          'refresh 'recompile)))
 
 (provide 'evil-collection-compile)
 ;;; evil-collection-compile.el ends here

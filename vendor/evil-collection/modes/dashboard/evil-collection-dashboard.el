@@ -5,7 +5,7 @@
 ;; Author: Kisaragi Hiu <mail@kisaragi-hiu.com>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, dashboard, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -34,13 +34,13 @@
 
 (defconst evil-collection-dashboard-maps '(dashboard-mode-map))
 
-(defun evil-collection-dashboard-setup-jump-commands ()
+(defun evil-collection-dashboard-setup-jump-commands (&rest _)
   "Set up bindings for jump commands in Dashboard."
   (evil-collection-define-key 'normal 'dashboard-mode-map
-    "r" (symbol-function (lookup-key dashboard-mode-map "r")) ; recents
-    "m" (symbol-function (lookup-key dashboard-mode-map "m")) ; bookmarks
-    "p" (symbol-function (lookup-key dashboard-mode-map "p")) ; projects
-    "a" (symbol-function (lookup-key dashboard-mode-map "a")) ; agenda
+    "r" (lookup-key dashboard-mode-map "r") ; recents
+    "m" (lookup-key dashboard-mode-map "m") ; bookmarks
+    "p" (lookup-key dashboard-mode-map "p") ; projects
+    "a" (lookup-key dashboard-mode-map "a") ; agenda
     ;; - Dashboard inserts shortcut hints in its buffer, so it's
     ;; hard to differ from the default.
     ;;
@@ -48,7 +48,7 @@
     ;; added it would have to choose between the widget and losing
     ;; `evil-forward-word-end'. That's probably still better than
     ;; having a shortcut hint that isn't correct.
-    "e" (symbol-function (lookup-key dashboard-mode-map "e")))) ; registers
+    "e" (lookup-key dashboard-mode-map "e"))) ; registers
 
 ;;;###autoload
 (defun evil-collection-dashboard-setup ()
@@ -58,20 +58,23 @@
     ;; Movement
     "j" 'dashboard-next-line
     "k" 'dashboard-previous-line
-    ;; Like `evil-collection-outline.el'.
-    ;; These don't support COUNT, so it's probably better to leave [[
-    ;; and ]] alone.
-    "gj" 'dashboard-next-section
-    "gk" 'dashboard-previous-section
 
     ;; Enabling this binding makes RET insert a newline.
     ;; Default `evil-ret' works better.
     ;; (kbd "RET") 'dashboard-return
 
     ;; Other commands
-    [tab] 'widget-forward
-    [backtab] 'widget-backward
     [down-mouse-1] 'widget-button-click)
+  (evil-collection-bind 'dashboard-mode-map
+                        'cycle-next 'widget-forward
+                        'cycle-previous 'widget-backward)
+
+  ;; Section navigation via theme.
+  ;; Like `evil-collection-outline.el'.  These don't support COUNT, so [[ and ]]
+  ;; aren't ideal — but bind via theme anyway for consistency.
+  (evil-collection-bind 'dashboard-mode-map
+                        'next-item 'dashboard-next-section
+                        'prev-item 'dashboard-previous-section)
 
   ;; Jump commands
   ;;
@@ -84,7 +87,7 @@
   ;; Despite the name, this function is what sets up the dashboard
   ;; buffer itself.
   (advice-add 'dashboard-insert-startupify-lists :after
-              'evil-collection-dashboard-setup-jump-commands))
+              #'evil-collection-dashboard-setup-jump-commands))
 
 (provide 'evil-collection-dashboard)
 

@@ -6,7 +6,7 @@
 ;; Maintainer: James Nguyen <james@jojojames.com>, Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, youtube, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -39,12 +39,6 @@
 
   (evil-collection-set-readonly-bindings 'youtube-dl-list-mode-map)
   (evil-collection-define-key 'normal 'youtube-dl-list-mode-map
-    (kbd "S-SPC") 'scroll-down-command
-
-    "gr" 'youtube-dl-list-redisplay
-
-    "g?" 'describe-mode
-
     "p" 'youtube-dl-list-toggle-pause
     "s" 'youtube-dl-list-toggle-slow
     "S" 'youtube-dl-list-toggle-slow-all
@@ -54,14 +48,16 @@
     "I" 'youtube-dl-list-kill-log
 
     "a" 'youtube-dl
-    "d" 'youtube-dl-list-kill
+    "d" 'youtube-dl-list-kill)
 
-    "[[" 'youtube-dl-list-priority-down
-    "]]" 'youtube-dl-list-priority-up
-    "gj" 'youtube-dl-list-priority-down
-    "gk" 'youtube-dl-list-priority-up
-    (kbd "C-j") 'youtube-dl-list-priority-down
-    (kbd "C-k") 'youtube-dl-list-priority-up))
+  (evil-collection-bind 'youtube-dl-list-mode-map
+                        'scroll-up 'scroll-down-command
+                        'next-item 'youtube-dl-list-priority-down
+                        'prev-item 'youtube-dl-list-priority-up
+                        'next-section 'youtube-dl-list-priority-down
+                        'prev-section 'youtube-dl-list-priority-up
+                        'describe-mode 'describe-mode
+                        'refresh 'youtube-dl-list-redisplay))
 
 (provide 'evil-collection-youtube-dl)
 ;;; evil-collection-youtube-dl.el ends here

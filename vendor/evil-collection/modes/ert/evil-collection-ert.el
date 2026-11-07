@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -46,26 +46,26 @@
     ;; Stuff that's not in the menu.
     "J" 'ert-results-jump-between-summary-and-result
     "L" 'ert-results-toggle-printer-limits-for-test-at-point
-    "gj" 'ert-results-next-test
-    "gk" 'ert-results-previous-test
-    "]]" 'ert-results-next-test
-    "[[" 'ert-results-previous-test
-    (kbd "C-j") 'ert-results-next-test
-    (kbd "C-k") 'ert-results-previous-test
     ;; Stuff that is in the menu.
-    "gr" 'ert-results-rerun-all-tests
     "R" 'ert-results-rerun-all-tests
     "r" 'ert-results-rerun-test-at-point
     "d" 'ert-results-rerun-test-at-point-debugging-errors
     "." 'ert-results-find-test-at-point-other-window
-    "gd" 'ert-results-find-test-at-point-other-window
     "B" 'ert-results-pop-to-backtrace-for-test-at-point
     "M" 'ert-results-pop-to-messages-for-test-at-point
     "s" 'ert-results-pop-to-should-forms-for-test-at-point
-    "K" 'ert-results-describe-test-at-point
-    "g?" 'ert-results-describe-test-at-point
-    "x" 'ert-delete-test
-    "T" 'ert-results-pop-to-timings))
+    "T" 'ert-results-pop-to-timings)
+
+  (evil-collection-bind 'ert-results-mode-map
+                        'next-item 'ert-results-next-test
+                        'prev-item 'ert-results-previous-test
+                        'next-section 'ert-results-next-test
+                        'prev-section 'ert-results-previous-test
+                        'lookup-doc 'ert-results-describe-test-at-point
+                        'describe-mode 'ert-results-describe-test-at-point
+                        'refresh 'ert-results-rerun-all-tests
+                        'find-definition 'ert-results-find-test-at-point-other-window
+                        'delete-2 'ert-delete-test))
 
 (provide 'evil-collection-ert)
 ;;; evil-collection-ert.el ends here

@@ -6,7 +6,7 @@
 ;; Maintainer: James Nguyen <james@jojojames.com>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, eglot, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -34,17 +34,16 @@
 ;;;###autoload
 (defun evil-collection-eglot-setup ()
   "Set up `evil' bindings for `eglot'."
-  (add-hook 'eglot-managed-mode-hook 'evil-normalize-keymaps)
+  (add-hook 'eglot-managed-mode-hook #'evil-normalize-keymaps)
   (evil-collection-define-key 'normal 'eglot-mode-map
-    "gd" 'xref-find-definitions
     "gD" 'xref-find-definitions-other-window
-    "g5" 'xref-find-definitions-other-frame
-    (kbd "C-t") 'xref-pop-marker-stack
-    "K" 'eldoc-doc-buffer)
+    "g5" 'xref-find-definitions-other-frame)
 
-  (when evil-collection-want-find-usages-bindings
-    (evil-collection-define-key 'normal 'eglot-mode-map
-      "gr" 'xref-find-references)))
+  (evil-collection-bind 'eglot-mode-map
+                        'find-usages 'xref-find-references
+                        'find-definition 'xref-find-definitions
+                        'pop-definition 'xref-pop-marker-stack
+                        'lookup-doc 'eldoc-doc-buffer))
 
 (provide 'evil-collection-eglot)
 ;;; evil-collection-eglot.el ends here

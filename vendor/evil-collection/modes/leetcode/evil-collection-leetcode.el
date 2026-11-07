@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: emacs, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -37,10 +37,10 @@
 ;;;###autoload
 (defun evil-collection-leetcode-setup ()
   "Set up `evil' bindings for `leetcode'."
-  (evil-collection-define-key 'normal 'leetcode--problems-mode-map
-    (kbd "RET") 'leetcode-show-current-problem
-    "gr" 'leetcode-problems-refresh
-    "q" 'quit-window))
+  (evil-collection-bind 'leetcode--problems-mode-map
+                        'action 'leetcode-show-current-problem
+                        'quit 'quit-window
+                        'refresh 'leetcode-problems-refresh))
 
 (provide 'evil-collection-leetcode)
 ;;; evil-collection-leetcode.el ends here

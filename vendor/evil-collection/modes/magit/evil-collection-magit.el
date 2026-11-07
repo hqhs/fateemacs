@@ -6,7 +6,7 @@
 ;; Maintainer: Justin Burkett <justin@burkett.cc>
 ;; James Nguyen <james@jojojames.com>
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
-;; Package-Requires: ((emacs "26.3") (evil "1.2.3") (magit "2.6.0"))
+;; Package-Requires: ((emacs "29.1") (evil "1.2.3") (magit "2.6.0"))
 ;; Homepage: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.4.1
 
@@ -50,7 +50,6 @@
 (defvar magit-process-mode-map)
 (defvar magit-reflog-mode-map)
 (defvar magit-refs-mode-map)
-(defvar magit-repolist-mode-map)
 (defvar magit-status-mode-map)
 (defvar magit-submodule-list-mode-map)
 
@@ -62,7 +61,6 @@
     magit-blame-read-only-mode-map
     magit-blob-mode-map
     magit-submodule-list-mode-map ; -> parent: `magit-repolist-mode-map'
-    magit-repolist-mode-map
     magit-mode-map))
 
 (defcustom evil-collection-magit-use-y-for-yank t
@@ -102,6 +100,12 @@ When this option is enabled, the stash popup is available on \"Z\"."
   :group 'magit
   :type  'boolean)
 
+(defcustom evil-collection-magit-use-v-for-visual-line nil
+  "When non nil, use \"v\" for `evil-visual-line' (old behavior).
+When nil (default), \"v\" uses `evil-visual-char'."
+  :group 'magit
+  :type 'boolean)
+
 (defcustom evil-collection-magit-use-$-for-end-of-line t
   "When non nil, use \"$\" for `evil-end-of-line'.
 
@@ -125,8 +129,8 @@ Move `magit-diff-default-context' to \"~\"."
 ;; and introduces possible bugs
 (defun evil-collection-magit-remove-visual-activate-hook ()
   (when (derived-mode-p 'magit-mode)
-    (remove-hook 'activate-mark-hook 'evil-visual-activate-hook t)))
-(add-hook 'evil-local-mode-hook 'evil-collection-magit-remove-visual-activate-hook)
+    (remove-hook 'activate-mark-hook #'evil-visual-activate-hook t)))
+(add-hook 'evil-local-mode-hook #'evil-collection-magit-remove-visual-activate-hook)
 
 (defun evil-collection-magit-maybe-deactivate-mark ()
   "Deactivate mark if region is active. Used for ESC binding."
@@ -200,7 +204,8 @@ Move `magit-diff-default-context' to \"~\"."
     (evil-set-initial-state mode evil-default-state)))
 
 (defun evil-collection-magit-revert-initial-states ()
-  "Revert the initial state for modes to their values before evil-collection-magit was loaded."
+  "Revert the initial state for modes to their values before
+evil-collection-magit was loaded."
   (dolist (mode (append evil-collection-magit-emacs-to-evil-collection-magit-state-modes
                         evil-collection-magit-emacs-to-default-state-modes))
     (evil-set-initial-state mode 'emacs))
@@ -216,6 +221,7 @@ Move `magit-diff-default-context' to \"~\"."
     magit-hunk-section-map
     magit-module-commit-section-map
     magit-remote-section-map
+    magit-shelved-branch-section-map
     magit-staged-section-map
     magit-stash-section-map
     magit-stashes-section-map
@@ -264,10 +270,10 @@ Move `magit-diff-default-context' to \"~\"."
 (defun evil-collection-magit--filter-args-visual-expand-region (arglist)
   ;; pretend that the command has the :exclude-newline property by rewriting the
   ;; EXCLUDE-NEWLINE arg to this function
-  (cons (and (bound-and-true-p evil-collection-magit-in-visual-pre-command)
-             (null (car arglist))
-             (eq (evil-visual-type) 'line)
-             (derived-mode-p 'magit-mode))
+  (cons (or (car arglist)
+            (and (bound-and-true-p evil-collection-magit-in-visual-pre-command)
+                 (eq (evil-visual-type) 'line)
+                 (derived-mode-p 'magit-mode)))
         ;; shouldn't be necessary, but this will prevent it from failing if an
         ;; arg is added.
         (cdr arglist)))
@@ -293,9 +299,11 @@ Move `magit-diff-default-context' to \"~\"."
     (append
      `((,states magit-mode-map "g")
        (,states magit-mode-map "\C-j"   magit-section-forward          "n")
+       (,states magit-mode-map "\M-j"  magit-section-forward-sibling  "M-n")
        (,states magit-mode-map "gj"    magit-section-forward-sibling  "M-n")
        (,states magit-mode-map "]"     magit-section-forward-sibling  "M-n")
        (,states magit-mode-map "\C-k"   magit-section-backward         "p")
+       (,states magit-mode-map "\M-k"  magit-section-backward-sibling "M-p")
        (,states magit-mode-map "gk"    magit-section-backward-sibling "M-p")
        (,states magit-mode-map "["     magit-section-backward-sibling "M-p")
        (,states magit-mode-map "gr"    magit-refresh                  "g")
@@ -373,7 +381,9 @@ Move `magit-diff-default-context' to \"~\"."
        `((,states magit-mode-map "\C-u" evil-scroll-up)))
 
      (if evil-collection-magit-use-y-for-yank
-         `((,states magit-mode-map "v"    evil-visual-line)
+         `((,states magit-mode-map "v"    ,(if evil-collection-magit-use-v-for-visual-line
+                                              'evil-visual-line
+                                            'evil-visual-char))
            (,states magit-mode-map "V"    evil-visual-line)
            (,states magit-mode-map "\C-w"  evil-window-map)
            (,states magit-mode-map "y")
@@ -416,7 +426,13 @@ ORIG-KEY is only used for testing purposes, and
 denotes the original magit key for this command.")
 
 (dolist (binding evil-collection-magit-mode-map-bindings)
-  (when binding
+  ;; Skip single `[' / `]' on `magit-mode-map' when unimpaired is on so
+  ;; those keys remain free as unimpaired prefixes; the `magit-section'
+  ;; theme bindings cover sibling motion via `[[' / `]]'.
+  (when (and binding
+             (not (and evil-collection-want-unimpaired-p
+                       (eq (nth 1 binding) 'magit-mode-map)
+                       (member (nth 2 binding) '("[" "]")))))
     (dolist (state (nth 0 binding))
       (evil-collection-define-key
         state (nth 1 binding) (nth 2 binding) (nth 3 binding)))))
@@ -424,7 +440,9 @@ denotes the original magit key for this command.")
 (defvar evil-collection-magit-minor-mode-map-bindings
   `(((,evil-collection-magit-state visual) magit-blob-mode-map "gj" magit-blob-next     "n")
     ((,evil-collection-magit-state visual) magit-blob-mode-map "gk" magit-blob-previous "p")
+    ((,evil-collection-magit-state visual) git-commit-mode-map "\M-k" git-commit-prev-message "M-p")
     ((,evil-collection-magit-state visual) git-commit-mode-map "gk" git-commit-prev-message "M-p")
+    ((,evil-collection-magit-state visual) git-commit-mode-map "\M-j" git-commit-next-message "M-n")
     ((,evil-collection-magit-state visual) git-commit-mode-map "gj" git-commit-next-message "M-n")
     ((normal) magit-blame-read-only-mode-map "j"    evil-next-line)
     ((normal) magit-blame-read-only-mode-map "\C-j"  magit-blame-next-chunk                 "n")
@@ -472,23 +490,16 @@ denotes the original magit key for this command.")
 (eval-after-load 'magit-gh-pulls
   `(evil-make-overriding-map magit-gh-pulls-mode-map ',evil-collection-magit-state))
 
-;; Need to refresh evil keymaps when blame mode is entered.
-(add-hook 'magit-blame-mode-hook 'evil-normalize-keymaps)
+;; Need to refresh evil keymaps when blame/blob mode is entered.
+(add-hook 'magit-blame-mode-hook #'evil-normalize-keymaps)
+(add-hook 'magit-blob-mode-hook #'evil-normalize-keymaps)
 
-(evil-set-initial-state 'magit-repolist-mode 'normal)
-(evil-collection-define-key 'normal 'magit-repolist-mode-map
-  "m" 'magit-repolist-mark
-  "u" 'magit-repolist-unmark
-  "f" 'magit-repolist-fetch
-  (kbd "RET") 'magit-repolist-status
-  (kbd "gr")  'magit-list-repositories)
-(add-hook 'magit-repolist-mode-hook 'evil-normalize-keymaps)
 
 (evil-set-initial-state 'magit-submodule-list-mode 'normal)
 (evil-collection-define-key 'normal 'magit-submodule-list-mode-map
   (kbd "RET") 'magit-repolist-status
   (kbd "gr")  'magit-list-submodules)
-(add-hook 'magit-submodule-list-mode-hook 'evil-normalize-keymaps)
+(add-hook 'magit-submodule-list-mode-hook #'evil-normalize-keymaps)
 
 
 (eval-after-load 'git-rebase
@@ -505,8 +516,8 @@ denotes the original magit key for this command.")
          ("x"    git-rebase-exec           "exec = run command (the rest of the line) using shell")
          ("d"    git-rebase-kill-line      "drop = remove commit" "k")
          ("u"    git-rebase-undo           "undo last change")
-         (nil    with-editor-finish        "tell Git to make it happen")
-         (nil    with-editor-cancel        "tell Git that you changed your mind, i.e. abort")
+         ("ZZ"   with-editor-finish        "tell Git to make it happen")
+         ("ZQ"   with-editor-cancel        "tell Git that you changed your mind, i.e. abort")
          ("k"    evil-previous-line        "move point to previous line" "p")
          ("j"    evil-next-line            "move point to next line" "n")
          ("M-k"  git-rebase-move-line-up   "move the commit at point up" "\M-p")
@@ -548,8 +559,8 @@ denotes the original magit key for this command.")
                              (substitute-command-keys
                               (format "\\[%s]" (nth 1 cmd)))))
                           (nth 2 cmd)))))))))
-     (remove-hook 'git-rebase-mode-hook 'git-rebase-mode-show-keybindings)
-     (add-hook 'git-rebase-mode-hook 'evil-collection-magit-add-rebase-messages t)))
+     (remove-hook 'git-rebase-mode-hook #'git-rebase-mode-show-keybindings)
+     (add-hook 'git-rebase-mode-hook #'evil-collection-magit-add-rebase-messages t)))
 
 ;; section maps: evil's auxiliary maps don't work here, because these maps are
 ;; text overlays
@@ -562,6 +573,16 @@ denotes the original magit key for this command.")
              (eq (magit-diff-type) 'untracked))
     (magit-stage-untracked t)))
 
+(defcustom evil-collection-magit-visit-worktree-file-on-return t
+  "When non-nil (default), RET visits the file in the worktree
+\(`magit-diff-visit-worktree-file') and S-<return> visits the file
+in the current diff context (`magit-diff-visit-file').
+
+When nil, the bindings are swapped: RET uses `magit-diff-visit-file'
+and S-<return> uses `magit-diff-visit-worktree-file'."
+  :group 'magit
+  :type 'boolean)
+
 (defvar evil-collection-magit-original-section-bindings
   `((,(copy-keymap magit-file-section-map) "\C-j" magit-diff-visit-worktree-file)
     (,(copy-keymap magit-hunk-section-map) "\C-j" magit-diff-visit-worktree-file))
@@ -569,17 +590,31 @@ denotes the original magit key for this command.")
 evil-collection-magit affects.")
 
 (defun evil-collection-magit-adjust-section-bindings ()
-  "Revert changed bindings in section maps generated by evil-collection-magit"
+  "Adjust bindings in section maps for evil-collection-magit."
   (define-key magit-file-section-map "I"
-    'evil-collection-magit-stage-untracked-file-with-intent)
+    #'evil-collection-magit-stage-untracked-file-with-intent)
   (define-key magit-file-section-map "\C-j" nil)  ; breaking change
-  (define-key magit-hunk-section-map "\C-j" nil)) ; breaking change
+  (define-key magit-hunk-section-map "\C-j" nil)  ; breaking change
+  (let ((return-cmd (if evil-collection-magit-visit-worktree-file-on-return
+                        'magit-diff-visit-worktree-file
+                      'magit-diff-visit-file))
+        (s-return-cmd (if evil-collection-magit-visit-worktree-file-on-return
+                          'magit-diff-visit-file
+                        'magit-diff-visit-worktree-file)))
+    (define-key magit-file-section-map (kbd "RET") return-cmd)
+    (define-key magit-hunk-section-map (kbd "RET") return-cmd)
+    (define-key magit-file-section-map (kbd "S-<return>") s-return-cmd)
+    (define-key magit-hunk-section-map (kbd "S-<return>") s-return-cmd)))
 
 (defun evil-collection-magit-revert-section-bindings ()
-  "Revert changed bindings in section maps generated by evil-collection-magit"
+  "Revert changed bindings in section maps generated by evil-collection-magit."
   (define-key magit-file-section-map "I" nil)
-  (define-key magit-file-section-map "\C-j" 'magit-diff-visit-file-worktree)
-  (define-key magit-hunk-section-map "\C-j" 'magit-diff-visit-file-worktree))
+  (define-key magit-file-section-map "\C-j" #'magit-diff-visit-worktree-file)
+  (define-key magit-hunk-section-map "\C-j" #'magit-diff-visit-worktree-file)
+  (define-key magit-file-section-map (kbd "RET") #'magit-diff-visit-file)
+  (define-key magit-hunk-section-map (kbd "RET") #'magit-diff-visit-file)
+  (define-key magit-file-section-map (kbd "S-<return>") nil)
+  (define-key magit-hunk-section-map (kbd "S-<return>") nil))
 
 ;; Popups
 
@@ -593,7 +628,7 @@ evil-collection-magit affects.")
      '((magit-dispatch "Z" "%" magit-worktree)
        (magit-dispatch "z" "Z" magit-stash)))
    (when evil-collection-magit-want-horizontal-movement
-     '((magit-dispatch "L" "\C-l" magit-log-refresh)
+     '((magit-dispatch "L" "C-l" magit-log-refresh)
        (magit-dispatch "l" "L" magit-log)))
    '((magit-branch "x" "X" magit-branch-reset)
      (magit-branch "k" "x" magit-branch-delete)
@@ -635,9 +670,9 @@ evil-collection-magit affects.")
 ;;;###autoload
 (defun evil-collection-magit-init ()
   "This function completes the setup of evil-collection-magit. It is called
-automatically when evil-collection-magit-setup is called.. The only reason to use
-this function is if you've called `evil-collection-magit-revert' and wish to
-go back to evil-collection-magit behavior."
+automatically when evil-collection-magit-setup is called.. The only reason to
+use this function is if you've called `evil-collection-magit-revert' and wish
+to go back to evil-collection-magit behavior."
   (interactive)
   (evil-collection-magit-adjust-section-bindings)
   (evil-collection-magit-adjust-popups)
@@ -664,6 +699,9 @@ using `evil-collection-magit-toggle-text-mode'"
 (evil-collection-define-key evil-collection-magit-state 'magit-mode-map
   "\C-t" 'evil-collection-magit-toggle-text-mode
   "\\"   'evil-collection-magit-toggle-text-mode)
+(evil-collection-define-key evil-collection-magit-state 'git-rebase-mode-map
+  "\C-t" 'evil-collection-magit-toggle-text-mode
+  "\\"   'evil-collection-magit-toggle-text-mode)
 
 (defvar evil-collection-magit-last-mode nil
   "Used to store last magit mode before entering text mode using
@@ -672,10 +710,11 @@ using `evil-collection-magit-toggle-text-mode'"
 (defun evil-collection-magit-toggle-text-mode ()
   "Switch to `text-mode' and back from magit buffers."
   (interactive)
-  (cond ((derived-mode-p 'magit-mode)
+  (cond ((derived-mode-p 'magit-mode 'git-rebase-mode)
          (setq evil-collection-magit-last-mode major-mode)
          (message "Switching to text-mode")
          (text-mode)
+         (read-only-mode -1)
          (evil-collection-magit-toggle-text-minor-mode 1)
          (evil-normalize-keymaps))
         ((and (eq major-mode 'text-mode)
@@ -700,10 +739,8 @@ using `evil-collection-magit-toggle-text-mode'"
 (defun evil-collection-magit-setup ()
   "Set up `evil' bindings for `magit'."
 
-  (evil-collection-define-key 'normal 'magit-blame-mode-map
-    "q" 'magit-blame-quit)
-  (evil-collection-define-key 'normal 'magit-blame-read-only-mode-map
-    "q" 'magit-blame-quit)
+  (evil-collection-bind 'magit-blame-mode-map 'quit 'magit-blame-quit)
+  (evil-collection-bind 'magit-blame-read-only-mode-map 'quit 'magit-blame-quit)
 
   (evil-collection-magit-init))
 

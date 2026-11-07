@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, tools, golang
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -36,12 +36,12 @@
 ;;;###autoload
 (defun evil-collection-go-mode-setup ()
   "Set up `evil' bindings for `go-mode'."
-  (evil-collection-define-key 'normal 'go-mode-map
-    "gd" 'godef-jump
-    "K" 'godef-describe)
-  (evil-collection-define-key 'normal 'godoc-mode-map
-    "q" 'quit-window
-    "g?" 'describe-mode))
+  (evil-collection-bind 'go-mode-map
+                        'find-definition 'godef-jump
+                        'lookup-doc 'godef-describe)
+  (evil-collection-bind 'godoc-mode-map
+                        'quit 'quit-window
+                        'describe-mode 'describe-mode))
 
 (provide 'evil-collection-go-mode)
 ;;; evil-collection-go-mode.el ends here

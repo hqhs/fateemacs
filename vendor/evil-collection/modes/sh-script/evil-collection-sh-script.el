@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -41,8 +41,7 @@
   "Set up `evil' bindings for `sh-script'."
   (add-hook 'sh-mode-hook #'evil-collection-sh-script-set-evil-shift-width)
 
-  (evil-collection-define-key 'normal 'sh-mode-map
-    "gz" 'sh-show-shell))
+  (evil-collection-bind 'sh-mode-map 'goto-repl 'sh-show-shell))
 
 (provide 'evil-collection-sh-script)
 ;;; evil-collection-sh-script.el ends here

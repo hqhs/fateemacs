@@ -6,7 +6,7 @@
 ;; Maintainer: James Nguyen <james@jojojames.com>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, elisp, lisp
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -81,7 +81,7 @@
   (evil-add-command-properties
    #'evil-collection-scroll-lock-backward-paragraph :jump t)
 
-  (add-hook 'scroll-lock-mode-hook 'evil-normalize-keymaps))
+  (add-hook 'scroll-lock-mode-hook #'evil-normalize-keymaps))
 
 (provide 'evil-collection-scroll-lock)
 ;;; evil-collection-scroll-lock.el ends here

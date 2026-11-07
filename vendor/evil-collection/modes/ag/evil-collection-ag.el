@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, ag, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -39,17 +39,6 @@
     "k" 'evil-previous-line
     "h" 'evil-backward-char
 
-    ;; refresh
-    "gr" 'recompile
-
-    ;; navigation
-    "gj" 'compilation-next-error
-    "gk" 'compilation-previous-error
-    (kbd "C-j") 'compilation-next-error
-    (kbd "C-k") 'compilation-previous-error
-    "]]" 'compilation-next-error
-    "[[" 'compilation-previous-error
-
     ;; search
     "?" evil-collection-evil-search-backward
     "/" evil-collection-evil-search-forward
@@ -57,7 +46,14 @@
     "N" evil-collection-evil-search-previous)
   ;; `ag' is best set in 'normal state because its buffer can be edited.
   ;; https://github.com/mhayashi1120/Emacs-wgrep
-  (evil-set-initial-state 'ag-mode 'normal))
+  (evil-set-initial-state 'ag-mode 'normal)
+
+  (evil-collection-bind 'ag-mode-map
+                        'next-item 'compilation-next-error
+                        'prev-item 'compilation-previous-error
+                        'next-section 'compilation-next-error
+                        'prev-section 'compilation-previous-error
+                        'refresh 'recompile))
 
 (provide 'evil-collection-ag)
 ;;; evil-collection-ag.el ends here

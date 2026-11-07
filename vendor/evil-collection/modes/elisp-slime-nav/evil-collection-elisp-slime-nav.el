@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, elisp-slime-nav, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -35,10 +35,10 @@
 ;;;###autoload
 (defun evil-collection-elisp-slime-nav-setup ()
   "Set up `evil' bindings for `elisp-slime-nav'."
-  (evil-collection-define-key 'normal 'elisp-slime-nav-mode-map
-    "gd" 'elisp-slime-nav-find-elisp-thing-at-point
-    (kbd "C-t") 'pop-tag-mark
-    "K" 'elisp-slime-nav-describe-elisp-thing-at-point))
+  (evil-collection-bind 'elisp-slime-nav-mode-map
+                        'find-definition 'elisp-slime-nav-find-elisp-thing-at-point
+                        'pop-definition 'pop-tag-mark
+                        'lookup-doc 'elisp-slime-nav-describe-elisp-thing-at-point))
 
 (provide 'evil-collection-elisp-slime-nav)
 ;;; evil-collection-elisp-slime-nav.el ends here

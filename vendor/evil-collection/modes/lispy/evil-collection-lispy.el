@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, lispy, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -605,7 +605,7 @@ This is an exact copy of `lispy-set-key-theme' except with the additions of
 ;;;###autoload
 (defun evil-collection-lispy-setup ()
   "Set up `evil' bindings for `lispy'."
-  (advice-add 'lispy-set-key-theme :override 'evil-collection-lispy-set-key-theme)
+  (advice-add 'lispy-set-key-theme :override #'evil-collection-lispy-set-key-theme)
   (lispy-set-key-theme '(special-evil evil))
   (evil-collection-define-key 'normal 'evil-collection-lispy-mode-map
     ;; Instead of inheriting, explicitly define keys from `lispy-mode-map-base'.
@@ -625,9 +625,6 @@ This is an exact copy of `lispy-set-key-theme' except with the additions of
     ;; (kbd "M-q") 'lispy-fill
     ;; (define-key map (kbd "C-j") 'lispy-newline-and-indent)
     ;; (define-key map (kbd "RET") 'lispy-newline-and-indent-plain)
-    ;; tags
-    "gd" 'lispy-goto-symbol
-    (kbd "C-t") 'pop-tag-mark
     ;; -- End Inheritance.
 
     (kbd "M-)") 'lispy-wrap-round
@@ -653,7 +650,11 @@ This is an exact copy of `lispy-set-key-theme' except with the additions of
     (kbd "M-j") 'lispy-move-down
     (kbd "M-o") 'lispy-string-oneline
     (kbd "M-p") 'lispy-clone
-    (kbd "M-d") 'evil-collection-lispy-delete))
+    (kbd "M-d") 'evil-collection-lispy-delete)
+
+  (evil-collection-bind 'evil-collection-lispy-mode-map
+                        'find-definition 'lispy-goto-symbol
+                        'pop-definition 'pop-tag-mark))
 
 (provide 'evil-collection-lispy)
 ;;; evil-collection-lispy.el ends here

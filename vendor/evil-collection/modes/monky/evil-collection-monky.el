@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: emacs, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -43,21 +43,12 @@
 (defun evil-collection-monky-setup ()
   "Set up `evil' bindings for `monky'."
   (evil-set-initial-state 'monky-mode 'normal)
-  (add-hook 'monky-mode-hook 'evil-normalize-keymaps)
-  (add-hook 'monky-status-mode-hook 'evil-normalize-keymaps)
+  (add-hook 'monky-mode-hook #'evil-normalize-keymaps)
+  (add-hook 'monky-status-mode-hook #'evil-normalize-keymaps)
 
   (evil-collection-define-key 'normal 'monky-mode-map
-    "]]" 'monky-goto-next-section
-    "gj" 'monky-goto-next-section
-    (kbd "C-j") 'monky-goto-next-section
-    "[[" 'monky-goto-previous-section
-    "gk" 'monky-goto-previous-section
-    (kbd "C-k") 'monky-goto-previous-section
-    (kbd "RET") 'monky-visit-item
-    (kbd "TAB") 'monky-toggle-section
     (kbd "SPC") 'monky-show-item-or-scroll-up
     (kbd "DEL") 'monky-show-item-or-scroll-down
-    "gr" 'monky-refresh
     "`" 'monky-display-process
     "!" 'monky-hg-command
     "Ll" 'monky-log-current-branch
@@ -65,8 +56,16 @@
     "LL" 'monky-log-all
     "Lr" 'monky-log-revset
     "b" 'monky-branches
-    "Q" 'monky-queue
-    "q" 'monky-quit-window)
+    "Q" 'monky-queue)
+  (evil-collection-bind 'monky-mode-map
+                        'action 'monky-visit-item
+                        'next-item 'monky-goto-next-section
+                        'prev-item 'monky-goto-previous-section
+                        'next-section 'monky-goto-next-section
+                        'prev-section 'monky-goto-previous-section
+                        'quit 'monky-quit-window
+                        'refresh 'monky-refresh
+                        'section-toggle 'monky-toggle-section)
 
   (evil-collection-define-key 'normal 'monky-status-mode-map
     "s" 'monky-stage-item

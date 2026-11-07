@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, daemons, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -37,29 +37,28 @@
 (defun evil-collection-daemons-setup ()
   "Set up `evil' bindings for `daemons'."
   (evil-collection-define-key '(normal visual) 'daemons-mode-map
-    (kbd "RET") 'daemons-status-at-point
     "s" 'daemons-start-at-point
     "S" 'daemons-stop-at-point
     "r" 'daemons-reload-at-point
-    "R" 'daemons-restart-at-point
-
-    "gr" 'revert-buffer
-
-    "q" 'quit-window
-    "ZZ" 'quit-window
-    "ZQ" 'quit-window)
+    "R" 'daemons-restart-at-point)
+  (evil-collection-bind 'daemons-mode-map
+                        'action 'daemons-status-at-point
+                        'quit 'quit-window
+                        'quit-save 'quit-window
+                        'quit-cancel 'quit-window
+                        'refresh 'revert-buffer)
 
   ;; Functions are available in daemons-output-mode-map as well
   (evil-collection-define-key '(normal visual) 'daemons-output-mode-map
-    (kbd "RET") 'daemons-status-at-point
     "s" 'daemons-start-at-point
     "S" 'daemons-stop-at-point
     "r" 'daemons-reload-at-point
-    "R" 'daemons-restart-at-point
-
-    "q" 'quit-window
-    "ZZ" 'quit-window
-    "ZQ" 'quit-window)
+    "R" 'daemons-restart-at-point)
+  (evil-collection-bind 'daemons-output-mode-map
+                        'action 'daemons-status-at-point
+                        'quit 'quit-window
+                        'quit-save 'quit-window
+                        'quit-cancel 'quit-window)
 
   (evil-set-initial-state 'daemons-mode 'normal)
   (evil-set-initial-state 'daemons-output-mode 'normal))

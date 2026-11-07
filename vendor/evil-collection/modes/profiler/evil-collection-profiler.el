@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, profiler, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -32,6 +32,11 @@
 
 (defconst evil-collection-profiler-maps '(profiler-report-mode-map))
 
+(defun evil-collection-profiler-toggle-entry-all ()
+  "Toggle the entry at point with all of its subentries expanded."
+  (interactive)
+  (profiler-report-toggle-entry t))
+
 ;;;###autoload
 (defun evil-collection-profiler-setup ()
   "Set up `evil' bindings for `profiler'."
@@ -39,13 +44,9 @@
 
   (evil-collection-define-key 'normal 'profiler-report-mode-map
     ;; motion
-    (kbd "SPC") 'scroll-up-command
-    (kbd "S-SPC") 'scroll-down-command
     (kbd "<delete>") 'scroll-down-command
     "j" 'profiler-report-next-entry
     "k" 'profiler-report-previous-entry
-
-    (kbd "<tab>") 'profiler-report-toggle-entry
 
     ;; sort
     "o" 'profiler-report-ascending-sort
@@ -54,18 +55,18 @@
     "c" 'profiler-report-render-calltree
     "C" 'profiler-report-render-reversed-calltree
     "i" 'profiler-report-describe-entry
-    "=" 'profiler-report-compare-profile
-
-    ;; open
-    (kbd "RET") 'profiler-report-find-entry
-
-    ;; refresh
-    "gr" 'revert-buffer
-
-    ;; quit
-    "q" 'quit-window
-    "ZQ" 'evil-quit
-    "ZZ" 'quit-windw))
+    "=" 'profiler-report-compare-profile)
+  (evil-collection-bind 'profiler-report-mode-map
+                        'scroll-down 'scroll-up-command
+                        'scroll-up 'scroll-down-command
+                        'action 'profiler-report-find-entry
+                        'quit 'quit-window
+                        'quit-save 'quit-window
+                        'quit-cancel 'evil-quit
+                        'refresh 'revert-buffer
+                        'section-toggle 'profiler-report-toggle-entry
+                        'section-toggle-all
+                        'evil-collection-profiler-toggle-entry-all))
 
 (provide 'evil-collection-profiler)
 ;;; evil-collection-profiler.el ends here

@@ -6,7 +6,7 @@
 ;; Maintainer: James Nguyen <james@jojojames.com>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.2
-;; Package-Requires: ((emacs "27.1"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, convenience, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -35,23 +35,29 @@
 
 (defun evil-collection-crdt-setup ()
   "Set up `evil' bindings for crdt."
-  (evil-collection-define-key 'normal 'crdt-buffer-menu-mode-map
-    (kbd "RET") 'crdt-switch-to-buffer-other-window
-    "x" 'crdt-stop-share-buffer)
+  (evil-collection-bind 'crdt-buffer-menu-mode-map
+                        'action 'crdt-switch-to-buffer-other-window
+                        'delete 'crdt-stop-share-buffer
+                        'delete-2 'crdt-stop-share-buffer)
 
-  (evil-collection-define-key 'normal 'crdt-session-menu-mode-map
-    (kbd "RET") 'crdt-list-buffers
-    "x" 'crdt--stop-session)
+  (evil-collection-bind 'crdt-session-menu-mode-map
+                        'action 'crdt-list-buffers
+                        'delete 'crdt--stop-session
+                        'delete-2 'crdt--stop-session)
+
+  (evil-collection-bind 'crdt-user-menu-mode-map
+                        'action 'crdt-goto-user
+                        'delete 'crdt-kill-user
+                        'delete-2 'crdt-kill-user)
+
+  (evil-collection-bind 'crdt-read-settings-map
+                        'action 'exit-recursive-edit
+                        'quit 'exit-recursive-edit
+                        'quit-save 'exit-recursive-edit
+                        'quit-cancel 'abort-recursive-edit)
 
   (evil-collection-define-key 'normal 'crdt-user-menu-mode-map
-    (kbd "RET") 'crdt-goto-user
-    "x" 'crdt-kill-user
-    "f" 'crdt-follow-user)
-
-  (evil-collection-define-key 'normal 'crdt-read-settings-map
-    (kbd "RET") 'exit-recursive-edit
-    "q" 'abort-recursive-edit
-    "ZZ" 'exit-recursive-edit))
+    "f" 'crdt-follow-user))
 
 (provide 'evil-collection-crdt)
 ;;; evil-collection-crdt.el ends here

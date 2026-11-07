@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, flymake, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -39,14 +39,14 @@
   "Set up `evil' bindings for `flymake'."
   (dolist (map '(flymake-diagnostics-buffer-mode-map flymake-project-diagnostics-mode-map))
     (evil-collection-set-readonly-bindings map)
-    (evil-collection-define-key 'normal map
-      (kbd "C-j") 'flymake-goto-next-error
-      (kbd "C-k") 'flymake-goto-prev-error
-      (kbd "RET") 'flymake-goto-diagnostic
-      (kbd "S-RET") 'flymake-show-diagnostic
-      (kbd "M-RET") 'flymake-show-diagnostic
-      (kbd "go") 'flymake-show-diagnostic
-      (kbd "gO") 'flymake-show-diagnostic)))
+    (evil-collection-bind map
+                          'action 'flymake-goto-diagnostic
+                          'action-other 'flymake-show-diagnostic
+                          'action-stay 'flymake-show-diagnostic
+                          'next-item 'flymake-goto-next-error
+                          'prev-item 'flymake-goto-prev-error
+                          'next-section 'flymake-goto-next-error
+                          'prev-section 'flymake-goto-prev-error)))
 
 (provide 'evil-collection-flymake)
 ;;; evil-collection-flymake.el ends here

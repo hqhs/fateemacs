@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: emacs, tools, evil
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -59,30 +59,34 @@ Note that there is no gnus-common-mode-map")
       (apply #'evil-collection-define-key 'normal map
              evil-collection-gnus-common-normal-bindings)))
 
+  (evil-collection-bind 'gnus-group-mode-map 'rename 'gnus-group-rename-group)
+  (evil-collection-bind 'gnus-bookmark-bmenu-mode-map 'rename 'gnus-bookmark-bmenu-rename)
+
+  (evil-collection-bind 'gnus-summary-mode-map 'edit 'gnus-summary-edit-article)
+  (evil-collection-bind 'gnus-server-mode-map 'edit 'gnus-server-edit-server)
+  (evil-collection-bind 'gnus-group-mode-map 'edit 'gnus-group-edit-group)
+  (evil-collection-bind 'gnus-bookmark-bmenu-mode-map 'edit 'gnus-bookmark-bmenu-edit-annotation)
+
+  (evil-collection-bind 'gnus-summary-mode-map
+                        'quit 'gnus-summary-exit
+                        'refresh 'gnus-summary-rescan-group
+                        'action 'gnus-summary-scroll-up
+                        'cycle-next 'gnus-summary-widget-forward
+                        'cycle-previous 'gnus-summary-widget-backward
+                        'quit-save 'gnus-summary-exit
+                        'quit-cancel 'gnus-summary-exit-no-update
+                        'describe-mode 'gnus-summary-help-map)
+
   (evil-collection-define-key 'normal 'gnus-summary-mode-map
     ;; quit
     "Q"         'gnus-summary-exit-no-update
-    "ZQ"        'gnus-summary-exit-no-update
-    "q"         'gnus-summary-exit
-    "ZZ"        'gnus-summary-exit
-
-    "g?"        'gnus-summary-help-map
 
     ;; motion
-    (kbd "<tab>") 'gnus-summary-widget-forward
-    (kbd "<backtab>") 'gnus-summary-widget-backward
     (kbd "<delete>") 'gnus-summary-prev-page
     (kbd "S-SPC") 'gnus-summary-prev-page
     (kbd "SPC") 'gnus-summary-next-page
-    (kbd "RET") 'gnus-summary-scroll-up
-    "gk"        'gnus-summary-prev-unread-article
-    "gj"        'gnus-summary-next-unread-article
-    "[["        'gnus-summary-prev-unread-article
-    "]]"        'gnus-summary-next-unread-article
     "{"         'gnus-summary-prev-thread
     "}"         'gnus-summary-next-thread
-    (kbd "C-j") 'gnus-summary-next-article
-    (kbd "C-k") 'gnus-summary-prev-article
 
     ;; Marking
     "m"         'gnus-summary-mark-as-processable
@@ -115,9 +119,6 @@ Note that there is no gnus-common-mode-map")
     ","         'gnus-summary-best-unread-article
     "!"         'gnus-summary-mark-as-read-forward
     "="         'gnus-summary-tick-article-forward
-    "J"         'gnus-summary-goto-article
-    "gr"        'gnus-summary-rescan-group
-    "e"         'gnus-summary-edit-article
     "E"         'gnus-summary-mark-as-expirable
     "z/"        'gnus-summary-limit-map
     "zt"        'gnus-summary-toggle-header
@@ -230,21 +231,29 @@ Note that there is no gnus-common-mode-map")
     (kbd "M-i") 'gnus-symbolic-argument
     "I"         'gnus-summary-increase-score
     "L"         'gnus-summary-lower-score)
+  (evil-collection-bind 'gnus-summary-mode-map
+                        'next-item 'gnus-summary-next-unread-article
+                        'prev-item 'gnus-summary-prev-unread-article
+                        'next-section 'gnus-summary-next-unread-article
+                        'prev-section 'gnus-summary-prev-unread-article
+                        'next-section-2 'gnus-summary-next-article
+                        'prev-section-2 'gnus-summary-prev-article
+                        'browse-url 'gnus-summary-browse-url
+                        'jump 'gnus-summary-goto-article)
 
   (evil-collection-define-key 'motion 'gnus-article-mode-map
     "F"         'gnus-article-followup-with-original
     "R"         'gnus-article-reply-with-original
     "W"         'gnus-article-wide-reply-with-original)
+  (evil-collection-bind 'gnus-article-mode-map
+                        'quit 'evil-window-delete
+                        'quit-save 'evil-window-delete
+                        'quit-cancel 'evil-window-delete)
   (evil-collection-define-key 'normal 'gnus-article-mode-map
     ;; quit
     "Q"         'evil-window-delete
-    "ZQ"        'evil-window-delete
-    "q"         'evil-window-delete
-    "ZZ"        'evil-window-delete
 
     ;; Movement
-    (kbd "TAB") 'forward-button
-    (kbd "<backtab>") 'backward-button
     (kbd "SPC") 'gnus-article-goto-next-page
     (kbd "DEL") 'gnus-article-goto-prev-page
     (kbd "S-SPC") 'gnus-article-goto-prev-page
@@ -304,22 +313,25 @@ Note that there is no gnus-common-mode-map")
 
     ;; Actions
     (kbd "C-]") 'gnus-article-refer-article
-    "s"         'gnus-article-show-summary
-    "gr"        'gnus-summary-show-article
-    "gX"        'gnus-summary-browse-url)
+    "s"         'gnus-article-show-summary)
+  (evil-collection-bind 'gnus-article-mode-map
+                        'refresh 'gnus-summary-show-article
+                        'next-button 'forward-button
+                        'previous-button 'backward-button
+                        'browse-url 'gnus-summary-browse-url)
 
+  (evil-collection-bind 'gnus-group-mode-map
+                        'quit 'gnus-group-exit
+                        'quit-save 'gnus-group-exit
+                        'quit-cancel 'gnus-group-quit
+                        'refresh 'gnus-group-get-new-news-this-group
+                        'refresh-all 'gnus-group-get-new-news
+                        'action 'gnus-group-select-group
+                        'jump 'gnus-group-jump-to-group
+                        'describe-mode 'gnus-group-help-map)
   (evil-collection-define-key 'normal 'gnus-group-mode-map
     ;; quit
     "Q"         'gnus-group-quit
-    "ZQ"        'gnus-group-quit
-    "q"         'gnus-group-exit
-    "ZZ"        'gnus-group-exit
-
-    ;; Movement
-    "[["        'gnus-group-prev-unread-group
-    "]]"        'gnus-group-next-unread-group
-    "gk"        'gnus-group-prev-unread-group
-    "gj"        'gnus-group-next-unread-group
 
     ;; Composing, like mu4e
     "C"         'gnus-group-mail
@@ -331,15 +343,9 @@ Note that there is no gnus-common-mode-map")
     ","         'gnus-group-best-unread-group
     "A"         'gnus-activate-all-groups
     "B"         'gnus-group-browse-foreign-server
-    "E"         'gnus-group-edit-group
     "F"         'gnus-group-find-new-groups
-    "J"         'gnus-group-jump-to-group
-    "R"         'gnus-group-rename-group
     "X"         'gnus-group-expunge-group
-    (kbd "RET") 'gnus-group-select-group
     (kbd "SPC") 'gnus-group-read-group
-    "gr"        'gnus-group-get-new-news-this-group
-    "gR"        'gnus-group-get-new-news
     "gu"        'gnus-group-unsubscribe-current-group
     "gU"        'gnus-group-unsubscribe-group
     "gc"        'gnus-group-catchup-current
@@ -415,17 +421,25 @@ Note that there is no gnus-common-mode-map")
     "^"         'gnus-group-enter-server-mode
 
     (kbd "DEL") 'gnus-group-prev-unread-group
-    [mouse-2]   'gnus-mouse-pick-group
-    "g?"        'gnus-group-help-map)
+    [mouse-2]   'gnus-mouse-pick-group)
+  (evil-collection-bind 'gnus-group-mode-map
+                        'next-item 'gnus-group-next-unread-group
+                        'prev-item 'gnus-group-prev-unread-group
+                        'next-section 'gnus-group-next-unread-group
+                        'prev-section 'gnus-group-prev-unread-group
+                        'next-section-2 'gnus-group-next-group
+                        'prev-section-2 'gnus-group-prev-group)
 
+  (evil-collection-bind 'gnus-server-mode-map
+                        'quit 'gnus-server-exit
+                        'quit-save 'gnus-server-exit
+                        'quit-cancel 'gnus-server-exit
+                        'refresh 'gnus-server-regenerate-server
+                        'action 'gnus-server-read-server)
   (evil-collection-define-key 'normal 'gnus-server-mode-map
     ;; quit
     "Q"         'gnus-server-exit
-    "ZQ"        'gnus-server-exit
-    "q"         'gnus-server-exit
-    "ZZ"        'gnus-server-exit
 
-    (kbd "RET") 'gnus-server-read-server
     (kbd "SPC") 'gnus-server-read-server-in-server-buffer
     "C"         'gnus-server-close-server
     "D"         'gnus-server-deny-server
@@ -437,8 +451,6 @@ Note that there is no gnus-common-mode-map")
     "S"         'gnus-server-show-server
     "a"         'gnus-server-add-server
     "y"         'gnus-server-copy-server
-    "e"         'gnus-server-edit-server
-    "gr"        'gnus-server-regenerate-server
     "i"         'gnus-server-toggle-cloud-server
     "d"         'gnus-server-kill-server
     "L"         'gnus-server-list-servers
@@ -448,41 +460,42 @@ Note that there is no gnus-common-mode-map")
     "M-c"       'gnus-server-close-all-servers
     "M-o"       'gnus-server-open-all-servers)
 
+  (evil-collection-bind 'gnus-browse-mode-map
+                        'quit 'gnus-browse-exit
+                        'quit-save 'gnus-browse-exit
+                        'quit-cancel 'gnus-browse-exit
+                        'action 'gnus-browse-select-group)
   (evil-collection-define-key 'normal 'gnus-browse-mode-map
     ;; quit
     "Q"         'gnus-browse-exit
-    "ZQ"        'gnus-browse-exit
-    "q"         'gnus-browse-exit
-    "ZZ"        'gnus-browse-exit
 
     "u" 'gnus-browse-unsubscribe-current-group
-    (kbd "SPC") 'gnus-browse-read-group
-    (kbd "RET") 'gnus-browse-select-group)
+    (kbd "SPC") 'gnus-browse-read-group)
 
+  (evil-collection-bind 'gnus-bookmark-bmenu-mode-map
+                        'quit 'quit-window
+                        'quit-save 'quit-window
+                        'quit-cancel 'quit-window
+                        'action 'gnus-bookmark-bmenu-select
+                        'toggle 'gnus-bookmark-bmenu-toggle-infos)
   (evil-collection-define-key 'normal 'gnus-bookmark-bmenu-mode-map
     ;; quit
     "Q"         'quit-window
-    "ZQ"        'quit-window
-    "q"         'quit-window
-    "ZZ"        'quit-window
 
     ;; mark and execution
-    "m"         'gnus-bookmark-bmenu-mark
-    "u"         'gnus-bookmark-bmenu-unmark
     (kbd "DEL") 'gnus-bookmark-bmenu-backup-unmark
-    "d"         'gnus-bookmark-bmenu-delete
-    "x"         'gnus-bookmark-bmenu-execute-deletions
 
-    (kbd "RET") 'gnus-bookmark-bmenu-select
     [mouse-2]   'gnus-bookmark-bmenu-select-by-mouse
     "L"         'gnus-bookmark-bmenu-load
     "s"         'gnus-bookmark-bmenu-save
-    "t"         'gnus-bookmark-bmenu-toggle-infos
     "a"         'gnus-bookmark-bmenu-show-details
     ;; not implemented yet
-    "A"         'gnus-bookmark-bmenu-show-all-annotations
-    "E"         'gnus-bookmark-bmenu-edit-annotation
-    "R"         'gnus-bookmark-bmenu-rename))
+    "A"         'gnus-bookmark-bmenu-show-all-annotations)
+  (evil-collection-bind 'gnus-bookmark-bmenu-mode-map
+                        'mark 'gnus-bookmark-bmenu-mark
+                        'unmark 'gnus-bookmark-bmenu-unmark
+                        'mark-delete 'gnus-bookmark-bmenu-delete
+                        'execute-marks 'gnus-bookmark-bmenu-execute-deletions))
 
 (provide 'evil-collection-gnus)
 ;;; evil-collection-gnus.el ends here

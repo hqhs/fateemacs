@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, news, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -37,27 +37,26 @@
 (defun evil-collection-hackernews-setup ()
   "Set up `evil' bindings for `hackernews-mode'."
   (evil-collection-set-readonly-bindings 'hackernews-mode-map)
+  (evil-collection-bind 'hackernews-mode-map
+                        'next-item 'hackernews-next-item
+                        'prev-item 'hackernews-previous-item
+                        'next-section 'hackernews-next-item
+                        'prev-section 'hackernews-previous-item)
   (evil-collection-define-key 'normal 'hackernews-mode-map
-    "]]" 'hackernews-next-item
-    "[[" 'hackernews-previous-item
-    "gj" 'hackernews-next-item
-    "gk" 'hackernews-previous-item
-    (kbd "C-j") 'hackernews-next-item
-    (kbd "C-k") 'hackernews-previous-item
-
     "+" 'hackernews-load-more-stories
 
-    "gr" 'hackernews-reload
     "gf" 'hackernews-switch-feed
 
-    (kbd "<tab>") 'hackernews-next-comment
-    (kbd "S-<tab>") 'hackernews-previous-comment
-
     "!" 'hackernews-button-mark-as-visited ; like mu4e
-    "?" 'hackernews-button-mark-as-unvisited
-
-    (kbd "RET") 'hackernews-button-browse-internal
-    (kbd "S-<return>") 'push-button))
+    "?" 'hackernews-button-mark-as-unvisited)
+  (evil-collection-define-push-action evil-collection-hackernews-action
+                                      hackernews-button-browse-internal)
+  (evil-collection-bind 'hackernews-mode-map
+                        'cycle-next 'hackernews-next-comment
+                        'cycle-previous 'hackernews-previous-comment
+                        'action 'evil-collection-hackernews-action
+                        'action-other 'push-button
+                        'refresh 'hackernews-reload))
 
 (provide 'evil-collection-hackernews)
 ;;; evil-collection-hackernews.el ends here

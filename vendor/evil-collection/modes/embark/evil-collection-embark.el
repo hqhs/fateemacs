@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -43,10 +43,10 @@
     "a" 'embark-act
     "A" 'embark-act-all
     "E" 'embark-export                   ;; was e
-    "m" 'embark-select
-    (kbd "M-a") 'embark-collect-direct-action-minor-mode
-
-    "gr" 'revert-buffer))
+    (kbd "M-a") 'embark-collect-direct-action-minor-mode)
+  (evil-collection-bind 'embark-collect-mode-map
+                        'mark 'embark-select
+                        'refresh 'revert-buffer))
 
 (provide 'evil-collection-embark)
 ;;; evil-collection-embark.el ends here

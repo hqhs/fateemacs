@@ -5,7 +5,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, git, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -29,21 +29,28 @@
 (require 'evil-collection)
 (require 'git-timemachine nil t)
 
+(defconst evil-collection-git-timemachine-maps nil)
+
 (defvar git-timemachine-mode-map)
 (defconst evil-collection-git-timemachine-map '(git-timemachine-mode-map))
 
 ;;;###autoload
 (defun evil-collection-git-timemachine-setup ()
   "Setup `evil' keybindings for `git-timemachine'."
-  (evil-define-minor-mode-key 'normal 'git-timemachine-mode
+  (evil-collection-define-minor-mode-key 'normal 'git-timemachine-mode
     "\C-k" 'git-timemachine-show-previous-revision
     "\C-j" 'git-timemachine-show-next-revision
-    "q"    'git-timemachine-quit
     "gtg"  'git-timemachine-show-nth-revision
+    "gth"  'git-timemachine-show-nearest-revision
     "gtt"  'git-timemachine-show-revision-fuzzy
+    "gti"  'git-timemachine-show-revision-introducing
     "gty"  'git-timemachine-kill-abbreviated-revision
     "gtY"  'git-timemachine-kill-revision
-    "gtb"  'git-timemachine-blame))
+    "gtb"  'git-timemachine-blame
+    "gtc"  'git-timemachine-show-commit
+    "gt?"  'git-timemachine-help)
+
+  (evil-collection-bind-minor-mode 'quit 'git-timemachine-mode 'git-timemachine-quit))
 
 (provide 'evil-collection-git-timemachine)
 ;;; evil-collection-git-timemachine.el ends here

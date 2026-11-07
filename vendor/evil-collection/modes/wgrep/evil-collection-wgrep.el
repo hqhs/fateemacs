@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -41,9 +41,10 @@
     [remap evil-write] 'wgrep-finish-edit)
 
   (evil-collection-define-key 'normal 'wgrep-mode-map
-    "ZQ" 'wgrep-abort-changes
-    "ZZ" 'wgrep-finish-edit
-    (kbd "<escape>") 'wgrep-exit))
+    (kbd "<escape>") 'wgrep-exit)
+  (evil-collection-bind 'wgrep-mode-map
+                        'quit-save 'wgrep-finish-edit
+                        'quit-cancel 'wgrep-abort-changes))
 
 (provide 'evil-collection-wgrep)
 ;;; evil-collection-wgrep.el ends here

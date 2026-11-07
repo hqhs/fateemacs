@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, speedbar, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -54,16 +54,12 @@
 (defun evil-collection-speedbar-setup ()
   "Set up `evil' bindings for `speedbar'."
   (evil-set-initial-state 'speedbar-mode 'normal)
+  (evil-collection-bind 'speedbar-file-key-map 'rename 'speedbar-item-rename)
   (evil-collection-define-key 'normal 'speedbar-mode-map
     "j" 'speedbar-next
     "k" 'speedbar-prev
-    "gr" 'speedbar-refresh
     "gg" 'evil-goto-first-line
     "G"  'evil-goto-line
-
-    ;; Basic tree features
-    (kbd "RET") 'speedbar-edit-line
-    (kbd "TAB") 'speedbar-toggle-line-expansion
 
     ;; Fold
     "zo" 'speedbar-expand-line
@@ -73,15 +69,12 @@
 
     ;; Toggle
     "a" 'speedbar-toggle-show-all-files
-    "t" 'speedbar-toggle-updates
     "i" 'speedbar-toggle-images
     "o" 'speedbar-toggle-sorting
 
     ;; Navigation
     (kbd "M-j") 'speedbar-restricted-next
     (kbd "M-k") 'speedbar-restricted-prev
-    "]]" 'speedbar-forward-list
-    "[[" 'speedbar-backward-list
     (kbd "C-p") 'evil-collection-speedbar-switch-to-previous-expansion-list
     (kbd "C-n") 'evil-collection-speedbar-switch-to-previous-expansion-list
     "b" 'evil-collection-speedbar-switch-to-quick-buffers
@@ -92,19 +85,28 @@
     ;; File based commands
     "B" 'speedbar-item-byte-compile
     "C" 'speedbar-item-copy
-    "D" 'speedbar-item-delete
     "I" 'speedbar-item-info
-    "K" 'speedbar-item-object-delete
     "L" 'speedbar-item-load
-    "R" 'speedbar-item-rename
     "+" 'speedbar-create-directory
     "^" 'speedbar-up-directory
     "-" 'speedbar-up-directory)
+  (evil-collection-bind 'speedbar-file-key-map
+                        'delete 'speedbar-item-delete
+                        'delete-2 'speedbar-item-object-delete)
 
-  (evil-collection-define-key 'normal 'speedbar-buffers-key-map
-    ;; Buffer specific keybindings
-    "K" 'speedbar-buffer-kill-buffer
-    "gr" 'speedbar-buffer-revert-buffer))
+  (evil-collection-bind 'speedbar-mode-map
+                        'action 'speedbar-edit-line
+                        'next-item 'speedbar-forward-list
+                        'prev-item 'speedbar-backward-list
+                        'next-section 'speedbar-forward-list
+                        'prev-section 'speedbar-backward-list
+                        'refresh         'speedbar-refresh
+                        'toggle 'speedbar-toggle-updates
+                        'section-toggle 'speedbar-toggle-line-expansion)
+  (evil-collection-bind 'speedbar-buffers-key-map
+                        'refresh  'speedbar-buffer-revert-buffer
+                        'delete 'speedbar-buffer-kill-buffer
+                        'delete-2 'speedbar-buffer-kill-buffer))
 
 (provide 'evil-collection-speedbar)
 ;;; evil-collection-speedbar.el ends here

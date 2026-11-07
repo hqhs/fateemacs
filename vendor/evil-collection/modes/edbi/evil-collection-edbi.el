@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, database, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -87,22 +87,18 @@ default bindings."
     "k" 'ctbl:navi-move-up
     "l" 'ctbl:navi-move-right
 
-    "gc" 'ctbl:navi-jump-to-column
+    "gc" 'ctbl:navi-jump-to-column)
+  (evil-collection-bind 'edbi:dbview-query-result-keymap
+                        'quit 'edbi:dbview-query-result-quit-command
+                        'quit-save 'quit-window
+                        'quit-cancel 'evil-quit
+                        'describe-mode 'ctbl:describe-bindings
+                        'refresh 'ctbl:action-update-buffer)
 
-    "g?" 'ctbl:describe-bindings
-
-    ;; motion
-    "gr" 'ctbl:action-update-buffer
-
-    ;; quit
-    "q" 'edbi:dbview-query-result-quit-command
-    "ZQ" 'evil-quit
-    "ZZ" 'quit-window)
-
-  (evil-collection-define-key 'normal 'edbi:sql-mode-map
-    "q" 'edbi:dbview-query-editor-quit-command
-    (kbd "C-n") 'edbi:dbview-query-editor-history-forward-command
-    (kbd "C-p") 'edbi:dbview-query-editor-history-back-command))
+  (evil-collection-bind 'edbi:sql-mode-map
+                        'history-previous 'edbi:dbview-query-editor-history-back-command
+                        'history-next     'edbi:dbview-query-editor-history-forward-command
+                        'quit 'edbi:dbview-query-editor-quit-command))
 
 (provide 'evil-collection-edbi)
 ;;; evil-collection-edbi.el ends here

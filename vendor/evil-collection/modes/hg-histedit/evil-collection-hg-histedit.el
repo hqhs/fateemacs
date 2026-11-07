@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: emacs, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -35,8 +35,8 @@
 ;;;###autoload
 (defun evil-collection-hg-histedit-setup ()
   "Set up `evil' bindings for `hg-histedit'."
+  (evil-collection-bind 'hg-histedit-mode-map 'edit 'hg-histedit-modify-commit-with-edit)
   (evil-collection-define-key 'normal 'hg-histedit-mode-map
-    "e" 'hg-histedit-modify-commit-with-edit
     "m" 'hg-histedit-modify-commit-with-mess
     "p" 'hg-histedit-modify-commit-with-pick
     "b" 'hg-histedit-modify-commit-with-base

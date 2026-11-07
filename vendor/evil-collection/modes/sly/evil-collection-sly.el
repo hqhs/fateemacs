@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, sly, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -84,41 +84,24 @@ Evil version of `sly-eval-print-last-expression' that accounts for
 (defun evil-collection-sly-setup ()
   "Set up `evil' bindings for `sly'."
   (unless evil-move-beyond-eol
-    (advice-add 'sly-eval-last-expression :around 'evil-collection-sly-last-sexp)
-    (advice-add 'sly-pprint-eval-last-expression :around 'evil-collection-sly-last-sexp)
-    (advice-add 'sly-mrepl-return :around 'evil-collection-sly-last-sexp)
-    (advice-add 'sly-eval-print-last-expression :override 'evil-collection-sly-eval-print-last-expression))
+    (advice-add 'sly-eval-last-expression :around #'evil-collection-sly-last-sexp)
+    (advice-add 'sly-pprint-eval-last-expression :around #'evil-collection-sly-last-sexp)
+    (advice-add 'sly-mrepl-return :around #'evil-collection-sly-last-sexp)
+    (advice-add 'sly-eval-print-last-expression :override #'evil-collection-sly-eval-print-last-expression))
 
   (evil-collection-define-key 'normal 'sly-db-mode-map
     [follow-link] 'mouse-face
     "\C-i" 'sly-db-cycle
-    "g?" 'describe-mode
     "S" 'sly-db-show-frame-source
-    "e" 'sly-db-eval-in-frame
     "d" 'sly-db-pprint-eval-in-frame
     "D" 'sly-db-disassemble
-    "i" 'sly-db-inspect-in-frame
-    "gj" 'sly-db-down
-    "gk" 'sly-db-up
-    (kbd "C-j") 'sly-db-down
-    (kbd "C-k") 'sly-db-up
-    "]]" 'sly-db-details-down
-    "[[" 'sly-db-details-up
+    "gi" 'sly-db-inspect-in-frame
     (kbd "M-j") 'sly-db-details-down
     (kbd "M-k") 'sly-db-details-up
     "gg" 'sly-db-beginning-of-backtrace
     "G" 'sly-db-end-of-backtrace
-    "t" 'sly-db-toggle-details
-    "gr" 'sly-db-restart-frame
     "I" 'sly-db-invoke-restart-by-name
-    "R" 'sly-db-return-from-frame
-    "c" 'sly-db-continue
-    "s" 'sly-db-step
-    "n" 'sly-db-next
-    "o" 'sly-db-out
-    "b" 'sly-db-break-on-return
     "a" 'sly-db-abort
-    "q" 'sly-db-quit
     "A" 'sly-db-break-with-system-debugger
     "B" 'sly-db-break-with-default-debugger
     "P" 'sly-db-print-condition
@@ -134,96 +117,103 @@ Evil version of `sly-eval-print-last-expression' that accounts for
     "7" 'sly-db-invoke-restart-7
     "8" 'sly-db-invoke-restart-8
     "9" 'sly-db-invoke-restart-9)
+  (evil-collection-bind 'sly-db-mode-map
+                        'next-section 'sly-db-details-down
+                        'prev-section 'sly-db-details-up
+                        'quit 'sly-db-quit
+                        'describe-mode 'describe-mode
+                        'refresh 'sly-db-restart-frame
+                        'toggle 'sly-db-toggle-details
+                        'debug-continue 'sly-db-continue
+                        'debug-step-over 'sly-db-next
+                        'debug-step-into 'sly-db-step
+                        'debug-step-out 'sly-db-out
+                        'debug-breakpoint 'sly-db-break-on-return
+                        'debug-eval 'sly-db-eval-in-frame
+                        'debug-restart 'sly-db-return-from-frame
+                        'debug-frame-up 'sly-db-up
+                        'debug-frame-down 'sly-db-down)
 
   (evil-collection-define-key 'normal 'sly-inspector-mode-map
     [mouse-6] 'sly-inspector-pop
     [mouse-7] 'sly-inspector-next
     ;; TODO: `sly-inspector-next' and `sly-inspector-pop' should probably
     ;; just be bound to C-i and C-o.
-    "gk" 'sly-inspector-pop
-    (kbd "C-k") 'sly-inspector-pop
-    "[[" 'sly-inspector-pop
     (kbd "C-o") 'sly-inspector-pop
-    "gj" 'sly-inspector-next
-    (kbd "C-j") 'sly-inspector-next
-    "]]" 'sly-inspector-next
     (kbd "C-i") 'sly-inspector-next
-    "K" 'sly-inspector-describe-inspectee
     "e" 'sly-inspector-eval
     "M-p" 'sly-inspector-history
-    "gr" 'sly-inspector-reinspect
     "gv" 'sly-inspector-toggle-verbose
-    (kbd "<tab>") 'forward-button
     (kbd "C-i") 'forward-button
-    (kbd "<S-tab>") 'backward-button ; Emacs translates S-TAB
-    (kbd "<backtab>") 'backward-button ; to BACKTAB on X.
-    "." 'sly-edit-definition
-    "gd" 'sly-edit-definition
-    "gR" 'sly-inspector-fetch-all
-    "q" 'sly-inspector-quit)
+    "." 'sly-edit-definition)
+  (evil-collection-bind 'sly-inspector-mode-map
+                        'next-button 'forward-button
+                        'previous-button 'backward-button
+                        'next-item 'sly-inspector-next
+                        'prev-item 'sly-inspector-pop
+                        'next-section 'sly-inspector-next
+                        'prev-section 'sly-inspector-pop
+                        'quit 'sly-inspector-quit
+                        'find-definition 'sly-edit-definition
+                        'lookup-doc 'sly-inspector-describe-inspectee
+                        'refresh 'sly-inspector-reinspect
+                        'refresh-all 'sly-inspector-fetch-all)
 
-  (evil-collection-define-key 'normal 'sly-mode-map
-    (kbd "K") 'sly-describe-symbol
-    (kbd "C-t") 'sly-pop-find-definition-stack
-    ;; goto
-    "gd" 'sly-edit-definition
-    "gz" 'sly-mrepl)
+  (evil-collection-bind 'sly-mode-map
+                        'find-usages 'sly-who-references
+                        'find-definition 'sly-edit-definition
+                        'pop-definition 'sly-pop-find-definition-stack
+                        'lookup-doc 'sly-describe-symbol
+                        'goto-repl 'sly-mrepl)
 
-  (when evil-collection-want-find-usages-bindings
-    (evil-collection-define-key 'normal 'sly-mode-map
-      "gr" 'sly-who-references))
-
-  (evil-collection-define-key 'normal 'sly-popup-buffer-mode-map
-    ;; quit
-    "q" 'quit-window
-
-    (kbd "C-t") 'sly-pop-find-definition-stack
-
-    ;; goto
-    "gd" 'sly-edit-definition)
+  (evil-collection-bind 'sly-popup-buffer-mode-map
+                        'quit 'quit-window
+                        'find-definition 'sly-edit-definition
+                        'pop-definition 'sly-pop-find-definition-stack)
 
   (evil-collection-inhibit-insert-state 'sly-thread-control-mode-map)
   (evil-collection-define-key 'normal 'sly-thread-control-mode-map
     "a" 'sly-thread-attach
-    "d" 'sly-thread-debug
-    "x" 'sly-thread-kill
-    "gr" 'sly-update-threads-buffer)
+    "d" 'sly-thread-debug)
+  (evil-collection-bind 'sly-thread-control-mode-map
+                        'refresh 'sly-update-threads-buffer
+                        'delete-2 'sly-thread-kill)
 
+  (evil-collection-bind 'sly-xref-mode-map
+                        'quit 'quit-window
+                        'next-button 'forward-button
+                        'previous-button 'backward-button)
   (evil-collection-define-key 'normal 'sly-xref-mode-map
-    "q" 'quit-window
-    (kbd "RET") 'sly-xref-goto
     (kbd "SPC") 'sly-xref-show
-    "go" 'sly-show-xref
-    (kbd "<tab>") 'forward-button
     (kbd "C-i") 'forward-button
-    (kbd "<S-tab>") 'backward-button ; Emacs translates S-TAB
-    (kbd "<backtab>") 'backward-button ; to BACKTAB on X.
-    "gj" 'sly-xref-next-line
-    "gk" 'sly-xref-prev-line
-    (kbd "C-j") 'sly-xref-next-line
-    (kbd "C-k") 'sly-xref-prev-line
-    "]]" 'sly-xref-next-line
-    "[[" 'sly-xref-prev-line
-    "gr" 'sly-recompile-xref
-    "gR" 'sly-recompile-all-xrefs
     ;; "r" 'sly-xref-retract ; TODO: Equivalent for Sly?
     )
+  (evil-collection-bind 'sly-xref-mode-map
+                        'action 'sly-xref-goto
+                        'action-other 'sly-show-xref
+                        'action-stay 'sly-xref-show
+                        'next-item 'sly-xref-next-line
+                        'prev-item 'sly-xref-prev-line
+                        'next-section 'sly-xref-next-line
+                        'prev-section 'sly-xref-prev-line
+                        'refresh 'sly-recompile-xref
+                        'refresh-all 'sly-recompile-all-xrefs)
 
-  (evil-collection-define-key 'normal 'sly-mrepl-mode-map
-    (kbd "RET") 'sly-mrepl-return
-    "gj" 'sly-mrepl-next-prompt
-    "gk" 'sly-mrepl-previous-prompt
-    (kbd "C-j") 'sly-mrepl-next-prompt
-    (kbd "C-k") 'sly-mrepl-previous-prompt
-    "]]" 'sly-mrepl-next-prompt
-    "[[" 'sly-mrepl-previous-prompt
-    (kbd "C-p") 'sly-mrepl-previous-input-or-button
-    (kbd "C-n") 'sly-mrepl-next-input-or-button)
+  (evil-collection-bind 'sly-mrepl-mode-map
+                        'repl-submit 'sly-mrepl-return
+                        'repl-newline 'newline
+                        'repl-force-newline 'newline
+                        'next-item 'sly-mrepl-next-prompt
+                        'prev-item 'sly-mrepl-previous-prompt
+                        'next-section 'sly-mrepl-next-prompt
+                        'prev-section 'sly-mrepl-previous-prompt
+                        'history-previous 'sly-mrepl-previous-input-or-button
+                        'history-next     'sly-mrepl-next-input-or-button)
 
-  (evil-collection-define-key 'normal 'sly-trace-dialog-mode-map
-    "q" 'quit-window
-    "gr" 'sly-trace-dialog-fetch-status
-    "gR" 'sly-trace-dialog-fetch-traces)
+  (evil-collection-bind 'sly-trace-dialog-mode-map
+                        'quit 'quit-window
+                        'refresh 'sly-trace-dialog-fetch-status
+                        'refresh-all 'sly-trace-dialog-fetch-traces)
 
   (evil-collection-define-key 'normal 'sly-stickers--replay-mode-map
     ;; The "n", "p", "x", "h" and "q" key are hard-coded in the description, so
@@ -238,31 +228,33 @@ Evil version of `sly-eval-print-last-expression' that accounts for
     "R" 'sly-stickers-replay-reset-ignore-list
     "zv" 'sly-stickers-replay-toggle-pop-to-stickers
     "h" 'sly-stickers-replay-toggle-help
-    "g?" 'sly-stickers-replay-toggle-help
-    "gd" 'sly-stickers-replay-jump
     "j" 'sly-stickers-replay-next
     "k" 'sly-stickers-replay-prev
     "n" 'sly-stickers-replay-next
     "p" 'sly-stickers-replay-prev
-    "q" 'quit-window
-    "go" 'sly-stickers-replay-pop-to-current-sticker
     "v" 'sly-stickers-replay-pop-to-current-sticker
     "x" 'sly-stickers-replay-toggle-ignore-sticker
     "zi" 'sly-stickers-replay-toggle-ignore-sticker
     "zz" 'sly-stickers-replay-toggle-ignore-zombies)
+  (evil-collection-bind 'sly-stickers--replay-mode-map
+                        'quit 'quit-window
+                        'action-other 'sly-stickers-replay-pop-to-current-sticker
+                        'find-definition 'sly-stickers-replay-jump
+                        'describe-mode 'sly-stickers-replay-toggle-help)
 
+  (evil-collection-bind 'sly-connection-list-mode-map
+                        'next-button 'forward-button
+                        'previous-button 'backward-button)
   (evil-collection-define-key 'normal 'sly-connection-list-mode-map
-    (kbd "<tab>") 'forward-button
     (kbd "C-i") 'forward-button
-    (kbd "<S-tab>") 'backward-button
-    (kbd "<backtab>") 'backward-button
-    (kbd "RET") 'sly-connection-list-default-action
     "R" 'sly-restart-connection-at-point
     "d" 'sly-connection-list-make-default
-    "x" 'sly-quit-connection-at-point
-    "gr" 'sly-update-connection-list
-    "o" 'tabulated-list-sort
-    "q" 'quit-window)
+    "o" 'tabulated-list-sort)
+  (evil-collection-bind 'sly-connection-list-mode-map
+                        'quit 'quit-window
+                        'refresh 'sly-update-connection-list
+                        'action 'sly-connection-list-default-action
+                        'delete-2 'sly-quit-connection-at-point)
 
   (add-hook 'sly-popup-buffer-mode-hook #'evil-normalize-keymaps))
 

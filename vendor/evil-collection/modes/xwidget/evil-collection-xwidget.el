@@ -1,13 +1,13 @@
 ;;; evil-collection-xwidget.el --- Evil bindings for Xwidget -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020, 2022 Ruslan Kamashev
+;; Copyright (C) 2020, 2022, 2024 Ruslan Kamashev
 
 ;; Author: Ruslan Kamashev <rynffoll@gmail.com>
 ;; Maintainer: James Nguyen <james@jojojames.com>
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, xwidget, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -72,7 +72,7 @@ F is the name of function, N is the pixel height."
   (setq evil-collection-xwidget-webkit-last-closed-tab-url
         (xwidget-webkit-uri (xwidget-webkit-current-session)))
   (let ((kill-buffer-query-functions nil))
-    (kill-this-buffer)))
+    (kill-current-buffer)))
 
 (defun evil-collection-xwidget-webkit-restore-last-closed-tab ()
   "Restore last closed tab."
@@ -145,7 +145,6 @@ F is the name of function, N is the pixel height."
     ;;
     ;; Only `new-tab' and `close-tab' are supported.
     "t" 'evil-collection-xwidget-webkit-new-tab
-    "x" 'evil-collection-xwidget-webkit-close-tab
     "X" 'evil-collection-xwidget-webkit-restore-last-closed-tab
 
     ;; Miscellaneous
@@ -163,22 +162,25 @@ F is the name of function, N is the pixel height."
     ;; Additional binding to browse tabs.
     "gt" 'evil-collection-xwidget-webkit-search-tabs
 
-    "gr" 'xwidget-webkit-reload
     (kbd "C-f") 'xwidget-webkit-scroll-up
     (kbd "C-b") 'xwidget-webkit-scroll-down
-    (kbd "RET") 'xwidget-webkit-insert-string
 
-    ;; zoom
-    "+" 'xwidget-webkit-zoom-in
-    "=" 'xwidget-webkit-zoom-in
-    "-" 'xwidget-webkit-zoom-out)
+    )
 
   (when evil-want-C-d-scroll
     (evil-collection-define-key 'normal 'xwidget-webkit-mode-map
       (kbd "C-d") 'xwidget-webkit-scroll-up))
   (when evil-want-C-u-scroll
     (evil-collection-define-key 'normal 'xwidget-webkit-mode-map
-      (kbd "C-u") 'xwidget-webkit-scroll-down)))
+      (kbd "C-u") 'xwidget-webkit-scroll-down))
+
+  (evil-collection-bind 'xwidget-webkit-mode-map
+                        'action 'xwidget-webkit-insert-string
+                        'refresh 'xwidget-webkit-reload
+                        'browse-url 'xwidget-webkit-browse-url
+                        'zoom-in  'xwidget-webkit-zoom-in
+                        'zoom-out 'xwidget-webkit-zoom-out
+                        'delete-2 'evil-collection-xwidget-webkit-close-tab))
 
 (provide 'evil-collection-xwidget)
 ;;; evil-collection-xwidget.el ends here

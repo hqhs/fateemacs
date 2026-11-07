@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, neotree, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -40,40 +40,24 @@
 
   (evil-set-initial-state 'neotree-mode 'normal) ;; Neotree start in normal by default.
 
+  (evil-collection-bind 'neotree-mode-map 'rename 'neotree-rename-node)
+
   (evil-collection-define-key 'normal 'neotree-mode-map
 
-    (kbd "RET") (neotree-make-executor
-                      :file-fn 'neo-open-file
-                      :dir-fn 'neo-open-dir)
     (kbd "<tab>") (neotree-make-executor
                    :dir-fn 'neo-open-dir)
     "z" (neotree-make-executor
          :dir-fn 'neo-open-dir)
-    "ZZ" 'quit-window
     "gd" (neotree-make-executor
           :dir-fn 'neo-open-dired)
     "gD" (neotree-make-executor
           :dir-fn 'neo-open-dired)
-    "go" (neotree-make-executor
-          :file-fn 'neo-open-file
-          :dir-fn 'neo-open-dir)
-    "gO" 'neotree-quick-look
-    "gr" 'neotree-refresh
-    "q" 'neotree-hide
     "H" 'neotree-hidden-file-toggle
     "gh" 'neotree-hidden-file-toggle
-    (kbd "C-k") 'neotree-select-up-node
-    "gk" 'neotree-select-up-node
-    "[[" 'neotree-select-up-node
-    (kbd "C-j") 'neotree-select-down-node
-    "gj" 'neotree-select-down-node
-    "]]" 'neotree-select-down-node
     "gv" 'neotree-open-file-in-system-application
     "c" 'neotree-create-node
     "y" 'neotree-copy-node
-    "r" 'neotree-rename-node
-    "R" 'neotree-change-root
-    "d" 'neotree-delete-node
+    "r" 'neotree-change-root
     "J" 'neotree-dir
     "+" 'neotree-stretch-toggle
     "=" 'neotree-stretch-toggle
@@ -95,7 +79,24 @@
     (kbd "C-x 2") 'neotree-empty-fn
     (kbd "C-x 3") 'neotree-empty-fn
     (kbd "C-x C-f") 'find-file-other-window
-    (kbd "C-c C-f") 'find-file-other-window))
+    (kbd "C-c C-f") 'find-file-other-window)
+  (evil-collection-bind 'neotree-mode-map
+                        'action (neotree-make-executor
+                                 :file-fn 'neo-open-file
+                                 :dir-fn 'neo-open-dir)
+                        'action-other (neotree-make-executor
+                                       :file-fn 'neo-open-file
+                                       :dir-fn 'neo-open-dir)
+                        'action-stay 'neotree-quick-look
+                        'next-item 'neotree-select-down-node
+                        'prev-item 'neotree-select-up-node
+                        'next-section 'neotree-select-down-node
+                        'prev-section 'neotree-select-up-node
+                        'quit 'neotree-hide
+                        'quit-save 'quit-window
+                        'quit-cancel 'quit-window
+                        'refresh 'neotree-refresh
+                        'delete 'neotree-delete-node))
 
 (provide 'evil-collection-neotree)
 ;;; evil-collection-neotree.el ends here

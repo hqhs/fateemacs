@@ -6,7 +6,7 @@
 ;; Maintainer: pspiagicw  <pspiagicw@gmail.com>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, python, tools, emacs
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -34,18 +34,22 @@
 ;;;###autoload
 (defun evil-collection-smerge-mode-setup ()
   "Setup up `evil' bindings for `smerge-mode'."
+  (add-hook 'smerge-mode-hook #'evil-normalize-keymaps)
+  (evil-collection-bind 'smerge-mode-map
+                        'next-item 'smerge-next
+                        'prev-item 'smerge-prev
+                        'next-section 'smerge-next
+                        'prev-section 'smerge-prev)
   (evil-collection-define-key 'normal 'smerge-mode-map
-    "gj" 'smerge-next
-    "]]" 'smerge-next
-    "gk" 'smerge-prev
-    "[[" 'smerge-prev
+    "gr" 'smerge-resolve
     "ga" 'smerge-keep-all
     "gu" 'smerge-keep-upper
     "gl" 'smerge-keep-lower
     "go" 'smerge-keep-other
     "gm" 'smerge-keep-mine
     "gc" 'smerge-combine-with-next
-    "gr" 'smerge-refine
+    "gR" 'smerge-refine
     "gb" 'smerge-keep-base))
+
 (provide 'evil-collection-smerge-mode)
 ;;; evil-collection-smerge-mode.el ends here

@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -37,9 +37,9 @@
   "Set up `evil' bindings for `racket-describe'."
   (evil-collection-inhibit-insert-state 'racket-describe-mode-map)
   (evil-set-initial-state 'racket-describe-mode 'normal)
-  (evil-collection-define-key 'normal 'racket-describe-mode-map
-    "q" 'quit-window
-    "g?" 'describe-mode))
+  (evil-collection-bind 'racket-describe-mode-map
+                        'quit 'quit-window
+                        'describe-mode 'describe-mode))
 
 (provide 'evil-collection-racket-describe)
 ;;; evil-collection-racket-describe.el ends here

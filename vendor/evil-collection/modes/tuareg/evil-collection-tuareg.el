@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -36,8 +36,7 @@
 ;;;###autoload
 (defun evil-collection-tuareg-setup ()
   "Set up `evil' bindings for `tuareg'."
-  (evil-collection-define-key 'normal 'tuareg-mode-map
-    "gz" 'tuareg-run-ocaml))
+  (evil-collection-bind 'tuareg-mode-map 'goto-repl 'tuareg-run-ocaml))
 
 (provide 'evil-collection-tuareg)
 

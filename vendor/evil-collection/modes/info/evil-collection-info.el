@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, info, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -39,8 +39,6 @@
   (evil-collection-set-readonly-bindings 'Info-mode-map)
   (evil-set-initial-state 'Info-mode 'normal)
   (evil-collection-define-key 'normal 'Info-mode-map
-    (kbd "<tab>") 'Info-next-reference
-    (kbd "S-<tab>") 'Info-prev-reference
     ;; This exists because <tab> is recognized as C-i on terminals.
     (kbd "g TAB") 'Info-next-reference
     "g]" 'Info-next-reference
@@ -51,7 +49,6 @@
     (kbd "C-t") 'Info-history-back      ; "l"
     (kbd "C-o") 'Info-history-back
     " " 'Info-scroll-up
-    (kbd "RET") 'Info-follow-nearest-node
     (kbd "C-]") 'Info-follow-nearest-node
     (kbd "DEL") 'Info-scroll-down
     (kbd "C-i") 'Info-history-forward
@@ -59,7 +56,6 @@
     "d" 'Info-directory
     "u" 'Info-up
     "gL" 'Info-history ; "L"
-    "s" 'Info-search
     "S" 'Info-search-case-sensitively
     "i" 'Info-index
     "I" 'Info-virtual-index
@@ -90,21 +86,25 @@
     "gm" 'Info-menu
     "gt" 'Info-top-node
     "gT" 'Info-toc
-    "gf" 'Info-follow-reference
-    ;; TODO: "[" and "]" are Emacs default for fine-grained browsing.
-    ;; We usually use "C-j"/"C-k" for that.
-    (kbd "C-j") 'Info-forward-node
-    (kbd "C-k") 'Info-backward-node
-    "gj" 'Info-next
-    "gk" 'Info-prev
-
-    "g," 'Info-index-next
-
-    "g?" 'Info-summary)
+    "g," 'Info-index-next)
 
   ;; yu, Like eww.
   (evil-collection-define-operator-key 'yank 'Info-mode-map
-    "u" 'Info-copy-current-node-name))
+    "u" 'Info-copy-current-node-name)
+
+  (evil-collection-bind 'Info-mode-map
+                        'action 'Info-follow-nearest-node
+                        'next-item 'Info-next
+                        'prev-item 'Info-prev
+                        'next-section 'Info-forward-node
+                        'prev-section 'Info-backward-node
+                        'next-section-2 'Info-forward-node
+                        'prev-section-2 'Info-backward-node
+                        'find-file 'Info-follow-reference
+                        'describe-mode 'Info-summary
+                        'search-or-filter 'Info-search
+                        'cycle-next 'Info-next-reference
+                        'cycle-previous 'Info-prev-reference))
 
 (provide 'evil-collection-info)
 ;;; evil-collection-info.el ends here

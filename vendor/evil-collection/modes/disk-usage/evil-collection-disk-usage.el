@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, files, convenience, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -37,13 +37,10 @@
 (defun evil-collection-disk-usage-setup ()
   "Set up `evil' bindings for `disk-usage'."
   (evil-collection-set-readonly-bindings 'disk-usage-mode-map)
+  (evil-collection-bind 'disk-usage-mode-map
+                        'next-button 'forward-button
+                        'previous-button 'backward-button)
   (evil-collection-define-key 'normal 'disk-usage-mode-map
-    ;; motion
-    (kbd "SPC") 'scroll-up-command
-    (kbd "S-SPC") 'scroll-down-command
-    (kbd "<tab>") 'forward-button
-    (kbd "<backtab>") 'backward-button
-
     "S" 'tabulated-list-sort
     "^" 'disk-usage-up
 
@@ -60,30 +57,32 @@
     "x" 'disk-usage-delete-marked-files
 
     "a" 'disk-usage-add-filters
-    "A" 'disk-usage-remove-filters
+    "A" 'disk-usage-remove-filters)
 
-    "g?" 'describe-mode
-    "gr" 'revert-buffer)
+  (evil-collection-bind 'disk-usage-mode-map
+                        'scroll-down 'scroll-up-command
+                        'scroll-up 'scroll-down-command)
 
   (evil-collection-set-readonly-bindings 'disk-usage-by-types-mode-map)
+  (evil-collection-bind 'disk-usage-by-types-mode-map
+                        'next-button 'forward-button
+                        'previous-button 'backward-button)
   (evil-collection-define-key 'normal 'disk-usage-by-types-mode-map
-    ;; motion
-    (kbd "SPC") 'scroll-up-command
-    (kbd "S-SPC") 'scroll-down-command
-    (kbd "<tab>") 'forward-button
-    (kbd "<backtab>") 'backward-button
-
-    (kbd "RET") 'disk-usage-files
-
     "S" 'tabulated-list-sort
 
     "zh" 'disk-usage-toggle-human-readable
 
-    "g?" 'describe-mode
-    "gr" 'revert-buffer
-
     "a" 'disk-usage-add-filters
-    "A" 'disk-usage-remove-filters))
+    "A" 'disk-usage-remove-filters)
+
+  (evil-collection-bind 'disk-usage-by-types-mode-map
+                        'scroll-down 'scroll-up-command
+                        'scroll-up 'scroll-down-command
+                        'action 'disk-usage-files)
+  (evil-collection-bind 'disk-usage-mode-map 'describe-mode          'describe-mode)
+  (evil-collection-bind 'disk-usage-by-types-mode-map 'describe-mode 'describe-mode)
+  (evil-collection-bind 'disk-usage-mode-map       'refresh          'revert-buffer)
+  (evil-collection-bind 'disk-usage-by-types-mode-map       'refresh 'revert-buffer))
 
 (provide 'evil-collection-disk-usage)
 ;;; evil-collection-disk-usage.el ends here

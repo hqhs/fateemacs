@@ -8,7 +8,7 @@
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
 ;; TODO: Update to emacs 28.1 when it's out
-;; Package-Requires: ((emacs "27.1"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, lisp, help
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -37,13 +37,13 @@
 (defun evil-collection-shortdoc-setup ()
   "Set up `evil' bindings for `shortdoc'."
   (evil-set-initial-state 'shortdoc-mode 'normal)
-  (evil-collection-define-key 'normal 'shortdoc-mode-map
-    (kbd "<tab>") 'forward-button
-    (kbd "<backtab>") 'backward-button
-    (kbd "C-k") 'shortdoc-previous
-    (kbd "C-j") 'shortdoc-next
-    "[[" 'shortdoc-previous-section
-    "]]" 'shortdoc-next-section))
+  (evil-collection-bind 'shortdoc-mode-map
+                        'next-button 'forward-button
+                        'previous-button 'backward-button
+                        'next-section 'shortdoc-next-section
+                        'prev-section 'shortdoc-previous-section
+                        'next-section-2 'shortdoc-next
+                        'prev-section-2 'shortdoc-previous))
 
 (provide 'evil-collection-shortdoc)
 ;;; evil-collection-shortdoc.el ends here

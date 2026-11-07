@@ -6,7 +6,7 @@
 ;; Maintainer: Morgan Smith <Morgan.J.Smith@outlook.com>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -47,8 +47,8 @@
     "{" 'tabulated-list-narrow-current-column
     "}" 'tabulated-list-widen-current-column
     "gl" 'tabulated-list-next-column
-    "gh" 'tabulated-list-previous-column
-    "q" 'quit-window))
+    "gh" 'tabulated-list-previous-column)
+  (evil-collection-bind 'tabulated-list-mode-map 'quit 'quit-window))
 
 (provide 'evil-collection-tabulated-list)
 ;;; evil-collection-tabulated-list.el ends here

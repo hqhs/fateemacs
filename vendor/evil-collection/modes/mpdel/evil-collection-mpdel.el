@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.4
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, tools, mpd
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -71,10 +71,7 @@
 
     "gb" 'mpdel-browser-open
 
-    "go" 'mpdel-song-open
-    "gr" 'mpdel-song-refresh
     "I"  'mpdel-song-play
-    "q"  'mpdel-song-quit-window
 
     ">s" 'mpdel-song-small-increment
     ">n" 'mpdel-song-normal-increment
@@ -88,9 +85,15 @@
     ")"  'mpdel-playlist-move-down
     "w"  'mpdel-playlist-save
     "P"  'mpdel-playlist-play)
+  (evil-collection-bind 'mpdel-core-map
+                        'action 'libmpdel-playback-play-pause
+                        'action-other 'mpdel-song-open
+                        'quit 'mpdel-song-quit-window
+                        'refresh 'mpdel-song-refresh)
 
   (evil-collection-define-key 'normal 'mpdel-tablist-mode-map
-    "D" 'tablist-do-delete))
+    "d" 'tablist-do-delete)
+  (evil-collection-bind 'mpdel-tablist-mode-map 'delete 'tablist-do-delete))
 
 (provide 'evil-collection-mpdel)
 ;;; evil-collection-mpdel.el ends here

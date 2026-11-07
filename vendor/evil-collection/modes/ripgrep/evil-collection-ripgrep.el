@@ -5,7 +5,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -35,13 +35,14 @@
   "Set up `evil' bindings for `ripgrep'."
   (evil-collection-define-key 'normal 'ripgrep-search-mode-map
     "n" 'evil-search-next
-    "\C-k" 'previous-error-no-select
-    "\C-j" 'next-error-no-select
-    "gk" 'previous-error-no-select
-    "gj" 'next-error-no-select
     "{" 'compilation-previous-file
     "}" 'compilation-next-file
-    "i" 'wgrep-change-to-wgrep-mode))
+    "i" 'wgrep-change-to-wgrep-mode)
+  (evil-collection-bind 'ripgrep-search-mode-map
+                        'next-item 'next-error-no-select
+                        'prev-item 'previous-error-no-select
+                        'next-section 'next-error-no-select
+                        'prev-section 'previous-error-no-select))
 
 
 (provide 'evil-collection-ripgrep)

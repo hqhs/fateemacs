@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -41,23 +41,25 @@
   (evil-set-initial-state 'vc-git-log-view-mode 'normal)
   (evil-set-initial-state 'vc-svn-log-view-mode 'normal)
 
+  (evil-collection-bind 'log-view-mode-map
+                        'quit 'quit-window
+                        'section-toggle 'log-view-toggle-entry-display)
   (evil-collection-define-key 'normal 'log-view-mode-map
-    "q" 'quit-window
-    (kbd "TAB") 'log-view-toggle-entry-display
-    "m" 'log-view-toggle-mark-entry
     "c" 'log-view-modify-change-comment
-    (kbd "RET") 'log-view-diff
     "d" 'log-view-diff
     "=" 'log-view-diff
     "D" 'log-view-diff-changeset
     "a" 'log-view-annotate-version
-    "F" 'log-view-find-revision
-    "gj" 'log-view-msg-next
-    "gk" 'log-view-msg-prev
-    "]]" 'log-view-msg-next
-    "[[" 'log-view-msg-prev
-    (kbd "C-j") 'log-view-file-next
-    (kbd "C-k") 'log-view-file-prev))
+    "F" 'log-view-find-revision)
+  (evil-collection-bind 'log-view-mode-map
+                        'mark 'log-view-toggle-mark-entry
+                        'action 'log-view-diff
+                        'next-item 'log-view-msg-next
+                        'prev-item 'log-view-msg-prev
+                        'next-section 'log-view-msg-next
+                        'prev-section 'log-view-msg-prev
+                        'next-section-2 'log-view-file-next
+                        'prev-section-2 'log-view-file-prev))
 
 (provide 'evil-collection-log-view)
 ;;; evil-collection-log-view.el ends here

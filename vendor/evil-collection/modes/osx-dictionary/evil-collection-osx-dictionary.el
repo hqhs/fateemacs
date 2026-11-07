@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, osx-dictionary, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -38,10 +38,11 @@
   (evil-set-initial-state 'osx-dictionary-mode 'normal)
 
   (evil-collection-define-key 'normal 'osx-dictionary-mode-map
-    "q" 'osx-dictionary-quit
-    "s" 'osx-dictionary-search-input
     "o" 'osx-dictionary-open-dictionary.app
-    "r" 'osx-dictionary-read-word))
+    "r" 'osx-dictionary-read-word)
+  (evil-collection-bind 'osx-dictionary-mode-map
+                        'quit 'osx-dictionary-quit
+                        'search-or-filter 'osx-dictionary-search-input))
 
 (provide 'evil-collection-osx-dictionary)
 ;;; evil-collection-osx-dictionary.el ends here

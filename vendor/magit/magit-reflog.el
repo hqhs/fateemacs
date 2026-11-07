@@ -1,9 +1,9 @@
 ;;; magit-reflog.el --- Inspect ref history  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2024 The Magit Project Contributors
+;; Copyright (C) 2008-2026 The Magit Project Contributors
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
+;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -150,8 +150,9 @@ Type \\[magit-cherry-pick] to apply the commit at point.
 Type \\[magit-reset] to reset `HEAD' to the commit at point.
 
 \\{magit-reflog-mode-map}"
+  :interactive nil
   :group 'magit-log
-  (hack-dir-local-variables-non-file-buffer)
+  (magit-hack-dir-local-variables)
   (setq magit--imenu-item-types 'commit))
 
 (defun magit-reflog-setup-buffer (ref)
@@ -188,17 +189,15 @@ Type \\[magit-reset] to reset `HEAD' to the commit at point.
 
 (defun magit-reflog-format-subject (subject)
   (let* ((match (string-match magit-reflog-subject-re subject))
-         (command (and match (match-string 1 subject)))
-         (option  (and match (match-string 2 subject)))
-         (type    (and match (match-string 3 subject)))
+         (command (and match (match-str 1 subject)))
+         (option  (and match (match-str 2 subject)))
+         (type    (and match (match-str 3 subject)))
          (label (if (string= command "commit")
                     (or type command)
                   command))
          (text (if (string= command "commit")
                    label
-                 (mapconcat #'identity
-                            (delq nil (list command option type))
-                            " "))))
+                 (string-join (delq nil (list command option type)) " "))))
     (format "%-16s "
             (magit--propertize-face
              text (or (cdr (assoc label magit-reflog-labels))
@@ -206,4 +205,20 @@ Type \\[magit-reset] to reset `HEAD' to the commit at point.
 
 ;;; _
 (provide 'magit-reflog)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
+;;   ("while-let"    . "cond-let--while-let")
+;;   ("match-string" . "match-string")
+;;   ("match-str"    . "match-string-no-properties"))
+;; End:
 ;;; magit-reflog.el ends here

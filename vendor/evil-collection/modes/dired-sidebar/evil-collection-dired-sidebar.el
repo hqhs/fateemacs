@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, dired, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -37,16 +37,15 @@
 (defun evil-collection-dired-sidebar-setup ()
   "Set up `evil' bindings for `dired-sidebar'."
   (evil-collection-define-key 'normal 'dired-sidebar-mode-map
-    (kbd "RET") 'dired-sidebar-find-file
-    (kbd "C-m") 'dired-sidebar-find-file
-    (kbd "<return>") 'dired-sidebar-find-file
-    (kbd "TAB") 'dired-sidebar-subtree-toggle
-    [tab] 'dired-sidebar-subtree-toggle
     "^" 'dired-sidebar-up-directory
     "-" 'dired-sidebar-up-directory
-    (kbd "C-o") 'dired-sidebar-find-file-alt
-    [mouse-2] 'dired-sidebar-mouse-subtree-cycle-or-find-file
-    "ZZ" 'quit-window))
+    [mouse-2] 'dired-sidebar-mouse-subtree-cycle-or-find-file)
+  (evil-collection-bind 'dired-sidebar-mode-map
+                        'section-toggle 'dired-sidebar-subtree-toggle
+                        'action 'dired-sidebar-find-file
+                        'action-other 'dired-sidebar-find-file-alt
+                        'quit-save 'quit-window
+                        'quit-cancel 'quit-window))
 
 (provide 'evil-collection-dired-sidebar)
 ;;; evil-collection-dired-sidebar.el ends here

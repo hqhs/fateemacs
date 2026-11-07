@@ -68,10 +68,15 @@ per-change.
 
 ### Current vendored packages
 
-annalist, avy, cmake-mode, compat, corfu, dash, diff-hl, evil,
+annalist, avy, cmake-mode, compat, cond-let, corfu, diff-hl, evil,
 evil-collection, evil-easymotion, evil-snipe, evil-surround, glsl-mode,
-goto-chg, indent-bars, magit, transient, with-editor, yaml-mode,
-yasnippet.
+goto-chg, indent-bars, llama, magit, solarized-theme, transient,
+with-editor, yaml-mode, yasnippet.
+
+All of them are pinned in `scripts/vendor.sh`, one hash per package, and
+recorded in `vendor/<name>/.pin`. Bumping a dependency is a one-line
+hash edit plus `./scripts/vendor.sh`; the script re-fetches only the
+packages whose pin changed. Never hand-edit anything under `vendor/`.
 
 Completion UI is Corfu. No LSP client installed yet; use built-in eglot
 when one is needed.

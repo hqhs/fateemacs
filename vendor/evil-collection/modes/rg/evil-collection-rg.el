@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, rg, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -55,25 +55,23 @@
     "i" 'wgrep-change-to-wgrep-mode    ;; was w/e
     "F" 'next-error-follow-minor-mode  ;; C-c C-f
     "L" 'rg-list-searches              ;; was l
-    (kbd "C-p") 'rg-back-history       ;; C-c <
-    (kbd "C-n") 'rg-forward-history    ;; C-c >
-
     ;; navigation
     "{" 'rg-prev-file
     "}" 'rg-next-file
-    "gk" 'previous-error-no-select
-    "gj" 'next-error-no-select
-    (kbd "C-k") 'previous-error-no-select
-    (kbd "C-j") 'next-error-no-select
 
     "e" 'evil-forward-word-end    ;; shadows wgrep-change-to-wgrep-mode
     "l" 'evil-forward-char        ;; shadows rg-list-searches
     "w" 'evil-forward-word-begin  ;; shadows wgrep-change-to-wgrep-mode
-    "gg" 'evil-goto-first-line
-    "gr" 'rg-recompile
-
-    ;; quit
-    "q" 'quit-window)
+    "gg" 'evil-goto-first-line)
+  (evil-collection-bind 'rg-mode-map
+                        'next-item 'next-error-no-select
+                        'prev-item 'previous-error-no-select
+                        'next-section 'next-error-no-select
+                        'prev-section 'previous-error-no-select
+                        'history-previous 'rg-back-history
+                        'history-next     'rg-forward-history
+                        'quit 'quit-window
+                        'refresh 'rg-recompile)
 
   (evil-collection-define-key 'motion 'rg-mode-map
     "e" 'evil-forward-word-end    ;; shadows wgrep-change-to-wgrep-mode

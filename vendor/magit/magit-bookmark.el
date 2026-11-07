@@ -1,11 +1,11 @@
 ;;; magit-bookmark.el --- Bookmarks for Magit buffers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2024 The Magit Project Contributors
+;; Copyright (C) 2008-2026 The Magit Project Contributors
 
 ;; Inspired by an earlier implementation by Yuri Khan.
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
+;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -37,6 +37,11 @@
 (cl-defmethod magit-bookmark-get-filename (&context (major-mode magit-mode))
   (magit-toplevel))
 
+(cl-defmethod magit-bookmark--store-buffer-values
+  (bookmark &context (major-mode magit-mode))
+  (dolist (var (get major-mode 'magit-bookmark-variables))
+    (bookmark-prop-set bookmark var (symbol-value var))))
+
 (cl-defmethod magit-bookmark-get-buffer-create
   (bookmark (mode (derived-mode magit-mode)))
   (let ((default-directory (bookmark-get-filename bookmark))
@@ -44,15 +49,15 @@
         (magit-display-buffer-noselect t))
     (apply (intern (format "%s-setup-buffer"
                            (substring (symbol-name mode) 0 -5)))
-           (--map (bookmark-prop-get bookmark it)
-                  (get mode 'magit-bookmark-variables)))))
+           (mapcar (##bookmark-prop-get bookmark %)
+                   (get mode 'magit-bookmark-variables)))))
 
 ;;; Diff
 ;;;; Diff
 
 (put 'magit-diff-mode 'magit-bookmark-variables
-     '(magit-buffer-range-hashed
-       magit-buffer-typearg
+     '(magit-buffer-diff-range-oids
+       magit-buffer-diff-typearg
        magit-buffer-diff-args
        magit-buffer-diff-files))
 
@@ -61,17 +66,18 @@
           (pcase (magit-diff-type)
             ('staged "staged")
             ('unstaged "unstaged")
-            ('committed magit-buffer-range)
+            ('committed magit-buffer-diff-range)
             ('undefined
-             (delq nil (list magit-buffer-typearg magit-buffer-range-hashed))))
+             (delq nil
+                   (list magit-buffer-diff-typearg magit-buffer-diff-range-oids))))
           (if magit-buffer-diff-files
-              (concat " -- " (mapconcat #'identity magit-buffer-diff-files " "))
+              (concat " -- " (string-join magit-buffer-diff-files " "))
             "")))
 
 ;;;; Revision
 
 (put 'magit-revision-mode 'magit-bookmark-variables
-     '(magit-buffer-revision-hash
+     '(magit-buffer-revision-oid
        magit-buffer-diff-args
        magit-buffer-diff-files))
 
@@ -79,13 +85,13 @@
   (format "magit-revision(%s %s)"
           (magit-rev-abbrev magit-buffer-revision)
           (if magit-buffer-diff-files
-              (mapconcat #'identity magit-buffer-diff-files " ")
+              (string-join magit-buffer-diff-files " ")
             (magit-rev-format "%s" magit-buffer-revision))))
 
 ;;;; Stash
 
 (put 'magit-stash-mode 'magit-bookmark-variables
-     '(magit-buffer-revision-hash
+     '(magit-buffer-revision-oid
        magit-buffer-diff-args
        magit-buffer-diff-files))
 
@@ -93,40 +99,40 @@
   (format "magit-stash(%s %s)"
           (magit-rev-abbrev magit-buffer-revision)
           (if magit-buffer-diff-files
-              (mapconcat #'identity magit-buffer-diff-files " ")
+              (string-join magit-buffer-diff-files " ")
             (magit-rev-format "%s" magit-buffer-revision))))
 
 (cl-defmethod magit-bookmark--get-child-value
   (section &context (major-mode magit-stash-mode))
   (string-replace magit-buffer-revision
-                  magit-buffer-revision-hash
+                  magit-buffer-revision-oid
                   (oref section value)))
 
 ;;; Log
 ;;;; Log
 
 (put 'magit-log-mode 'magit-bookmark-variables
-     '(magit-buffer-revisions
+     '(magit-buffer-log-revisions
        magit-buffer-log-args
        magit-buffer-log-files))
 
 (cl-defmethod magit-bookmark-name (&context (major-mode magit-log-mode))
   (format "magit-log(%s%s)"
-          (mapconcat #'identity magit-buffer-revisions " ")
+          (string-join magit-buffer-log-revisions " ")
           (if magit-buffer-log-files
-              (concat " -- " (mapconcat #'identity magit-buffer-log-files " "))
+              (concat " -- " (string-join magit-buffer-log-files " "))
             "")))
 
 ;;;; Cherry
 
 (put 'magit-cherry-mode 'magit-bookmark-variables
      '(magit-buffer-refname
-       magit-buffer-upstream))
+       magit-buffer-cherry-upstream))
 
 (cl-defmethod magit-bookmark-name (&context (major-mode magit-cherry-mode))
   (format "magit-cherry(%s > %s)"
           magit-buffer-refname
-          magit-buffer-upstream))
+          magit-buffer-cherry-upstream))
 
 ;;;; Reflog
 
@@ -141,8 +147,8 @@
 (put 'magit-status-mode 'magit-bookmark-variables nil)
 
 (put 'magit-refs-mode 'magit-bookmark-variables
-     '(magit-buffer-upstream
-       magit-buffer-arguments))
+     '(magit-buffer-refs-upstream
+       magit-buffer-refs-args))
 
 (put 'magit-stashes-mode 'magit-bookmark-variables nil)
 
@@ -151,4 +157,20 @@
 
 ;;; _
 (provide 'magit-bookmark)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
+;;   ("while-let"    . "cond-let--while-let")
+;;   ("match-string" . "match-string")
+;;   ("match-str"    . "match-string-no-properties"))
+;; End:
 ;;; magit-bookmark.el ends here

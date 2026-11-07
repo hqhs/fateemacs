@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, finder, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -38,12 +38,13 @@
   (evil-set-initial-state 'finder-mode 'normal)
 
   (evil-collection-define-key 'normal 'finder-mode-map
-    (kbd "RET") 'finder-select
     (kbd "SPC") 'finder-select
 
     "d" 'finder-list-keywords
-    "s" 'finder-summary
-    "q" 'finder-exit))
+    "s" 'finder-summary)
+  (evil-collection-bind 'finder-mode-map
+                        'action 'finder-select
+                        'quit 'finder-exit))
 
 (provide 'evil-collection-finder)
 ;;; evil-collection-finder.el ends here

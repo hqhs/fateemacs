@@ -6,7 +6,7 @@
 ;; Maintainer: James Nguyen <james@jojojames.com>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.2
-;; Package-Requires: ((emacs "27.1"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, convenience, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -70,22 +70,28 @@ When this option is enabled, the stash popup is available on \"Z\"."
       (kbd "M-4") 'magit-section-show-level-4-all))
 
   (evil-collection-define-key 'normal 'magit-section-mode-map
-    (kbd "TAB") 'magit-section-toggle
     [C-tab]     'magit-section-cycle
     [M-tab]     'magit-section-cycle
-    ;; [backtab] is the most portable binding for Shift+Tab.
-    [backtab]   'magit-section-cycle-global
     "gh" 'magit-section-up
-    (kbd "C-k") 'magit-section-backward
-    (kbd "C-j") 'magit-section-forward
-    "gk" 'magit-section-backward-sibling
-    "[" 'magit-section-backward-sibling
-    "gj" 'magit-section-forward-sibling
-    "]" 'magit-section-forward-sibling
     (kbd "1") 'magit-section-show-level-1
     (kbd "2") 'magit-section-show-level-2
     (kbd "3") 'magit-section-show-level-3
-    (kbd "4") 'magit-section-show-level-4))
+    (kbd "4") 'magit-section-show-level-4)
+  (if evil-collection-want-unimpaired-p
+      (progn
+        (evil-collection-bind 'magit-section-mode-map
+                              'next-section 'magit-section-forward-sibling
+                              'prev-section 'magit-section-backward-sibling))
+    (evil-collection-define-key 'normal 'magit-section-mode-map
+      "[" 'magit-section-backward-sibling
+      "]" 'magit-section-forward-sibling))
+  (evil-collection-bind 'magit-section-mode-map
+                        'next-item 'magit-section-forward-sibling
+                        'prev-item 'magit-section-backward-sibling
+                        'next-section-2 'magit-section-forward
+                        'prev-section-2 'magit-section-backward
+                        'section-toggle 'magit-section-toggle
+                        'section-toggle-all 'magit-section-cycle-global))
 
 (provide 'evil-collection-magit-section)
 ;;; evil-collection-magit-section.el ends here

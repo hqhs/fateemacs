@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -40,10 +40,10 @@
   (evil-collection-set-readonly-bindings 'special-mode-map)
   (evil-collection-define-key nil 'special-mode-map
     "g" nil
-    "gr" 'revert-buffer
     "h" nil
     "?" nil
-    "0" nil))
+    "0" nil)
+  (evil-collection-bind 'special-mode-map 'refresh 'revert-buffer))
 
 (provide 'evil-collection-simple)
 ;;; evil-collection-simple.el ends here

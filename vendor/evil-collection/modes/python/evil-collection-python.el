@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: emacs, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -45,8 +45,7 @@
     (add-hook hook #'evil-collection-python-set-evil-shift-width))
 
   (dolist (kmap evil-collection-python-maps)
-    (evil-collection-define-key 'normal kmap
-      "gz" 'python-shell-switch-to-shell)))
+    (evil-collection-bind kmap 'goto-repl 'python-shell-switch-to-shell)))
 
 (provide 'evil-collection-python)
 ;;; evil-collection-python.el ends here

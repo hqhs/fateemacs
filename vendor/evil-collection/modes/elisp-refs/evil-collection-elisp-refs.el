@@ -1,13 +1,13 @@
 ;;; evil-collection-elisp-refs.el --- Evil bindings for Elisp Refs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017 James Nguyen
+;; Copyright (C) 2017, 2024 James Nguyen
 
 ;; Author: James Nguyen <james@jojojames.com>
 ;; Maintainer: James Nguyen <james@jojojames.com>
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, elisp-refs, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -36,17 +36,15 @@
 ;;;###autoload
 (defun evil-collection-elisp-refs-setup ()
   "Set up `evil' bindings for `elisp-refs'."
-  (evil-collection-define-key 'normal 'elisp-refs-mode-map
-    (kbd "<tab>") 'elisp-refs-next-match
-    (kbd "<backtab>") 'elisp-refs-prev-match
-    (kbd "C-j") 'elisp-refs-next-match
-    (kbd "C-k") 'elisp-refs-prev-match
-    "gj" 'elisp-refs-next-match
-    "gk" 'elisp-refs-prev-match
-    (kbd "RET") 'elisp-refs-visit-match
-
-    ;; quit
-    "q" 'kill-this-buffer))
+  (evil-collection-bind 'elisp-refs-mode-map
+                        'action 'elisp-refs-visit-match
+                        'cycle-next 'elisp-refs-next-match
+                        'cycle-previous 'elisp-refs-prev-match
+                        'next-item 'elisp-refs-next-match
+                        'prev-item 'elisp-refs-prev-match
+                        'next-section 'elisp-refs-next-match
+                        'prev-section 'elisp-refs-prev-match
+                        'quit 'kill-current-buffer))
 
 (provide 'evil-collection-elisp-refs)
 ;;; evil-collection-elisp-refs.el ends here

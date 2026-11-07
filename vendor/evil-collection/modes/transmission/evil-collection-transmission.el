@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, transmission, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -49,14 +49,11 @@
   (evil-set-initial-state 'transmission-mode 'normal)
   (evil-collection-define-key 'normal 'transmission-mode-map
     ;; motion
-    (kbd "SPC") 'scroll-up-command
-    (kbd "S-SPC") 'scroll-down-command
     (kbd "<delete>") 'scroll-down-command
 
     ;; sort
     "o" 'tabulated-list-sort
 
-    (kbd "RET") 'transmission-files
     "p" 'transmission-peers
     "i" 'transmission-info
 
@@ -74,23 +71,21 @@
     "I" 'transmission-label ; "I" for "[I]nput labels"
 
     ;; mark
-    "m" 'transmission-toggle-mark
-    "U" 'transmission-unmark-all
-    "~" 'transmission-invert-marks
-
-    ;; refresh
-    "gr" 'revert-buffer
-
-    ;; quit
-    "q" 'transmission-quit
-    "ZQ" 'evil-quit
-    "ZZ" 'transmission-quit)
+    "~" 'transmission-invert-marks)
+  (evil-collection-bind 'transmission-mode-map
+                        'mark 'transmission-toggle-mark
+                        'unmark-all 'transmission-unmark-all
+                        'scroll-down 'scroll-up-command
+                        'scroll-up 'scroll-down-command
+                        'quit 'transmission-quit
+                        'quit-save 'transmission-quit
+                        'quit-cancel 'evil-quit
+                        'refresh 'revert-buffer
+                        'action 'transmission-files)
 
   (evil-collection-inhibit-insert-state 'transmission-files-mode-map)
   (evil-set-initial-state 'transmission-files-mode 'normal)
   (evil-collection-define-key 'normal 'transmission-files-mode-map
-    (kbd "SPC") 'scroll-up-command
-    (kbd "S-SPC") 'scroll-down-command
     (kbd "<delete>") 'scroll-down-command
 
     ;; sort
@@ -106,26 +101,22 @@
     "u" 'transmission-files-unwant
     "m" 'transmission-files-want
 
-    ;; open
-    (kbd "RET") 'transmission-find-file
-    (kbd "S-<return>") 'transmission-find-file-other-window
-    (kbd "M-<return>") 'transmission-display-file
-    "go" 'transmission-find-file-other-window
-
     "v" 'transmission-view-file
 
     "!" 'transmission-files-command
     ;; "X" 'transmission-files-command
     "t" 'transmission-trackers-add
-    "T" 'transmission-trackers-remove
-
-    ;; goto URL
-    "gx" 'transmission-browse-url-of-file ; See mu4e.
-
-    ;; quit
-    "q" 'transmission-quit
-    "ZQ" 'evil-quit
-    "ZZ" 'transmission-quit)
+    "T" 'transmission-trackers-remove)
+  (evil-collection-bind 'transmission-files-mode-map
+                        'scroll-down 'scroll-up-command
+                        'scroll-up 'scroll-down-command
+                        'action 'transmission-find-file
+                        'action-other 'transmission-find-file-other-window
+                        'action-stay 'transmission-display-file
+                        'quit 'transmission-quit
+                        'quit-save 'transmission-quit
+                        'quit-cancel 'evil-quit
+                        'browse-url 'transmission-browse-url-of-file)
 
   (evil-collection-define-key 'visual 'transmission-files-mode-map
     "r" 'transmission-move

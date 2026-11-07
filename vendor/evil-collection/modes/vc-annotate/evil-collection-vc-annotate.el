@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -36,8 +36,8 @@
 (defun evil-collection-vc-annotate-setup ()
   "Set up `evil' bindings for `vc-annotate'."
   (evil-set-initial-state 'vc-annotate-mode 'normal)
+  (evil-collection-bind 'vc-annotate-mode-map 'quit 'quit-window)
   (evil-collection-define-key 'normal 'vc-annotate-mode-map
-    "q" 'quit-window
     "a" 'vc-annotate-revision-previous-to-line
     "d" 'vc-annotate-show-diff-revision-at-line
     "=" 'vc-annotate-show-diff-revision-at-line
@@ -45,15 +45,14 @@
     "F" 'vc-annotate-find-revision-at-line
     "J" 'vc-annotate-revision-at-line
     "L" 'vc-annotate-show-log-revision-at-line
-    "gj" 'vc-annotate-next-revision
-    "gk" 'vc-annotate-prev-revision
-    "]]" 'vc-annotate-next-revision
-    "[[" 'vc-annotate-prev-revision
-    (kbd "C-j") 'vc-annotate-next-revision
-    (kbd "C-k") 'vc-annotate-prev-revision
     "W" 'vc-annotate-working-revision
-    "A" 'vc-annotate-toggle-annotation-visibility
-    (kbd "RET") 'vc-annotate-goto-line))
+    "A" 'vc-annotate-toggle-annotation-visibility)
+  (evil-collection-bind 'vc-annotate-mode-map
+                        'action 'vc-annotate-goto-line
+                        'next-item 'vc-annotate-next-revision
+                        'prev-item 'vc-annotate-prev-revision
+                        'next-section 'vc-annotate-next-revision
+                        'prev-section 'vc-annotate-prev-revision))
 
 (provide 'evil-collection-vc-annotate)
 ;;; evil-collection-vc-annotate.el ends here

@@ -1,13 +1,13 @@
 ;;; evil-collection-pdf.el --- Evil bindings for pdf-tools  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017 Pierre Neidhardt
+;; Copyright (C) 2017, 2024 Pierre Neidhardt
 
 ;; Author: Pierre Neidhardt <mail@ambrevar.xyz>
 ;; Maintainer: James Nguyen <james@jojojames.com>
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, pdf, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -42,6 +42,9 @@
 (declare-function pdf-view-goto-page "pdf-view")
 (declare-function pdf-view-previous-line-or-previous-page "pdf-view")
 (declare-function pdf-view-next-line-or-next-page "pdf-view")
+(declare-function pdf-view-assert-active-region "pdf-view")
+(declare-function pdf-view-active-region-text "pdf-view")
+(declare-function pdf-view-deactivate-region "pdf-view")
 (declare-function pdf-history-forward "pdf-history")
 (declare-function pdf-history-backward "pdf-history")
 
@@ -84,6 +87,29 @@ Consider COUNT."
   (interactive "P")
   (pdf-history-backward (or count 1)))
 
+(defun evil-collection-pdf-yank ()
+  "Save the text of the active region into the currently selected register."
+  (interactive)
+  (pdf-view-assert-active-region)
+  (let ((txt (pdf-view-active-region-text))
+        (reg evil-this-register))
+    (pdf-view-deactivate-region)
+    (evil-set-register
+     (or reg ?\")
+     (mapconcat #'identity txt nil))))
+
+(defun evil-collection-pdf-disable-visual-mode ()
+  "Don't enter visual-mode when the mark is activated.
+Rationale: pdf-view allows using the region to select text within the pdf,
+but evil-mode does not know how to do this. It selects entire pdf images
+instead, which is useless and counterintuitive."
+  (add-hook 'evil-local-mode-hook
+            (lambda () (remove-hook
+                        'activate-mark-hook
+                        #'evil-visual-activate-hook
+                        t))
+            nil t))
+
 ;;;###autoload
 (defun evil-collection-pdf-setup ()
   "Set up `evil' bindings for `pdf-view'."
@@ -94,17 +120,9 @@ Consider COUNT."
     (kbd "RET") 'image-next-line
     "j" 'pdf-view-next-line-or-next-page
     "k" 'pdf-view-previous-line-or-previous-page
-    (kbd "SPC") 'pdf-view-scroll-up-or-next-page
-    (kbd "S-SPC") 'pdf-view-scroll-down-or-previous-page
     (kbd "<delete>") 'pdf-view-scroll-down-or-previous-page
     (kbd "C-f") 'pdf-view-scroll-up-or-next-page
     (kbd "C-b") 'pdf-view-scroll-down-or-previous-page
-    "]]" 'pdf-view-next-page-command
-    "[[" 'pdf-view-previous-page-command
-    (kbd "C-j") 'pdf-view-next-page-command
-    (kbd "C-k") 'pdf-view-previous-page-command
-    "gj" 'pdf-view-next-page-command
-    "gk" 'pdf-view-previous-page-command
     (kbd "<next>") 'forward-page
     (kbd "<prior>") 'backward-page
     (kbd "<down>") 'pdf-view-next-line-or-next-page
@@ -116,13 +134,9 @@ Consider COUNT."
     "'" 'pdf-view-jump-to-register
     "m" 'pdf-view-position-to-register
 
-    ;; zoom
-    "+" 'pdf-view-enlarge
+    ;; vim-fold-style synonyms kept inline.
     "zi" 'pdf-view-enlarge
-    "=" 'pdf-view-enlarge
-    "-" 'pdf-view-shrink
     "zo" 'pdf-view-shrink
-    "0" 'pdf-view-scale-reset
     "z0" 'pdf-view-scale-reset
 
     "f" 'pdf-links-isearch-link
@@ -136,14 +150,11 @@ Consider COUNT."
     "P" 'pdf-view-fit-page-to-window
     "W" 'pdf-view-fit-width-to-window ; evil-image has "W"
 
-    ;; refresh
-    "gr" 'revert-buffer
-
     (kbd "<C-down-mouse-1>") 'pdf-view-mouse-extend-region
     (kbd "<M-down-mouse-1>") 'pdf-view-mouse-set-region-rectangle
     (kbd "<down-mouse-1>")  'pdf-view-mouse-set-region
 
-    (kbd "C-c C-c") 'docview-mode
+    (kbd "C-c C-c") 'doc-view-mode
     (kbd "C-c <tab>") 'pdf-view-extract-region-image
 
     "sb" 'pdf-view-set-slice-from-bounding-box
@@ -168,10 +179,21 @@ Consider COUNT."
     "o" 'pdf-outline
 
     ;; quit
-    "q" 'quit-window
-    "Q" 'kill-this-buffer
-    "ZQ" 'kill-this-buffer
-    "ZZ" 'quit-window)
+    "Q" 'kill-current-buffer)
+  (evil-collection-bind 'pdf-view-mode-map
+                        'scroll-down 'pdf-view-scroll-up-or-next-page
+                        'scroll-up 'pdf-view-scroll-down-or-previous-page
+                        'next-item 'pdf-view-next-page-command
+                        'prev-item 'pdf-view-previous-page-command
+                        'next-section 'pdf-view-next-page-command
+                        'prev-section 'pdf-view-previous-page-command
+                        'quit 'quit-window
+                        'quit-save 'quit-window
+                        'quit-cancel 'kill-current-buffer
+                        'refresh 'revert-buffer
+                        'zoom-in    'pdf-view-enlarge
+                        'zoom-out   'pdf-view-shrink
+                        'zoom-reset 'pdf-view-scale-reset)
 
 
   (when evil-want-C-d-scroll
@@ -181,8 +203,10 @@ Consider COUNT."
     (evil-collection-define-key 'normal 'pdf-view-mode-map
       (kbd "C-u") 'pdf-view-scroll-down-or-previous-page))
 
-  (evil-collection-define-key 'visual 'pdf-view-mode-map
-    "y" 'pdf-view-kill-ring-save)
+  (add-hook 'pdf-view-mode-hook #'evil-collection-pdf-disable-visual-mode)
+
+  (evil-collection-define-key 'normal 'pdf-view-mode-map
+    "y" 'evil-collection-pdf-yank)
 
   (evil-collection-inhibit-insert-state 'pdf-history-minor-mode-map)
   (evil-set-initial-state 'pdf-history-minor-mode 'normal)
@@ -194,11 +218,6 @@ Consider COUNT."
   (evil-collection-inhibit-insert-state 'pdf-outline-buffer-mode-map)
   (evil-set-initial-state 'pdf-outline-buffer-mode 'normal)
   (evil-collection-define-key 'normal 'pdf-outline-buffer-mode-map
-    ;; open
-    (kbd "RET") 'pdf-outline-follow-link-and-quit
-    (kbd "S-<return>") 'pdf-outline-follow-link
-    (kbd "M-<return>") 'pdf-outline-display-link
-    "go" 'pdf-outline-follow-link
     "." 'pdf-outline-move-to-current-page
     (kbd "SPC") 'pdf-outline-select-pdf-window
 
@@ -208,27 +227,26 @@ Consider COUNT."
 
     "zf" 'pdf-outline-follow-mode ; Helm has "C-c C-f" in Emacs state.
 
-    (kbd "<tab>") 'outline-toggle-children
-    (kbd "<backtab>") 'pdf-outline-toggle-subtree
-
     ;; quit
-    (kbd "C-w q") 'pdf-outline-quit-and-kill ; TODO: Do we need to set this? I think not.
-    "q" 'quit-window
-    "ZQ" 'quit-window
-    "ZZ" 'pdf-outline-quit-and-kill)
+    (kbd "C-w q") 'pdf-outline-quit-and-kill) ; TODO: Do we need to set this? I think not.
+  (evil-collection-bind 'pdf-outline-buffer-mode-map
+                        'section-toggle 'outline-toggle-children
+                        'section-toggle-all 'pdf-outline-toggle-subtree
+                        'action 'pdf-outline-follow-link-and-quit
+                        'action-other 'pdf-outline-follow-link
+                        'action-stay 'pdf-outline-display-link
+                        'quit 'quit-window
+                        'quit-save 'pdf-outline-quit-and-kill
+                        'quit-cancel 'quit-window)
 
   (evil-collection-inhibit-insert-state 'pdf-occur-buffer-mode-map)
   (evil-set-initial-state 'pdf-occur-buffer-mode 'normal)
   (evil-collection-define-key 'normal 'pdf-occur-buffer-mode-map
-    ;; open
-    (kbd "RET") 'pdf-occur-goto-occurrence
-    (kbd "S-<return>") 'pdf-occur-view-occurrence
     (kbd "SPC") 'pdf-occur-view-occurrence
-    "gd" 'pdf-occur-goto-occurrence
     "gD" 'pdf-occur-view-occurrence
 
     "A" 'pdf-occur-tablist-gather-documents
-    "D" 'pdf-occur-tablist-do-delete
+    "D" 'tablist-do-kill-lines
 
     ;; sort
     "o" 'tabulated-list-sort
@@ -241,10 +259,7 @@ Consider COUNT."
 
     ;; mark
     "*m" 'tablist-mark-forward
-    "m" 'tablist-mark-forward
     "~" 'tablist-toggle-marks
-    "u" 'tablist-unmark-forward
-    "U" 'tablist-unmark-all-marks
     "*!" 'tablist-unmark-all-marks
     "*c" 'tablist-change-marks
     "*n" 'tablist-mark-items-numeric
@@ -255,10 +270,7 @@ Consider COUNT."
 
     ;; "f" 'tablist-find-entry ; TODO: Equivalent to 'pdf-occur-goto-occurrence?
     "r" 'pdf-occur-revert-buffer-with-args
-    "d" 'tablist-do-kill-lines
-    "x" 'pdf-occur-tablist-do-flagged-delete
     (kbd "<delete>") 'tablist-unmark-backward
-    (kbd "S-SPC") 'scroll-down-command
     (kbd "<backtab>") 'tablist-backward-column
     (kbd "C-c C-e") 'tablist-export-csv
 
@@ -281,12 +293,20 @@ Consider COUNT."
     "/r" 'tablist-push-regexp-filter
     "/s" 'tablist-name-current-filter
     "/t" 'tablist-toggle-first-filter-logic
-    "/z" 'tablist-suspend-filter
-
-    ;; quit
-    "q" 'tablist-quit
-    "ZQ" 'tablist-quit
-    "ZZ" 'tablist-quit))
+    "/z" 'tablist-suspend-filter)
+  (evil-collection-bind 'pdf-occur-buffer-mode-map
+                        'mark 'tablist-mark-forward
+                        'unmark 'tablist-unmark-forward
+                        'unmark-all 'tablist-unmark-all-marks
+                        'execute-marks 'pdf-occur-tablist-do-flagged-delete
+                        'scroll-up 'scroll-down-command
+                        'action 'pdf-occur-goto-occurrence
+                        'action-other 'pdf-occur-view-occurrence
+                        'quit 'tablist-quit
+                        'quit-save 'tablist-quit
+                        'quit-cancel 'tablist-quit
+                        'delete 'pdf-occur-tablist-do-delete
+                        'find-definition 'pdf-occur-goto-occurrence))
 
 (provide 'evil-collection-pdf)
 ;;; evil-collection-pdf.el ends here

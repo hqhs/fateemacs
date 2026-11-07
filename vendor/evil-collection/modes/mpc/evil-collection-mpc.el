@@ -6,7 +6,7 @@
 ;; pspiagicw <pspiagicw@gmail.com>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, mpc, processes , mpd
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -29,7 +29,7 @@
 (require 'mpc)
 (require 'evil-collection)
 
-(defconst evil-collection-mpc-mode-maps '(mpc-mode-map))
+(defconst evil-collection-mpc-maps '(mpc-mode-map))
 
 (defun evil-collection-mpc-move-down ()
   "Move the cursor down along with selecting the element."
@@ -46,19 +46,43 @@
 ;;;###autoload
 (defun evil-collection-mpc-setup ()
   "Setup up `evil' bindings for `mpc-mode'."
+  (evil-collection-bind 'mpc-mode-map
+                        'next-item 'evil-collection-mpc-move-down
+                        'prev-item 'evil-collection-mpc-move-up
+                        'next-section 'evil-collection-mpc-move-down
+                        'prev-section 'evil-collection-mpc-move-up)
   (evil-collection-define-key 'normal 'mpc-mode-map
-    "C-j" 'evil-collection-mpc-move-down
-    "C-k" 'evil-collection-mpc-move-up
-    "t" 'mpc-toggle-play
-    "r" 'mpc-toggle-repeat
-    "s" 'mpc-toggle-shuffle
-    "c" 'mpc-toggle-consume
-    "p" 'mpc-playlist
-    "a" 'mpc-playlist-add
-    ">" 'mpc-next
-    "<" 'mpc-prev
-    "x" 'mpc-play-at-point
-    "RET" 'mpc-select))
+    "T"                'mpc-stop
+    "r"                'mpc-toggle-repeat
+    "s"                'mpc-toggle-shuffle
+    "c"                'mpc-toggle-consume
+    "gp"               'mpc-playlist
+    "a"                'mpc-playlist-add
+    "J"                'mpc-next
+    "K"                'mpc-prev
+    "x"                'mpc-play-at-point
+    "X"                'mpc-play
+    "gd"               'mpc-describe-song
+    "p"                'mpc-pause
+    "P"                'mpc-resume
+    "gs"               'mpc-seek-current
+    "gb"               'mpc-tagbrowser
+    "g/"               'mpc-songs-search
+    "g_"               'mpc-songs-kill-search
+    "gd"               'mpc-songs-jump-to
+    "D"                'mpc-playlist-delete)
+  ;; Bind action keys before restoring `go' to `mpc-goto-playing-song'.
+  (evil-collection-bind 'mpc-mode-map
+                        'action 'mpc-select
+                        'action-other 'mpc-select-toggle
+                        'action-stay 'mpc-select-extend
+                        'toggle 'mpc-toggle-play)
+  (evil-collection-define-key 'normal 'mpc-mode-map
+    (kbd "C-<return>") 'mpc-select-extend
+    "go" 'mpc-goto-playing-song)
+  (evil-collection-bind 'mpc-mode-map
+                        'quit 'mpc-quit
+                        'refresh-all 'mpc-update))
 
 (provide 'evil-collection-mpc)
 ;;; evil-collection-mpc.el ends here

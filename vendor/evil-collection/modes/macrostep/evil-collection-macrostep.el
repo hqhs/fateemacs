@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, macrostep, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -40,13 +40,14 @@
   (add-hook 'macrostep-mode-hook #'evil-normalize-keymaps)
 
   (evil-collection-define-key 'normal 'macrostep-keymap
-    "q" 'macrostep-collapse-all
     "e" 'macrostep-expand
-    "u" 'macrostep-collapse
-    "gj" 'macrostep-next-macro
-    "gk" 'macrostep-prev-macro
-    (kbd "C-j") 'macrostep-next-macro
-    (kbd "C-k") 'macrostep-prev-macro))
+    "u" 'macrostep-collapse)
+  (evil-collection-bind 'macrostep-keymap
+                        'next-item 'macrostep-next-macro
+                        'prev-item 'macrostep-prev-macro
+                        'next-section 'macrostep-next-macro
+                        'prev-section 'macrostep-prev-macro
+                        'quit 'macrostep-collapse-all))
 
 (provide 'evil-collection-macrostep)
 ;;; evil-collection-macrostep.el ends here

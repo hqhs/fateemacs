@@ -7,7 +7,7 @@
 ;; Maintainer: James Nguyen <james@jojojames.com>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -40,11 +40,12 @@
     "l" 'snake-move-right
     "j" 'snake-move-down
     "k" 'snake-move-up
-    "gr" 'snake-start-game
-    "p" 'snake-pause-game
-    "q" 'quit-window
-    "ZQ" 'quit-window
-    "ZZ" 'snake-end-game))
+    "p" 'snake-pause-game)
+  (evil-collection-bind 'snake-mode-map
+                        'quit 'quit-window
+                        'quit-save 'snake-end-game
+                        'quit-cancel 'quit-window
+                        'refresh 'snake-start-game))
 
 (provide 'evil-collection-snake)
 ;;; evil-collection-snake.el ends here

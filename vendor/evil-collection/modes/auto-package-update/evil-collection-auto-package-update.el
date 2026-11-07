@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, auto-package-update, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -35,9 +35,8 @@
 ;;;###autoload
 (defun evil-collection-auto-package-update-setup ()
   "Set up `evil' bindings for `auto-package-update'."
-  (add-hook 'auto-package-update-minor-mode-hook 'evil-normalize-keymaps)
-  (evil-collection-define-key 'normal 'auto-package-update-minor-mode-map
-    "q" 'quit-window))
+  (add-hook 'auto-package-update-minor-mode-hook #'evil-normalize-keymaps)
+  (evil-collection-bind 'auto-package-update-minor-mode-map 'quit 'quit-window))
 
 (provide 'evil-collection-auto-package-update)
 

@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, comint, processes
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -39,16 +39,17 @@
     (evil-collection-define-key 'normal 'comint-mode-map
       (kbd "C-d") #'evil-scroll-down))
 
-  (evil-collection-define-key 'normal 'comint-mode-map
-    ;; Match Eshell bindings:
-    (kbd "C-j") #'comint-next-prompt
-    (kbd "C-k") #'comint-previous-prompt
-    (kbd "gj") #'comint-next-prompt
-    (kbd "gk") #'comint-previous-prompt
-    (kbd "]]") #'comint-next-prompt
-    (kbd "[[") #'comint-previous-prompt
-    (kbd "C-p") #'comint-previous-input
-    (kbd "C-n") #'comint-next-input)
+  ;; Match Eshell bindings for motion.
+  (evil-collection-bind 'comint-mode-map
+                        'repl-submit #'comint-send-input
+                        'repl-newline #'newline
+                        'repl-force-newline #'newline
+                        'next-item #'comint-next-prompt
+                        'prev-item #'comint-previous-prompt
+                        'next-section #'comint-next-prompt
+                        'prev-section #'comint-previous-prompt
+                        'history-previous #'comint-previous-input
+                        'history-next     #'comint-next-input)
 
   ;; TODO: What if the user changes `evil-want-C-u-delete' after this is run?
   (when evil-want-C-u-delete

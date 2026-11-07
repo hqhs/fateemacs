@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, bookmark, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -37,42 +37,40 @@
   "Set up `evil' bindings for `bookmark'."
   (evil-set-initial-state 'bookmark-bmenu-mode 'normal)
   (evil-collection-set-readonly-bindings 'bookmark-bmenu-mode-map)
+  (evil-collection-bind 'bookmark-bmenu-mode-map
+                        'rename 'bookmark-bmenu-rename
+                        'edit 'bookmark-bmenu-edit-annotation)
   (evil-collection-define-key 'normal 'bookmark-bmenu-mode-map
     [remap evil-write] 'bookmark-bmenu-save
 
     "1" 'bookmark-bmenu-1-window
     "2" 'bookmark-bmenu-2-window
     "5" 'bookmark-bmenu-other-frame
-    "d" 'bookmark-bmenu-delete
-    "x" 'bookmark-bmenu-execute-deletions
-    "s" 'bookmark-bmenu-search
-    "r" 'bookmark-bmenu-rename
-    "R" 'bookmark-bmenu-relocate
+    "r" 'bookmark-bmenu-relocate
     "L" 'bookmark-bmenu-load
-    "t" 'bookmark-bmenu-toggle-filenames
     "W" 'bookmark-bmenu-locate
     "D" 'bookmark-bmenu-delete-backwards
 
     ;; annotation
     "a" 'bookmark-bmenu-show-annotation
     "A" 'bookmark-bmenu-show-all-annotations
-    "E" 'bookmark-bmenu-edit-annotation
-
-    ;; mark
-    "u" 'bookmark-bmenu-unmark
-    "U" 'bookmark-bmenu-unmark-all
-    "m" 'bookmark-bmenu-mark
-    "M" 'bookmark-bmenu-mark-all
 
     ;; open
     "o" 'bookmark-bmenu-select
     "O" 'bookmark-bmenu-other-window
-    "go" 'bookmark-bmenu-other-window
-    "gO" 'bookmark-bmenu-switch-other-window
-    (kbd "DEL") 'bookmark-bmenu-backup-unmark
-    (kbd "RET") 'bookmark-bmenu-this-window
-    (kbd "S-<return>") 'bookmark-bmenu-other-window
-    (kbd "M-<return>") 'bookmark-bmenu-switch-other-window))
+    (kbd "DEL") 'bookmark-bmenu-backup-unmark)
+  (evil-collection-bind 'bookmark-bmenu-mode-map
+                        'mark 'bookmark-bmenu-mark
+                        'mark-all 'bookmark-bmenu-mark-all
+                        'unmark 'bookmark-bmenu-unmark
+                        'unmark-all 'bookmark-bmenu-unmark-all
+                        'mark-delete 'bookmark-bmenu-delete
+                        'execute-marks 'bookmark-bmenu-execute-deletions
+                        'action 'bookmark-bmenu-this-window
+                        'action-other 'bookmark-bmenu-other-window
+                        'action-stay 'bookmark-bmenu-switch-other-window
+                        'search-or-filter 'bookmark-bmenu-search
+                        'toggle 'bookmark-bmenu-toggle-filenames))
 
 (provide 'evil-collection-bookmark)
 ;;; evil-collection-bookmark.el ends here

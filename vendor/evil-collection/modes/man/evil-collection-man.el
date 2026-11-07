@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, man, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -36,33 +36,28 @@
 (defun evil-collection-man-setup ()
   "Set up `evil' bindings for `man'."
   (evil-set-initial-state 'Man-mode 'normal)
+  (evil-collection-bind 'Man-mode-map
+                        'next-button 'forward-button
+                        'previous-button 'backward-button)
   (evil-collection-define-key 'normal 'Man-mode-map
-    ;; motion
-    (kbd "SPC") 'scroll-up-command
-    (kbd "S-SPC") 'scroll-down-command
-    (kbd "<tab>") 'forward-button
-    (kbd "<backtab>") 'backward-button
-
-    (kbd "]]") 'Man-next-manpage
-    (kbd "[[") 'Man-previous-manpage
-    (kbd "gj") 'Man-next-manpage
-    (kbd "gk") 'Man-previous-manpage
-    (kbd "C-j") 'Man-next-section
-    (kbd "C-k") 'Man-previous-section
-
     ;; goto
     "gm" 'man
-    "gd" 'Man-goto-section ; TODO: "gd" does not match the rationale of "go to definition". Change?
     "gR" 'Man-follow-manual-reference ; TODO: Make this match Info-follow-reference?
-    "gs" 'Man-goto-see-also-section
-
-    ;; refresh
-    "gr" 'Man-update-manpage
-
-    ;; quit
-    "q" 'quit-window
-    "ZQ" 'quit-window
-    "ZZ" 'quit-window))
+    "gs" 'Man-goto-see-also-section)
+  (evil-collection-bind 'Man-mode-map
+                        'scroll-down 'scroll-up-command
+                        'scroll-up 'scroll-down-command
+                        'next-item 'Man-next-manpage
+                        'prev-item 'Man-previous-manpage
+                        'next-section 'Man-next-manpage
+                        'prev-section 'Man-previous-manpage
+                        'next-section-2 'Man-next-section
+                        'prev-section-2 'Man-previous-section
+                        'quit 'quit-window
+                        'quit-save 'quit-window
+                        'quit-cancel 'quit-window
+                        'refresh 'Man-update-manpage
+                        'find-definition 'Man-goto-section))
 
 (provide 'evil-collection-man)
 ;;; evil-collection-man.el ends here

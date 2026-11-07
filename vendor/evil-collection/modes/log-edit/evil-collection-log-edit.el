@@ -6,7 +6,7 @@
 ;; Maintainer: James Nguyen <james@jojojames.com>, Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, log-edit, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -41,17 +41,14 @@
     [remap evil-save-modified-and-close] 'log-edit-done
     [remap evil-quit] 'log-edit-kill-buffer)
 
-  (evil-collection-define-key 'normal 'log-edit-mode-map
-    "g?" 'log-edit-mode-help
-    "]]" 'log-edit-next-comment
-    "[[" 'log-edit-previous-comment
-    "gj" 'log-edit-next-comment
-    "gk" 'log-edit-previous-comment
-    (kbd "C-j") 'log-edit-next-comment
-    (kbd "C-k") 'log-edit-next-comment
-
-    "ZQ" 'quit-window
-    "ZZ" 'quit-window))
+  (evil-collection-bind 'log-edit-mode-map
+                        'describe-mode 'log-edit-mode-help
+                        'quit-save 'quit-window
+                        'quit-cancel 'quit-window
+                        'next-item 'log-edit-next-comment
+                        'prev-item 'log-edit-previous-comment
+                        'next-section 'log-edit-next-comment
+                        'prev-section 'log-edit-previous-comment))
 
 (provide 'evil-collection-log-edit)
 ;;; evil-collection-log-edit.el ends here

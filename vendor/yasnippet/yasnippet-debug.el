@@ -1,6 +1,6 @@
 ;;; yasnippet-debug.el --- debug functions for yasnippet -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2025  Free Software Foundation, Inc.
+;; Copyright (C) 2010, 2013-2014, 2017-2018  Free Software Foundation, Inc.
 
 ;; Author: João Távora
 ;; Keywords: emulations, convenience
@@ -40,6 +40,9 @@
                         ;; Don't require '-L <path>' when debugging.
                         (expand-file-name "yasnippet" yas--loaddir)))
 (require 'cl-lib)
+(eval-when-compile
+  (unless (fboundp 'cl-flet)
+    (defalias 'cl-flet 'flet)))
 (require 'color nil t)
 (require 'edebug)
 (eval-when-compile
@@ -221,13 +224,13 @@
   (setq yas-debug-undo value)
   (yas--message 3 "debug undo %sabled" (if yas-debug-undo "en" "dis")))
 
-(defun yas-debug--target-snippet (snippet)
+(defadvice yas--snippet-parse-create (before yas-debug-target-snippet (snippet))
   (add-to-list 'yas-debug-target-snippets snippet))
 
-(defun yas-debug--untarget-snippet (snippet)
+(defadvice yas--commit-snippet (after yas-debug-untarget-snippet (snippet))
   (setq yas-debug-target-snippets
         (remq snippet yas-debug-target-snippets))
-  (maphash (lambda (_k color-ov)
+  (maphash (lambda (k color-ov)
              (delete-overlay (cdr color-ov)))
            yas-debug-live-indicators)
   (clrhash yas-debug-live-indicators))
@@ -268,8 +271,10 @@ buffer-locally, otherwise install it globally.  If HOOK is
                      do (printf "%S\n" undo-elem))))
         (when hook
           (setq yas-debug-target-buffer (current-buffer))
-          (advice-add 'yas--snippet-parse-create :before #'yas-debug--target-snippet)
-          (advice-add 'yas--commit-snippet :after #'yas-debug--untarget-snippet)
+          (ad-enable-advice 'yas--snippet-parse-create 'before 'yas-debug-target-snippet)
+          (ad-activate 'yas--snippet-parse-create)
+          (ad-enable-advice 'yas--commit-snippet 'after 'yas-debug-untarget-snippet)
+          (ad-activate 'yas--commit-snippet)
           (add-hook 'post-command-hook #'yas-debug-snippets
                     nil (eq hook 'snippet-navigation))
           ;; Window management is slapped together, it does what I

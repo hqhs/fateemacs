@@ -6,7 +6,7 @@
 ;; Maintainer: Alexis <flexibeast@gmail.com>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, ebuku, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -31,32 +31,36 @@
 (require 'evil-collection)
 (require 'ebuku nil t)
 
+(defconst evil-collection-ebuku-maps nil)
+
 
 ;;;###autoload
 (defun evil-collection-ebuku-setup ()
   "Set up `evil' bindings for `Ebuku'."
+  (evil-collection-bind 'ebuku-mode-map
+                        'edit 'ebuku-edit-bookmark
+                        'quit 'quit-window
+                        'refresh 'ebuku-refresh
+                        'next-section 'ebuku-next-bookmark
+                        'prev-section 'ebuku-previous-bookmark)
   (evil-collection-define-key 'normal 'ebuku-mode-map
-                              "q" 'quit-window
                               "a" 'ebuku-add-bookmark
-                              "d" 'ebuku-delete-bookmark
-                              "x" 'ebuku-delete-bookmark
-                              "e" 'ebuku-edit-bookmark
-                              "gr" 'ebuku-refresh
                               "j" 'ebuku-next-bookmark
-                              (kbd "C-j") 'ebuku-next-bookmark
                               "k" 'ebuku-previous-bookmark
-                              (kbd "C-k") 'ebuku-previous-bookmark
                               "r" 'ebuku-search-on-recent
-                              "s" 'ebuku-search
                               "*" 'ebuku-show-all
                               "-" 'ebuku-toggle-results-limit
-                              "t" 'ebuku-toggle-results-limit
-                              (kbd "RET") 'ebuku-open-url
                               "C" 'ebuku-copy-url
                               "T" 'ebuku-copy-title
                               "I" 'ebuku-copy-index
                               [mouse-1] 'ebuku-open-url
-                              [mouse-2] 'ebuku-open-url))
+                              [mouse-2] 'ebuku-open-url)
+  (evil-collection-bind 'ebuku-mode-map
+                        'action 'ebuku-open-url
+                        'delete 'ebuku-delete-bookmark
+                        'delete-2 'ebuku-delete-bookmark
+                        'search-or-filter 'ebuku-search
+                        'toggle 'ebuku-toggle-results-limit))
 
 
 (provide 'evil-collection-ebuku)

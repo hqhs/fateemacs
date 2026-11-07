@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, flycheck, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -39,18 +39,17 @@
   "Set up `evil' bindings for `flycheck'."
   (evil-set-initial-state 'flycheck-error-list-mode 'normal)
   (evil-collection-define-key 'normal 'flycheck-error-list-mode-map
-    "gj" 'flycheck-error-list-next-error
-    "gk" 'flycheck-error-list-previous-error
-    (kbd "C-j") 'flycheck-error-list-next-error
-    (kbd "C-k") 'flycheck-error-list-previous-error
-    "]]" 'flycheck-error-list-next-error
-    "[[" 'flycheck-error-list-previous-error
-    "gr" 'flycheck-error-list-check-source
-    "s" 'flycheck-error-list-set-filter
     "S" 'flycheck-error-list-reset-filter
-    "x" 'flycheck-error-list-explain-error
-    (kbd "RET") 'flycheck-error-list-goto-error
-    "q" 'quit-window))
+    "x" 'flycheck-error-list-explain-error)
+  (evil-collection-bind 'flycheck-error-list-mode-map
+                        'action 'flycheck-error-list-goto-error
+                        'next-item 'flycheck-error-list-next-error
+                        'prev-item 'flycheck-error-list-previous-error
+                        'next-section 'flycheck-error-list-next-error
+                        'prev-section 'flycheck-error-list-previous-error
+                        'quit 'quit-window
+                        'refresh 'flycheck-error-list-check-source
+                        'search-or-filter 'flycheck-error-list-set-filter))
 
 (provide 'evil-collection-flycheck)
 ;;; evil-collection-flycheck.el ends here

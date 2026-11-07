@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.3
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, files, convenience, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -38,25 +38,7 @@
   (evil-collection-set-readonly-bindings 'trashed-mode-map)
   (evil-collection-define-key 'normal 'trashed-mode-map
     ;; motion
-    (kbd "SPC") 'scroll-up-command
-    (kbd "S-SPC") 'scroll-down-command
-    (kbd "<tab>") 'trashed-forward-column
-    (kbd "<backtab>") 'trashed-backward-column
-
-    (kbd "RET") 'trashed-find-file
-    (kbd "S-RET") 'trashed-find-file-other-window
-    (kbd "go") 'trashed-find-file-other-window
-    (kbd "gO") 'trashed-display-file
-    (kbd "gw") 'trashed-browse-url-of-file
-    (kbd "M-RET") 'trashed-display-file
-
     "S" 'tabulated-list-sort
-
-    "m" 'trashed-mark
-    "M" 'trashed-mark-all
-    "u" 'trashed-unmark
-    "U" 'trashed-unmark-all
-    "~" 'trashed-toggle-marks
 
     "$ m" 'trashed-mark-files-by-date
     "$ u" 'trashed-unmark-files-by-date
@@ -68,20 +50,34 @@
     "% d" 'trashed-flag-delete-files-regexp
     "% r" 'trashed-flag-restore-files-regexp
 
-    "d" 'trashed-flag-delete
     "r" 'trashed-flag-restore
 
     "zb" 'trashed-flag-backup-files
     "za" 'trashed-flag-auto-save-files
 
-    "x" 'trashed-do-execute
     "D" 'trashed-do-delete
     "R" 'trashed-do-restore
 
-    "v" 'trashed-view-file
+    "v" 'trashed-view-file)
 
-    "g?" 'describe-mode
-    "gr" 'revert-buffer))
+  (evil-collection-bind 'trashed-mode-map
+                        'mark 'trashed-mark
+                        'mark-all 'trashed-mark-all
+                        'toggle-all 'trashed-toggle-marks
+                        'unmark 'trashed-unmark
+                        'unmark-all 'trashed-unmark-all
+                        'mark-delete 'trashed-flag-delete
+                        'execute-marks 'trashed-do-execute
+                        'scroll-down 'scroll-up-command
+                        'scroll-up 'scroll-down-command
+                        'action 'trashed-find-file
+                        'action-other 'trashed-find-file-other-window
+                        'action-stay 'trashed-display-file
+                        'describe-mode 'describe-mode
+                        'refresh 'revert-buffer
+                        'cycle-next 'trashed-forward-column
+                        'cycle-previous 'trashed-backward-column
+                        'browse-url 'trashed-browse-url-of-file))
 
 (provide 'evil-collection-trashed)
 ;;; evil-collection-trashed.el ends here

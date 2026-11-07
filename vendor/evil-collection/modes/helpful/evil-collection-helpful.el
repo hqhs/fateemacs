@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, help, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -36,19 +36,18 @@
 (defun evil-collection-helpful-setup ()
   "Set up `evil' bindings for `helpful'."
   (evil-collection-set-readonly-bindings 'helpful-mode-map)
-  (evil-collection-define-key 'normal 'helpful-mode-map
-    ;; motion
-    (kbd "<tab>") 'forward-button
-    (kbd "<backtab>") 'backward-button
-    (kbd "RET") 'helpful-visit-reference
-
-    ;; The following bindings don't do what they are supposed to. "go" should open
-    ;; in the same window and "gO" should open in a different one.
-    "go" 'push-button
-    "gO" 'push-button
-
-    "g?" 'describe-mode
-    "gr" 'helpful-update))
+  (evil-collection-define-push-action evil-collection-helpful-action
+                                      helpful-visit-reference)
+  (evil-collection-bind 'helpful-mode-map
+                        'next-button 'forward-button
+                        'previous-button 'backward-button
+                        'action 'evil-collection-helpful-action
+                        ;; action-other / action-stay don't distinguish in helpful yet
+                        ;; but belong to the action family.
+                        'action-other 'push-button
+                        'action-stay 'push-button
+                        'describe-mode 'describe-mode
+                        'refresh 'helpful-update))
 
 (provide 'evil-collection-helpful)
 ;;; evil-collection-helpful.el ends here

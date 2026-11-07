@@ -6,7 +6,7 @@
 ;; Maintainer: James Nguyen <james@jojojames.com>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, python, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -41,26 +41,23 @@
   ;; latest anaconda has replaced view mode by an xref implementation,
   ;; anaconda stable uses `anaconda-view-mode-map'
   (when (boundp 'anaconda-view-mode-map)
-    (evil-collection-define-key 'normal 'anaconda-view-mode-map
-      "gj" 'next-error-no-select
-      "gk" 'previous-error-no-select
-      (kbd "C-j") 'next-error-no-select
-      (kbd "C-k") 'previous-error-no-select
-      "]]" 'next-error-no-select
-      "[[" 'previous-error-no-select
-      "q" 'quit-window))
+    (evil-collection-bind 'anaconda-view-mode-map
+                          'next-item 'next-error-no-select
+                          'prev-item 'previous-error-no-select
+                          'next-section 'next-error-no-select
+                          'prev-section 'previous-error-no-select
+                          'quit 'quit-window))
 
-  (evil-collection-define-key 'normal 'anaconda-mode-map
-    "gd" 'anaconda-mode-find-definitions
-    (kbd "C-t") (if (fboundp 'anaconda-mode-go-back)
-                    'anaconda-mode-go-back
-                  'xref-pop-marker-stack)
-    "K" 'anaconda-mode-show-doc)
-
-  (when evil-collection-want-find-usages-bindings
+  (evil-collection-bind 'anaconda-mode-map
+                        'find-usages 'anaconda-mode-find-references
+                        'lookup-doc 'anaconda-mode-show-doc
+                        'find-definition 'anaconda-mode-find-definitions
+                        'pop-definition (if (fboundp 'anaconda-mode-go-back)
+                                            'anaconda-mode-go-back
+                                          'xref-pop-marker-stack))
+  (when (evil-collection-binding-enabled-p 'find-usages)
     (evil-collection-define-key 'normal 'anaconda-mode-map
-      "gA" 'anaconda-mode-find-assignments
-      "gr" 'anaconda-mode-find-references)))
+      "gA" 'anaconda-mode-find-assignments)))
 
 (provide 'evil-collection-anaconda-mode)
 ;;; evil-collection-anaconda-mode.el ends here

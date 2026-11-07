@@ -6,7 +6,7 @@
 ;; Maintainer: James Nguyen <james@jojojames.com>, Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, ztree, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -42,27 +42,25 @@
   (evil-set-initial-state 'ztree-mode 'normal)
   (evil-collection-define-key 'normal 'ztree-mode-map
     (kbd "<tab>") 'ztree-jump-side
-    (kbd "RET") 'ztree-perform-action
     (kbd "SPC") 'ztree-perform-soft-action
 
-    "x" 'ztree-toggle-expand-subtree
-
-    ;; refresh
-    "gr" 'ztree-refresh-buffer)
+    "x" 'ztree-toggle-expand-subtree)
+  (evil-collection-bind 'ztree-mode-map
+                        'action 'ztree-perform-action
+                        'refresh 'ztree-refresh-buffer)
 
   (evil-collection-set-readonly-bindings 'ztreediff-mode-map)
   (evil-set-initial-state 'ztree-mode 'normal)
-  (evil-define-minor-mode-key 'normal 'ztreediff-mode
+  (evil-collection-define-minor-mode-key 'normal 'ztreediff-mode
     "C" 'ztree-diff-copy
-    "D" 'ztree-diff-delete-file
+    "D" 'ztree-diff-simple-diff-files
     "zH" 'ztree-diff-toggle-show-filtered-files
-    "d" 'ztree-diff-simple-diff-files
-    "zh" 'ztree-diff-toggle-show-equal-files
-    "gf" 'ztree-diff-view-file
+    "zh" 'ztree-diff-toggle-show-equal-files)
 
-    ;; refresh
-    "gr" 'ztree-diff-partial-rescan
-    "gR" 'ztree-diff-full-rescan))
+  (evil-collection-bind-minor-mode 'find-file    'ztreediff-mode 'ztree-diff-view-file)
+  (evil-collection-bind-minor-mode 'refresh      'ztreediff-mode 'ztree-diff-partial-rescan)
+  (evil-collection-bind-minor-mode 'refresh-all  'ztreediff-mode 'ztree-diff-full-rescan)
+  (evil-collection-bind-minor-mode 'delete       'ztreediff-mode 'ztree-diff-delete-file))
 
 (provide 'evil-collection-ztree)
 ;;; evil-collection-ztree.el ends here

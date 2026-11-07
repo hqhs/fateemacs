@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, guix, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -50,11 +50,6 @@
      (evil-collection-set-readonly-bindings ',map)
      (evil-collection-define-key 'normal ',map
         ;; motion
-        (kbd "SPC") 'scroll-up-command
-        (kbd "S-SPC") 'scroll-down-command
-        (kbd "<tab>") 'forward-button
-        (kbd "<backtab>") 'backward-button
-
         "gm" 'guix-apply-manifest
 
         ;; sort
@@ -71,23 +66,29 @@
         "U" 'bui-list-unmark-all
 
         (kbd "C-o") 'bui-history-back
-        (kbd "C-i") 'bui-history-forward
-
-        "g?" 'bui-show-hint
-        "gr" 'revert-buffer
-        "gR" 'bui-redisplay
-
-        ;; repl
-        "gz" 'guix-switch-to-repl)))
+        (kbd "C-i") 'bui-history-forward)
+     (evil-collection-bind ',map
+                           'next-button 'forward-button
+                           'previous-button 'backward-button
+                           'scroll-down 'scroll-up-command
+                           'scroll-up 'scroll-down-command
+                           'goto-repl 'guix-switch-to-repl
+                           'describe-mode 'bui-show-hint
+                           'refresh 'revert-buffer
+                           'refresh-all 'bui-redisplay)))
 
 ;;;###autoload
 (defun evil-collection-guix-setup ()
   "Set up `evil' bindings for `guix'."
+  (evil-collection-define-push-action evil-collection-guix-bui-list-describe-action
+                                      bui-list-describe)
+  (evil-collection-define-push-action evil-collection-guix-location-list-action
+                                      guix-location-list-show-packages)
   (evil-collection-guix-set guix-ui-map) ; Covers output-list and generation-list.
 
+  (evil-collection-bind 'guix-output-list-mode-map
+                        'action 'evil-collection-guix-bui-list-describe-action)
   (evil-collection-define-key 'normal 'guix-output-list-mode-map
-    (kbd "RET") 'bui-list-describe
-
     "gb" 'guix-package-list-latest-builds
     "gG" 'guix-output-list-graph
     "gl" 'guix-output-list-lint
@@ -114,9 +115,8 @@
     "i" 'guix-package-info-install)
 
   (evil-collection-guix-set guix-profile-list-mode-map)
+  (evil-collection-bind 'guix-profile-list-mode-map 'action 'evil-collection-guix-bui-list-describe-action)
   (evil-collection-define-key 'normal 'guix-profile-list-mode-map
-    (kbd "RET") 'bui-list-describe
-
     "c" 'guix-profile-list-set-current ; TODO: Bind to "." as per the rationale?
     "p" 'guix-profile-list-show-packages
     "a" 'guix-profile-list-show-generations
@@ -131,9 +131,8 @@
     "P" 'guix-profile-info-show-search-paths
     "c" 'guix-profile-info-set-current)
 
+  (evil-collection-bind 'guix-generation-list-mode-map 'action 'evil-collection-guix-bui-list-describe-action)
   (evil-collection-define-key 'normal 'guix-generation-list-mode-map
-    (kbd "RET") 'bui-list-describe
-
     "p" 'guix-generation-list-show-packages
     "D" 'guix-generation-list-mark-delete
     "P" 'guix-generation-list-show-search-paths
@@ -148,25 +147,23 @@
     "x" 'guix-generation-list-execute)
 
   (evil-collection-guix-set guix-license-list-mode-map)
+  (evil-collection-bind 'guix-license-list-mode-map 'action 'evil-collection-guix-bui-list-describe-action)
   (evil-collection-define-key 'normal 'guix-license-list-mode-map
-    (kbd "<tab>") 'forward-button       ; Why isn't this binding inhibited?
-    (kbd "RET") 'bui-list-describe
-
     "p" 'guix-license-list-show-packages
     "gd" 'guix-license-list-edit)
 
   (evil-collection-guix-set guix-license-info-mode-map)
 
   (evil-collection-guix-set guix-location-list-mode-map)
+  (evil-collection-bind 'guix-location-list-mode-map
+                        'action 'evil-collection-guix-location-list-action)
   (evil-collection-define-key 'normal 'guix-location-list-mode-map
-    (kbd "RET") 'guix-location-list-show-packages ; In Emacs state, it seems to be overriden by `push-button'.
-
     "p" 'guix-location-list-show-packages
     "gd" 'guix-location-list-edit)
 
   (evil-collection-guix-set guix-store-item-list-mode-map)
+  (evil-collection-bind 'guix-store-item-list-mode-map 'action 'evil-collection-guix-bui-list-describe-action)
   (evil-collection-define-key 'normal 'guix-store-item-list-mode-map
-    (kbd "RET") 'bui-list-describe
     "d" 'guix-store-item-list-mark-delete
     "gd" 'guix-store-item-list-edit
     "x" 'guix-store-item-list-execute)
@@ -174,44 +171,32 @@
   (evil-collection-guix-set guix-store-item-info-mode-map)
 
   (evil-collection-guix-set guix-hydra-build-list-mode-map)
+  (evil-collection-bind 'guix-hydra-build-list-mode-map 'action 'evil-collection-guix-bui-list-describe-action)
   (evil-collection-define-key 'normal 'guix-hydra-build-list-mode-map
-    (kbd "RET") 'bui-list-describe
-
     "gb" 'guix-hydra-build-list-latest-builds
     "gl" 'guix-hydra-build-list-view-log)
 
   (evil-collection-guix-set guix-hydra-build-info-mode-map)
 
   (evil-collection-set-readonly-bindings 'guix-build-log-mode-map)
-  (evil-collection-define-key 'normal 'guix-build-log-mode-map
-    ;; motion
-    (kbd "SPC") 'scroll-up-command
-    (kbd "S-SPC") 'scroll-down-command
-    (kbd "<tab>") 'guix-build-log-phase-toggle
-    (kbd "<backtab>") 'guix-build-log-phase-toggle-all
-
-    "gk" 'guix-build-log-previous-phase
-    "gj" 'guix-build-log-next-phase
-    "[[" 'guix-build-log-previous-phase
-    "]]" 'guix-build-log-next-phase
-    (kbd "C-k") 'guix-build-log-previous-phase
-    (kbd "C-j") 'guix-build-log-next-phase
-
-    "gr" 'revert-buffer
-
-    ;; repl
-    "gz" 'guix-switch-to-repl)
+  (evil-collection-bind 'guix-build-log-mode-map
+                        'scroll-down 'scroll-up-command
+                        'scroll-up 'scroll-down-command
+                        'next-item 'guix-build-log-next-phase
+                        'prev-item 'guix-build-log-previous-phase
+                        'next-section 'guix-build-log-next-phase
+                        'prev-section 'guix-build-log-previous-phase
+                        'goto-repl 'guix-switch-to-repl
+                        'refresh 'revert-buffer
+                        'section-toggle 'guix-build-log-phase-toggle
+                        'section-toggle-all 'guix-build-log-phase-toggle-all)
 
   (evil-collection-guix-set guix-service-list-mode-map)
+  (evil-collection-bind 'guix-service-list-mode-map 'action 'evil-collection-guix-bui-list-describe-action)
   (evil-collection-define-key 'normal 'guix-service-list-mode-map
-    (kbd "<tab>") 'forward-button
-    (kbd "RET") 'bui-list-describe
-
     "gd" 'guix-service-list-edit)
 
-  (evil-collection-define-key 'normal 'guix-devel-mode-map
-    ;; repl
-    "gz" 'guix-switch-to-repl))
+  (evil-collection-bind 'guix-devel-mode-map 'goto-repl 'guix-switch-to-repl))
 
 (provide 'evil-collection-guix)
 ;;; evil-collection-guix.el ends here

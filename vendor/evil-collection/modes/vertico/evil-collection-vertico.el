@@ -5,7 +5,7 @@
 ;; Author: Kisaragi Hiu <mail@kisaragi-hiu.com>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, vertico, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -28,6 +28,13 @@
 (require 'evil-collection)
 (require 'vertico nil t)
 
+(defconst evil-collection-vertico-maps nil)
+
+(defcustom evil-collection-vertico-want-want-C-u-in-insert nil
+  "When non nil, C-u may be bound in insert state."
+  :group 'evil-collection
+  :type 'boolean)
+
 ;;;###autoload
 (defun evil-collection-vertico-setup ()
   "Set up `evil' bindings for `vertico'."
@@ -38,7 +45,8 @@
   (when evil-collection-setup-minibuffer
     (when evil-want-C-u-scroll
       (evil-collection-define-key 'normal 'vertico-map
-        (kbd "C-u") 'vertico-scroll-down)
+        (kbd "C-u") 'vertico-scroll-down))
+    (when evil-collection-vertico-want-want-C-u-in-insert
       (unless evil-want-C-u-delete
         (evil-collection-define-key 'insert 'vertico-map
           (kbd "C-u") 'vertico-scroll-down)))
@@ -47,14 +55,15 @@
         (kbd "C-d") 'vertico-scroll-up))
 
     (evil-collection-define-key 'normal 'vertico-map
-      "gj" 'vertico-next-group
-      "gk" 'vertico-previous-group
+      "gg" 'vertico-first
+      "G" 'vertico-last
       "j" 'vertico-next
       "k" 'vertico-previous)
-
-    (evil-collection-define-key 'insert 'vertico-map
-      (kbd "C-n") 'vertico-next
-      (kbd "C-p") 'vertico-previous)))
+    (evil-collection-bind 'vertico-map
+                          'next-item 'vertico-next-group
+                          'prev-item 'vertico-previous-group
+                          'completion-previous 'vertico-previous
+                          'completion-next     'vertico-next)))
 
 (provide 'evil-collection-vertico)
 ;;; evil-collection-vertico.el ends here

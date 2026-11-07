@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, tar-mode, archive, bindings, files
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -36,46 +36,37 @@
 (defun evil-collection-tar-mode-setup ()
   "Set up `evil' bindings for `tar-mode'."
   (evil-set-initial-state 'tar-mode 'normal)
+  (evil-collection-bind 'tar-mode-map 'rename 'tar-rename-entry)
   (evil-collection-define-key 'normal 'tar-mode-map
     "j" 'tar-next-line
     "k" 'tar-previous-line
-    (kbd "C-j") 'tar-next-line
-    (kbd "C-k") 'tar-previous-line
-    "gj" 'tar-next-line
-    "gk" 'tar-previous-line
 
     "gg" 'beginning-of-buffer
     "G" 'end-of-buffer
 
-    ;; open
-    (kbd "RET") 'tar-extract
-    (kbd "S-<return>") 'tar-extract-other-window
-    (kbd "M-<return>") 'tar-view
-    "go" 'tar-extract-other-window
-    "gO" 'tar-view
-
-    "d" 'tar-flag-deleted
-    "r" 'tar-rename-entry
-    "x" 'tar-expunge
     "M" 'tar-chmod-entry
     "P" 'tar-chgrp-entry
     "O" 'tar-chown-entry
-
-    ;; refresh
-    "gr" 'revert-buffer
 
     ;; create
     "I" 'tar-new-entry
 
     ;; write
-    "C" 'tar-copy
-
-    ;; mark
-    "u" 'tar-unflag
-    "U" 'tar-clear-modification-flags
-
-    ;; quit
-    "q" 'quit-window))
+    "C" 'tar-copy)
+  (evil-collection-bind 'tar-mode-map
+                        'mark-delete 'tar-flag-deleted
+                        'execute-marks 'tar-expunge
+                        'unmark 'tar-unflag
+                        'unmark-all 'tar-clear-modification-flags
+                        'action 'tar-extract
+                        'action-other 'tar-extract-other-window
+                        'action-stay 'tar-view
+                        'next-item 'tar-next-line
+                        'prev-item 'tar-previous-line
+                        'next-section 'tar-next-line
+                        'prev-section 'tar-previous-line
+                        'quit 'quit-window
+                        'refresh 'revert-buffer))
 
 (provide 'evil-collection-tar-mode)
 ;;; evil-collection-tar-mode.el ends here

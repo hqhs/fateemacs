@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, eval-sexp-fu, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -45,17 +45,17 @@
 (defun evil-collection-eval-sexp-fu-advise-bounds-of-thing-at-point (command &rest args)
   "Advise `bounds-of-thing-at-point' to handle `evil's `evil-move-beyond-eol'."
   (advice-add 'bounds-of-thing-at-point
-              :around 'evil-collection-eval-sexp-fu-bounds-of-thing-at-point-sexp)
+              :around #'evil-collection-eval-sexp-fu-bounds-of-thing-at-point-sexp)
   (apply command args)
   (advice-remove 'bounds-of-thing-at-point
-                 'evil-collection-eval-sexp-fu-bounds-of-thing-at-point-sexp))
+                 #'evil-collection-eval-sexp-fu-bounds-of-thing-at-point-sexp))
 
 ;;;###autoload
 (defun evil-collection-eval-sexp-fu-setup ()
   "Set up `evil' with `eval-sexp-fu'."
   (unless evil-move-beyond-eol
     (advice-add 'ad-Advice-eval-last-sexp
-                :around 'evil-collection-eval-sexp-fu-advise-bounds-of-thing-at-point)))
+                :around #'evil-collection-eval-sexp-fu-advise-bounds-of-thing-at-point)))
 
 (provide 'evil-collection-eval-sexp-fu)
 ;;; evil-collection-eval-sexp-fu.el ends here

@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <ambrevar@gmail.com>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, vc-git, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -37,12 +37,15 @@
   "Set up `evil' bindings for `vc-git'."
   (evil-set-initial-state 'vc-git-log-view-mode 'normal)
   (evil-collection-define-key 'normal 'vc-git-log-view-mode-map
-    "q" 'quit-window
     "d" 'log-view-diff
-    "D" 'log-view-diff-changeset
-    (kbd "C-j") 'log-view-msg-next
-    (kbd "C-k") 'log-view-msg-prev
-    (kbd "<tab>") 'log-view-toggle-entry-display))
+    "D" 'log-view-diff-changeset)
+  (evil-collection-bind 'vc-git-log-view-mode-map
+                        'quit 'quit-window
+                        'next-item 'log-view-msg-next
+                        'prev-item 'log-view-msg-prev
+                        'next-section 'log-view-msg-next
+                        'prev-section 'log-view-msg-prev
+                        'section-toggle 'log-view-toggle-entry-display))
 
 (provide 'evil-collection-vc-git)
 ;;; evil-collection-vc-git.el ends here

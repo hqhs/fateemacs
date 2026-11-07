@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, ivy, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -41,23 +41,20 @@
     (kbd "<escape>") 'minibuffer-keyboard-quit)
   (evil-collection-define-key 'normal 'ivy-occur-mode-map
     [mouse-1] 'ivy-occur-click
-    (kbd "RET") 'ivy-occur-press-and-switch
     "j" 'ivy-occur-next-line
     "k" 'ivy-occur-previous-line
     "h" 'evil-backward-char
     "l" 'evil-forward-char
     "g" nil
     "gg" 'evil-goto-first-line
-    "gf" 'ivy-occur-press
     "ga" 'ivy-occur-read-action
     "go" 'ivy-occur-dispatch
-    "gc" 'ivy-occur-toggle-calling
-
-    ;; refresh
-    "gr" 'ivy-occur-revert-buffer
-
-    ;; quit
-    "q" 'quit-window)
+    "gc" 'ivy-occur-toggle-calling)
+  (evil-collection-bind 'ivy-occur-mode-map
+                        'quit 'quit-window
+                        'find-file 'ivy-occur-press
+                        'refresh 'ivy-occur-revert-buffer
+                        'action 'ivy-occur-press-and-switch)
 
   (when evil-want-C-d-scroll
     (evil-collection-define-key 'normal 'ivy-occur-grep-mode-map
@@ -74,38 +71,38 @@
     "i" 'ivy-wgrep-change-to-wgrep-mode
     "gd" 'ivy-occur-delete-candidate
     [mouse-1] 'ivy-occur-click
-    (kbd "RET") 'ivy-occur-press-and-switch
     "j" 'ivy-occur-next-line
     "k" 'ivy-occur-previous-line
     "h" 'evil-backward-char
     "l" 'evil-forward-char
     "g" nil
     "gg" 'evil-goto-first-line
-    "gf" 'ivy-occur-press
-    "gr" 'ivy-occur-revert-buffer
     "ga" 'ivy-occur-read-action
     "go" 'ivy-occur-dispatch
     "gc" 'ivy-occur-toggle-calling
 
-    "0" 'evil-digit-argument-or-evil-beginning-of-line
-
-    ;; quit
-    "q" 'quit-window)
+    "0" 'evil-digit-argument-or-evil-beginning-of-line)
+  (evil-collection-bind 'ivy-occur-grep-mode-map
+                        'quit 'quit-window
+                        'find-file 'ivy-occur-press
+                        'refresh 'ivy-occur-revert-buffer
+                        'action 'ivy-occur-press-and-switch)
 
   (defvar evil-collection-setup-minibuffer)
   (when evil-collection-setup-minibuffer
     (evil-collection-define-key 'normal 'ivy-minibuffer-map
       (kbd "<escape>") 'abort-recursive-edit
-      (kbd "RET") 'exit-minibuffer
       (kbd "C-m") 'ivy-done
       "j" 'ivy-next-line
       "k" 'ivy-previous-line)
 
     (evil-collection-define-key 'insert 'ivy-minibuffer-map
       (kbd "DEL") 'ivy-backward-delete-char
-      (kbd "C-r") 'ivy-reverse-i-search
-      (kbd "C-n") 'ivy-next-line
-      (kbd "C-p") 'ivy-previous-line)))
+      (kbd "C-r") 'ivy-reverse-i-search)
+    (evil-collection-bind 'ivy-minibuffer-map
+                          'action 'exit-minibuffer
+                          'completion-previous 'ivy-previous-line
+                          'completion-next     'ivy-next-line)))
 
 (provide 'evil-collection-ivy)
 ;;; evil-collection-ivy.el ends here

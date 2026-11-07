@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, tools, realgud
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -37,20 +37,14 @@
   "Set up `evil' bindings for `realgud'."
   ;; This one is to represent `realgud-populate-src-buffer-map-plain'.
   (evil-collection-define-key 'normal 'realgud:shortkey-mode-map
-    "b" 'realgud:cmd-break
-    "D" 'realgud:cmd-delete
     "X" 'realgud:cmd-clear
     "-" 'realgud:cmd-disable
     "+" 'realgud:cmd-enable
     "T" 'realgud:cmd-backtrace
     "f" 'realgud:cmd-finish
-    "n" 'realgud:cmd-next
-    "q" 'realgud:cmd-quit
     "Q" 'realgud:cmd-kill
     "r" 'realgud:cmd-restart
     "R" 'realgud:cmd-restart
-    "s" 'realgud:cmd-step
-    "i" 'realgud:cmd-step
     "!" 'realgud:cmd-shell
 
     ;; (evil-collection-define-key nil map [M-down]    'realgud-track-hist-newer)
@@ -63,6 +57,9 @@
     ;; (evil-collection-define-key nil map [M-S-down]  'realgud-track-hist-newest)
     ;; (evil-collection-define-key nil map [M-S-up]    'realgud-track-hist-oldest)
     )
+  (evil-collection-bind 'realgud:shortkey-mode-map
+                        'quit 'realgud:cmd-quit
+                        'delete 'realgud:cmd-delete)
 
   (evil-collection-define-key 'normal 'realgud:shortkey-mode-map
     (kbd "C-x C-q") 'realgud-short-key-mode
@@ -75,27 +72,31 @@
     "7" 'realgud:goto-loc-hist-7
     "8" 'realgud:goto-loc-hist-8
     "9" 'realgud:goto-loc-hist-9
-    "b" 'realgud:cmd-break
-    "J" 'realgud:cmd-jump
-    "c" 'realgud:cmd-continue
-    "e" 'realgud:cmd-eval-dwim
     "E" 'realgud:cmd-eval-at-point
     "U" 'realgud:cmd-until
     "H" 'realgud:cmd-until-here
     [mouse-2] 'realgud:tooltip-eval
     [left-fringe mouse-1] 'realgud-cmds--mouse-add-remove-bp
     [left-margin mouse-1] 'realgud-cmds--mouse-add-remove-bp
-    ">" 'realgud:cmd-newer-frame
-    "<" 'realgud:cmd-older-frame
-    "d" 'realgud:cmd-newer-frame
+    "D" 'realgud:cmd-newer-frame
     "u" 'realgud:cmd-older-frame
     "gR" 'realgud-recenter-arrow ;; FIXME: Hmnn!
     "C" 'realgud-window-cmd-undisturb-src
-    "g?" 'realgud:cmdbuf-info-describe
     "S" 'realgud-window-src-undisturb-cmd
-    "R" 'realgud:cmd-restart
-    "gr" 'realgud:cmd-restart
     "!" 'realgud:cmd-shell)
+
+  (evil-collection-bind 'realgud:shortkey-mode-map
+                        'describe-mode 'realgud:cmdbuf-info-describe
+                        'refresh 'realgud:cmd-restart
+                        'debug-continue 'realgud:cmd-continue
+                        'debug-step-over 'realgud:cmd-next
+                        'debug-step-into 'realgud:cmd-step
+                        'debug-breakpoint 'realgud:cmd-break
+                        'debug-eval 'realgud:cmd-eval-dwim
+                        'debug-restart 'realgud:cmd-restart
+                        'debug-frame-up 'realgud:cmd-older-frame
+                        'debug-frame-down 'realgud:cmd-newer-frame
+                        'jump 'realgud:cmd-jump)
 
   (add-hook 'realgud-short-key-mode-hook #'evil-normalize-keymaps))
 

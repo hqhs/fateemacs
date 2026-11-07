@@ -131,7 +131,6 @@ with older release versions of `mu4e.'"
      "j" next-line
      "k" previous-line
      "u" mu4e-update-mail-and-index
-     "gr" revert-buffer
      "b" mu4e-search-bookmark
      "B" mu4e-search-bookmark-edit
      "N" mu4e-news
@@ -143,11 +142,9 @@ with older release versions of `mu4e.'"
      "A" mu4e-about
      "f" smtpmail-send-queued-mail
      "m" mu4e--main-toggle-mail-sending-mode
-     "s" mu4e-search
-     "q" mu4e-quit)
+     "s" mu4e-search)
 
     (mu4e-headers-mode-map
-     "q" mu4e~headers-quit-buffer
      "J" mu4e~headers-jump-to-maildir
      "C" mu4e-compose-new
      "E" mu4e-compose-edit
@@ -160,11 +157,9 @@ with older release versions of `mu4e.'"
      "o" mu4e-headers-change-sorting
      "j" mu4e-headers-next
      "k" mu4e-headers-prev
-     "gr" mu4e-search-rerun
      "b" mu4e-search-bookmark
      "B" mu4e-search-bookmark-edit
      ";" mu4e-context-switch
-     ,(kbd "RET") mu4e-headers-view-message
      "/" mu4e-search-narrow
      "s" mu4e-search
      "S" mu4e-search-edit
@@ -185,12 +180,6 @@ with older release versions of `mu4e.'"
      "%" mu4e-headers-mark-pattern
      "+" mu4e-headers-mark-for-flag
      "-" mu4e-headers-mark-for-unflag
-     "[[" mu4e-headers-prev-unread
-     "]]" mu4e-headers-next-unread
-     "gk" mu4e-headers-prev-unread
-     "gj" mu4e-headers-next-unread
-     "\C-j" mu4e-headers-next
-     "\C-k" mu4e-headers-prev
      "zr" mu4e-headers-toggle-include-related
      "zt" mu4e-headers-toggle-threading
      "zd" mu4e-headers-toggle-skip-duplicates
@@ -204,16 +193,10 @@ with older release versions of `mu4e.'"
      "gg" mu4e-compose-goto-top
      "G" mu4e-compose-goto-bottom
      "ZD" message-dont-send
-     "ZF" mml-attach-file
-     "ZQ" mu4e-message-kill-buffer
-     "ZZ" message-send-and-exit)
+     "ZF" mml-attach-file)
 
     (mu4e-view-mode-map
      " " mu4e-view-scroll-up-or-next
-     [tab] shr-next-link
-     [backtab] shr-previous-link
-     "q" mu4e~view-quit-buffer
-     "gx" mu4e-view-go-to-url
      "gX" mu4e-view-fetch-url
      "C" mu4e-compose-new
      "H" mu4e-view-toggle-html
@@ -229,12 +212,6 @@ with older release versions of `mu4e.'"
      "A" mu4e-view-mime-part-action ; Since 1.6, uses gnus view by default
      "a" mu4e-view-action
      "J" mu4e~headers-jump-to-maildir
-     "[[" mu4e-view-headers-prev-unread
-     "]]" mu4e-view-headers-next-unread
-     "gk" mu4e-view-headers-prev-unread
-     "gj" mu4e-view-headers-next-unread
-     "\C-j" mu4e-view-headers-next
-     "\C-k" mu4e-view-headers-prev
      "x" mu4e-view-marked-execute
      "&" mu4e-view-mark-custom
      "*" mu4e-view-mark-for-something   ; TODO: Don't override "*".
@@ -297,6 +274,37 @@ with older release versions of `mu4e.'"
     (apply #'evil-collection-define-key 'visual binding))
   (evil-set-command-property 'mu4e-compose-goto-bottom :keep-visual t)
   (evil-set-command-property 'mu4e-compose-goto-top :keep-visual t)
+
+  (evil-collection-bind 'mu4e-headers-mode-map
+                        'next-item 'mu4e-headers-next-unread
+                        'prev-item 'mu4e-headers-prev-unread
+                        'next-section 'mu4e-headers-next-unread
+                        'prev-section 'mu4e-headers-prev-unread
+                        'next-section-2 'mu4e-headers-next
+                        'prev-section-2 'mu4e-headers-prev
+                        'action 'mu4e-headers-view-message)
+
+  (evil-collection-bind 'mu4e-main-mode-map
+                        'refresh 'revert-buffer
+                        'quit 'mu4e-quit)
+  (evil-collection-bind 'mu4e-headers-mode-map
+                        'refresh 'mu4e-search-rerun
+                        'quit 'mu4e~headers-quit-buffer)
+  (evil-collection-bind 'mu4e-compose-mode-map
+                        'quit-save 'message-send-and-exit
+                        'quit-cancel 'mu4e-message-kill-buffer)
+
+  (evil-collection-bind 'mu4e-view-mode-map
+                        'cycle-next 'shr-next-link
+                        'cycle-previous 'shr-previous-link
+                        'next-item 'mu4e-view-headers-next-unread
+                        'prev-item 'mu4e-view-headers-prev-unread
+                        'next-section 'mu4e-view-headers-next-unread
+                        'prev-section 'mu4e-view-headers-prev-unread
+                        'next-section-2 'mu4e-view-headers-next
+                        'prev-section-2 'mu4e-view-headers-prev
+                        'browse-url 'mu4e-view-go-to-url
+                        'quit 'mu4e~view-quit-buffer)
 
   ;; yu
   (evil-collection-define-operator-key 'yank 'mu4e-view-mode-map
@@ -427,7 +435,8 @@ If mu4e-main-mode is in evil-state-motion-modes, initialization
 is already done earlier."
     (evil-collection-mu4e-set-state)
     (evil-collection-mu4e-set-bindings)
-    (add-hook 'mu4e-main-mode-hook 'evil-collection-mu4e-update-main-view)
+    (evil-collection-bind 'mu4e-headers-mode-map 'jump 'mu4e~headers-jump-to-maildir)
+    (add-hook 'mu4e-main-mode-hook #'evil-collection-mu4e-update-main-view)
     (add-hook 'org-mode-hook #'evil-collection-mu4e-org-set-header-to-normal-mode)
     (add-hook 'mu4e-compose-pre-hook #'evil-collection-mu4e-org-set-header-to-insert-mode))
 

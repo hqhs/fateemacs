@@ -1,9 +1,9 @@
 ;;; magit-submodule.el --- Submodule support for Magit  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2024 The Magit Project Contributors
+;; Copyright (C) 2008-2026 The Magit Project Contributors
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
+;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -20,20 +20,24 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with Magit.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
+;; This library implements support for "git submodule".
+
+;; See (info "(magit)Submodules").
+
 ;;; Code:
 
 (require 'magit)
 
-(defvar x-stretch-cursor)
-
 ;;; Options
 
 (defcustom magit-module-sections-hook
-  '(magit-insert-modules-overview
-    magit-insert-modules-unpulled-from-upstream
-    magit-insert-modules-unpulled-from-pushremote
-    magit-insert-modules-unpushed-to-upstream
-    magit-insert-modules-unpushed-to-pushremote)
+  (list #'magit-insert-modules-overview
+        #'magit-insert-modules-unpulled-from-upstream
+        #'magit-insert-modules-unpulled-from-pushremote
+        #'magit-insert-modules-unpushed-to-upstream
+        #'magit-insert-modules-unpushed-to-pushremote)
   "Hook run by `magit-insert-modules'.
 
 That function isn't part of `magit-status-sections-hook's default
@@ -53,35 +57,37 @@ is inserted.  If it is nil, then all sections listed in
   :group 'magit-status
   :type 'boolean)
 
-(defcustom magit-submodule-list-mode-hook '(hl-line-mode)
+(defcustom magit-submodule-list-mode-hook (list #'hl-line-mode)
   "Hook run after entering Magit-Submodule-List mode."
   :package-version '(magit . "2.9.0")
   :group 'magit-repolist
   :type 'hook
   :get 'magit-hook-custom-get
-  :options '(hl-line-mode))
+  :options (list #'hl-line-mode))
 
 (defcustom magit-submodule-list-columns
-  '(("Path"     25 magit-modulelist-column-path   nil)
-    ("Version"  25 magit-repolist-column-version
+  `(("Path"     25 ,#'magit-modulelist-column-path
+     ())
+    ("Version"  25 ,#'magit-repolist-column-version
      ((:sort magit-repolist-version<)))
-    ("Branch"   20 magit-repolist-column-branch   nil)
-    ("B<U" 3 magit-repolist-column-unpulled-from-upstream
+    ("Branch"   20 ,#'magit-repolist-column-branch
+     ())
+    ("B<P" 3 ,#'magit-repolist-column-unpulled-from-pushremote
      ((:right-align t)
       (:sort <)))
-    ("B>U" 3 magit-repolist-column-unpushed-to-upstream
+    ("B<U" 3 ,#'magit-repolist-column-unpulled-from-upstream
      ((:right-align t)
       (:sort <)))
-    ("B<P" 3 magit-repolist-column-unpulled-from-pushremote
+    ("B>P" 3 ,#'magit-repolist-column-unpushed-to-pushremote
      ((:right-align t)
       (:sort <)))
-    ("B>P" 3 magit-repolist-column-unpushed-to-pushremote
+    ("B>U" 3 ,#'magit-repolist-column-unpushed-to-upstream
      ((:right-align t)
       (:sort <)))
-    ("B"   3 magit-repolist-column-branches
+    ("S"   3 ,#'magit-repolist-column-stashes
      ((:right-align t)
       (:sort <)))
-    ("S"   3 magit-repolist-column-stashes
+    ("B"   3 ,#'magit-repolist-column-branches
      ((:right-align t)
       (:sort <))))
   "List of columns displayed by `magit-list-submodules'.
@@ -134,6 +140,15 @@ if non-nil, means to invert the resulting sort."
                  (cons (string :tag "Column name")
                        (boolean :tag "Flip order"))))
 
+(defcustom magit-submodule-list-predicate #'always
+  "Predicate used to determine whether to include a module in the list.
+Suitable values incluce `always' and `magit-submodule-list-module-populated-p'."
+  :package-version '(magit . "4.7.0")
+  :group 'magit-repolist
+  :type '(choice (function-item always)
+                 (function-item magit-submodule-list-module-populated-p)
+                 (function)))
+
 (defvar magit-submodule-list-format-path-functions nil)
 
 (defcustom magit-submodule-remove-trash-gitdirs nil
@@ -150,9 +165,9 @@ and also setting this variable to t will lead to tears."
   :group 'magit-commands
   :type 'boolean)
 
-;;; Popup
+;;; Menu
 
-;;;###autoload (autoload 'magit-submodule "magit-submodule" nil t)
+;;;###autoload(autoload 'magit-submodule "magit-submodule" nil t)
 (transient-define-prefix magit-submodule ()
   "Act on a submodule."
   :man-page "git-submodule"
@@ -177,14 +192,14 @@ and also setting this variable to t will lead to tears."
    ("f" "Fetch modules" magit-fetch-modules)])
 
 (defun magit-submodule-arguments (&rest filters)
-  (--filter (and (member it filters) it)
-            (transient-args 'magit-submodule)))
+  (seq-filter (##and (member % filters) %)
+              (transient-args 'magit-submodule)))
 
 (defclass magit--git-submodule-suffix (transient-suffix)
   ())
 
 (cl-defmethod transient-format-description ((obj magit--git-submodule-suffix))
-  (let ((value (delq nil (mapcar #'transient-infix-value transient--suffixes))))
+  (let ((value (seq-filter #'transient-infix-value transient--suffixes)))
     (replace-regexp-in-string
      "\\[--[^]]+\\]"
      (lambda (match)
@@ -199,7 +214,7 @@ and also setting this variable to t will lead to tears."
                           (propertize "|" 'face 'transient-inactive-argument))))
      (cl-call-next-method obj))))
 
-;;;###autoload (autoload 'magit-submodule-add "magit-submodule" nil t)
+;;;###autoload(autoload 'magit-submodule-add "magit-submodule" nil t)
 (transient-define-suffix magit-submodule-add (url &optional path name args)
   "Add the repository at URL as a module.
 
@@ -210,27 +225,21 @@ it is nil, then PATH also becomes the name."
   :class 'magit--git-submodule-suffix
   :description "Add            git submodule add [--force]"
   (interactive
-   (magit-with-toplevel
-     (let* ((url (magit-read-string-ns "Add submodule (remote url)"))
-            (path (let ((read-file-name-function
-                         (if (or (eq read-file-name-function 'ido-read-file-name)
-                                 (advice-function-member-p
-                                  'ido-read-file-name
-                                  read-file-name-function))
-                             ;; The Ido variant doesn't work properly here.
-                             #'read-file-name-default
-                           read-file-name-function)))
-                    (directory-file-name
-                     (file-relative-name
-                      (read-directory-name
-                       "Add submodules at path: " nil nil nil
-                       (and (string-match "\\([^./]+\\)\\(\\.git\\)?$" url)
-                            (match-string 1 url))))))))
-       (list url
-             (directory-file-name path)
-             (magit-submodule-read-name-for-path path)
-             (magit-submodule-arguments "--force")))))
+    (magit-with-toplevel
+      (let* ((url (magit-read-string-ns "Add submodule (remote url)"))
+             (path (magit-submodule-read-path "Add submodules at path: " url)))
+        (list url
+              (directory-file-name path)
+              (magit-submodule-read-name-for-path path)
+              (magit-submodule-arguments "--force")))))
   (magit-submodule-add-1 url path name args))
+
+(defun magit-submodule-read-path (prompt url)
+  (directory-file-name
+   (file-relative-name
+    (read-directory-name prompt nil nil nil
+                         (and (string-match "\\([^./]+\\)\\(\\.git\\)?$" url)
+                              (match-str 1 url))))))
 
 (defun magit-submodule-add-1 (url &optional path name args)
   (magit-with-toplevel
@@ -246,8 +255,7 @@ it is nil, then PATH also becomes the name."
              (magit-process-sentinel process event)
            (process-put process 'inhibit-refresh t)
            (magit-process-sentinel process event)
-           (when (magit-git-version>= "2.12.0")
-             (magit-call-git "submodule" "absorbgitdirs" path))
+           (magit-call-git "submodule" "absorbgitdirs" path)
            (magit-refresh)))))))
 
 ;;;###autoload
@@ -257,13 +265,13 @@ it is nil, then PATH also becomes the name."
     (push (if prefer-short path name) minibuffer-history)
     (magit-read-string-ns
      "Submodule name" nil (cons 'minibuffer-history 2)
-     (or (--keep (pcase-let ((`(,var ,val) (split-string it "=")))
-                   (and (equal val path)
-                        (cadr (split-string var "\\."))))
-                 (magit-git-lines "config" "--list" "-f" ".gitmodules"))
+     (or (seq-keep (##pcase-let ((`(,var ,val) (split-string % "=")))
+                     (and (equal val path)
+                          (cadr (split-string var "\\."))))
+                   (magit-git-lines "config" "--list" "-f" ".gitmodules"))
          (if prefer-short name path)))))
 
-;;;###autoload (autoload 'magit-submodule-register "magit-submodule" nil t)
+;;;###autoload(autoload 'magit-submodule-register "magit-submodule" nil t)
 (transient-define-suffix magit-submodule-register (modules)
   "Register MODULES.
 
@@ -278,12 +286,12 @@ single module from the user."
   ;; the modules.
   :description "Register       git submodule init"
   (interactive
-   (list (magit-module-confirm "Register" 'magit-module-no-worktree-p)))
+    (list (magit-module-confirm "Register" 'magit-module-no-worktree-p)))
   (magit-with-toplevel
     (magit-run-git-async "submodule" "init" "--" modules)))
 
-;;;###autoload (autoload 'magit-submodule-populate "magit-submodule" nil t)
-(transient-define-suffix magit-submodule-populate (modules)
+;;;###autoload(autoload 'magit-submodule-populate "magit-submodule" nil t)
+(transient-define-suffix magit-submodule-populate (modules args)
   "Create MODULES working directories, checking out the recorded commits.
 
 With a prefix argument act on all suitable modules.  Otherwise,
@@ -293,13 +301,15 @@ single module from the user."
   ;; This is the command that actually "initializes" modules.
   ;; A module is initialized when it has a working directory,
   ;; a gitlink, and a .gitmodules entry.
-  :description "Populate       git submodule update --init"
+  :class 'magit--git-submodule-suffix
+  :description "Populate       git submodule update --init [--recursive]"
   (interactive
-   (list (magit-module-confirm "Populate" 'magit-module-no-worktree-p)))
+    (list (magit-module-confirm "Populate" 'magit-module-no-worktree-p)
+          (magit-submodule-arguments "--recursive")))
   (magit-with-toplevel
-    (magit-run-git-async "submodule" "update" "--init" "--" modules)))
+    (magit-run-git-async "submodule" "update" "--init" args "--" modules)))
 
-;;;###autoload (autoload 'magit-submodule-update "magit-submodule" nil t)
+;;;###autoload(autoload 'magit-submodule-update "magit-submodule" nil t)
 (transient-define-suffix magit-submodule-update (modules args)
   "Update MODULES by checking out the recorded commits.
 
@@ -315,14 +325,14 @@ single module from the user."
   :description "Update         git submodule update [--force] [--no-fetch]
                      [--remote] [--recursive] [--checkout|--rebase|--merge]"
   (interactive
-   (list (magit-module-confirm "Update" 'magit-module-worktree-p)
-         (magit-submodule-arguments
-          "--force" "--remote" "--recursive" "--checkout" "--rebase" "--merge"
-          "--no-fetch")))
+    (list (magit-module-confirm "Update" 'magit-module-worktree-p)
+          (magit-submodule-arguments
+           "--force" "--remote" "--recursive" "--checkout" "--rebase" "--merge"
+           "--no-fetch")))
   (magit-with-toplevel
     (magit-run-git-async "submodule" "update" args "--" modules)))
 
-;;;###autoload (autoload 'magit-submodule-synchronize "magit-submodule" nil t)
+;;;###autoload(autoload 'magit-submodule-synchronize "magit-submodule" nil t)
 (transient-define-suffix magit-submodule-synchronize (modules args)
   "Synchronize url configuration of MODULES.
 
@@ -333,12 +343,12 @@ single module from the user."
   :class 'magit--git-submodule-suffix
   :description "Synchronize    git submodule sync [--recursive]"
   (interactive
-   (list (magit-module-confirm "Synchronize" 'magit-module-worktree-p)
-         (magit-submodule-arguments "--recursive")))
+    (list (magit-module-confirm "Synchronize" 'magit-module-worktree-p)
+          (magit-submodule-arguments "--recursive")))
   (magit-with-toplevel
     (magit-run-git-async "submodule" "sync" args "--" modules)))
 
-;;;###autoload (autoload 'magit-submodule-unpopulate "magit-submodule" nil t)
+;;;###autoload(autoload 'magit-submodule-unpopulate "magit-submodule" nil t)
 (transient-define-suffix magit-submodule-unpopulate (modules args)
   "Remove working directories of MODULES.
 
@@ -346,8 +356,8 @@ With a prefix argument act on all suitable modules.  Otherwise,
 if the region selects modules, then act on those.  Otherwise, if
 there is a module at point, then act on that.  Otherwise read a
 single module from the user."
-  ;; Even though a package is "uninitialized" (it has no worktree)
-  ;; the super-projects $GIT_DIR/config may never-the-less set the
+  ;; Even when a submodule is "uninitialized" (it has no worktree)
+  ;; the super-project's $GIT_DIR/config may never-the-less set the
   ;; module's url.  This may happen if you `deinit' and then `init'
   ;; to register (NOT initialize).  Because the purpose of `deinit'
   ;; is to remove the working directory AND to remove the url, this
@@ -356,8 +366,8 @@ single module from the user."
   :class 'magit--git-submodule-suffix
   :description "Unpopulate     git submodule deinit [--force]"
   (interactive
-   (list (magit-module-confirm "Unpopulate")
-         (magit-submodule-arguments "--force")))
+    (list (magit-module-confirm "Unpopulate")
+          (magit-submodule-arguments "--force")))
   (magit-with-toplevel
     (magit-run-git-async "submodule" "deinit" args "--" modules)))
 
@@ -376,13 +386,11 @@ Both actions are very dangerous and have to be confirmed.  There
 are additional safety precautions in place, so you might be able
 to recover from making a mistake here, but don't count on it."
   (interactive
-   (list (if-let ((modules (magit-region-values 'magit-module-section t)))
-             (magit-confirm 'remove-modules nil "Remove %d modules" nil modules)
-           (list (magit-read-module-path "Remove module")))
-         (magit-submodule-arguments "--force")
-         current-prefix-arg))
-  (when (magit-git-version< "2.12.0")
-    (error "This command requires Git v2.12.0"))
+    (list (if-let ((modules (magit-region-values 'magit-module-section t)))
+              (magit-confirm 'remove-modules nil "Remove %d modules" nil modules)
+            (list (magit-read-module-path "Remove module")))
+          (magit-submodule-arguments "--force")
+          current-prefix-arg))
   (when magit-submodule-remove-trash-gitdirs
     (setq trash-gitdirs t))
   (magit-with-toplevel
@@ -408,16 +416,16 @@ to recover from making a mistake here, but don't count on it."
         (if (cdr modified)
             (message "Omitting %s modules with uncommitted changes: %s"
                      (length modified)
-                     (mapconcat #'identity modified ", "))
+                     (string-join modified ", "))
           (message "Omitting module %s, it has uncommitted changes"
                    (car modified)))
         (setq modules (cl-set-difference modules modified :test #'equal))))
     (when modules
       (let ((alist
              (and trash-gitdirs
-                  (--map (split-string it "\0")
-                         (magit-git-lines "submodule" "foreach" "-q"
-                                          "printf \"$sm_path\\0$name\n\"")))))
+                  (mapcar (##split-string % "\0")
+                          (magit-git-lines "submodule" "foreach" "-q"
+                                           "printf \"$sm_path\\0$name\n\"")))))
         (magit-git "submodule" "absorbgitdirs" "--" modules)
         (magit-git "submodule" "deinit" args "--" modules)
         (magit-git "rm" args "--" modules)
@@ -464,7 +472,7 @@ whether they are wrapped in an additional section."
 ;;;###autoload
 (defun magit-insert-modules-overview ()
   "Insert sections for all modules.
-For each section insert the path and the output of `git describe --tags',
+For each section insert the path and the output of \"git describe --tags\",
 or, failing that, the abbreviated HEAD commit hash."
   (when-let ((modules (magit-list-module-paths)))
     (magit-insert-section (modules nil t)
@@ -478,9 +486,9 @@ or, failing that, the abbreviated HEAD commit hash."
 
 (defvar magit-modules-overview-align-numbers t)
 
-(defun magit--insert-modules-overview (&optional _section)
+(defun magit--insert-modules-overview (&optional _section repos)
   (magit-with-toplevel
-    (let* ((modules (magit-list-module-paths))
+    (let* ((modules (or repos (magit-list-module-paths)))
            (path-format (format "%%-%ds "
                                 (min (apply #'max (mapcar #'length modules))
                                      (/ (window-width) 2))))
@@ -488,7 +496,7 @@ or, failing that, the abbreviated HEAD commit hash."
       (dolist (module modules)
         (let ((default-directory
                (expand-file-name (file-name-as-directory module))))
-          (magit-insert-section (magit-module-section module t)
+          (magit-insert-section (module module t)
             (insert (propertize (format path-format module)
                                 'font-lock-face 'magit-diff-file-heading))
             (if (not (file-exists-p ".git"))
@@ -499,13 +507,14 @@ or, failing that, the abbreviated HEAD commit hash."
                 (if-let ((branch (magit-get-current-branch)))
                     (propertize branch 'font-lock-face 'magit-branch-local)
                   (propertize "(detached)" 'font-lock-face 'warning))))
-              (if-let ((desc (magit-git-string "describe" "--tags")))
-                  (progn (when (and magit-modules-overview-align-numbers
-                                    (string-match-p "\\`[0-9]" desc))
-                           (insert ?\s))
-                         (insert (propertize desc 'font-lock-face 'magit-tag)))
-                (when-let ((abbrev (magit-rev-format "%h")))
-                  (insert (propertize abbrev 'font-lock-face 'magit-hash)))))
+              (cond-let
+                ([desc (magit-git-string "describe" "--tags")]
+                 (when (and magit-modules-overview-align-numbers
+                            (string-match-p "\\`[0-9]" desc))
+                   (insert ?\s))
+                 (insert (propertize desc 'font-lock-face 'magit-tag)))
+                ([abbrev (magit-rev-format "%h")]
+                 (insert (propertize abbrev 'font-lock-face 'magit-hash)))))
             (insert ?\n))))))
   (insert ?\n))
 
@@ -518,9 +527,9 @@ or, failing that, the abbreviated HEAD commit hash."
   :doc "Keymap for `module' sections."
   "C-j"        #'magit-submodule-visit
   "C-<return>" #'magit-submodule-visit
-  "<remap> <magit-unstage-file>" #'magit-unstage
-  "<remap> <magit-stage-file>"   #'magit-stage
-  "<remap> <magit-visit-thing>"  #'magit-submodule-visit
+  "<remap> <magit-unstage-files>" #'magit-unstage
+  "<remap> <magit-stage-files>"   #'magit-stage
+  "<remap> <magit-visit-thing>"   #'magit-submodule-visit
   "<5>" (magit-menu-item "Module commands..." #'magit-submodule)
   "<4>" '(menu-item "--")
   "<3>" (magit-menu-item "Unstage %T" #'magit-unstage
@@ -539,20 +548,20 @@ With a prefix argument, visit in another window."
   (magit-with-toplevel
     (let ((path (expand-file-name module)))
       (cond
-       ((file-exists-p (expand-file-name ".git" module))
-        (magit-diff-visit-directory path other-window))
-       ((y-or-n-p (format "Initialize submodule '%s' first?" module))
-        (magit-run-git-async "submodule" "update" "--init" "--" module)
-        (set-process-sentinel
-         magit-this-process
-         (lambda (process event)
-           (let ((magit-process-raise-error t))
-             (magit-process-sentinel process event))
-           (when (and (eq (process-status      process) 'exit)
-                      (=  (process-exit-status process) 0))
-             (magit-diff-visit-directory path other-window)))))
-       ((file-exists-p path)
-        (dired-jump other-window (concat path "/.")))))))
+        ((file-exists-p (expand-file-name ".git" module))
+         (magit-diff-visit-directory path other-window))
+        ((y-or-n-p (format "Initialize submodule '%s' first?" module))
+         (magit-run-git-async "submodule" "update" "--init" "--" module)
+         (set-process-sentinel
+          magit-this-process
+          (lambda (process event)
+            (let ((magit-process-raise-error t))
+              (magit-process-sentinel process event))
+            (when (and (eq (process-status      process) 'exit)
+                       (=  (process-exit-status process) 0))
+              (magit-diff-visit-directory path other-window)))))
+        ((file-exists-p path)
+         (dired-jump other-window (concat path "/.")))))))
 
 ;;;###autoload
 (defun magit-insert-modules-unpulled-from-upstream ()
@@ -588,39 +597,38 @@ These sections can be expanded to show the respective commits."
 
 (defun magit--insert-modules-logs (heading type range)
   "For internal use, don't add to a hook."
-  (unless (magit-ignore-submodules-p)
-    (when-let ((modules (magit-list-module-paths)))
-      (magit-insert-section section ((eval type) nil t)
-        (string-match "\\`\\(.+\\) \\([^ ]+\\)\\'" heading)
-        (magit-insert-heading
-          (propertize (match-string 1 heading)
-                      'font-lock-face 'magit-section-heading)
-          " "
-          (propertize (match-string 2 heading)
-                      'font-lock-face 'magit-branch-remote)
-          ":")
-        (magit-with-toplevel
-          (dolist (module modules)
-            (when (magit-module-worktree-p module)
-              (let ((default-directory
-                     (expand-file-name (file-name-as-directory module))))
-                (when (magit-file-accessible-directory-p default-directory)
-                  (magit-insert-section sec (magit-module-section module t)
-                    (magit-insert-heading
-                      (propertize module
-                                  'font-lock-face 'magit-diff-file-heading)
-                      ":")
-                    (oset sec range range)
-                    (magit-git-wash
-                        (apply-partially #'magit-log-wash-log 'module)
-                      "-c" "push.default=current" "log" "--oneline" range)
-                    (when (> (point)
-                             (oref sec content))
-                      (delete-char -1))))))))
-        (if (> (point)
-               (oref section content))
-            (insert ?\n)
-          (magit-cancel-section))))))
+  (when-let ((_(not (magit-ignore-submodules-p)))
+             (modules (magit-list-module-paths)))
+    (magit-insert-section ((eval type) nil t)
+      (string-match "\\`\\(.+\\) \\([^ ]+\\)\\'" heading)
+      (magit-insert-heading
+        (propertize (match-str 1 heading)
+                    'font-lock-face 'magit-section-heading)
+        " "
+        (propertize (match-str 2 heading)
+                    'font-lock-face 'magit-branch-remote)
+        ":")
+      (dolist (module modules)
+        (when-let* ((default-directory (expand-file-name module))
+                    (_(file-exists-p (expand-file-name ".git")))
+                    (lines (magit-git-lines "-c" "push.default=current"
+                                            "log" "--oneline" range))
+                    (count (length lines))
+                    (_(> count 0)))
+          (magit-insert-section
+              ( module module t
+                :range range)
+            (magit-insert-heading count
+              (propertize module 'font-lock-face 'magit-diff-file-heading))
+            (dolist (line lines)
+              (string-match magit-log-module-re line)
+              (let ((rev (match-str 1 line))
+                    (msg (match-str 2 line)))
+                (magit-insert-section (module-commit rev t)
+                  (insert (propertize rev 'font-lock-face 'magit-hash) " "
+                          (magit-log--wash-summary msg) "\n")))))))
+      (magit-cancel-section 'if-empty)
+      (insert ?\n))))
 
 ;;; List
 
@@ -634,17 +642,12 @@ These sections can be expanded to show the respective commits."
   :doc "Local keymap for Magit-Submodule-List mode buffers."
   :parent magit-repolist-mode-map)
 
-(define-derived-mode magit-submodule-list-mode tabulated-list-mode "Modules"
+(define-derived-mode magit-submodule-list-mode magit-repolist-mode "Modules"
   "Major mode for browsing a list of Git submodules."
-  :group 'magit-repolist-mode
-  (setq-local x-stretch-cursor nil)
-  (setq tabulated-list-padding 0)
-  (add-hook 'tabulated-list-revert-hook #'magit-submodule-list-refresh nil t)
-  (setq imenu-prev-index-position-function
-        #'magit-repolist--imenu-prev-index-position)
-  (setq imenu-extract-index-name-function #'tabulated-list-get-id))
-
-(defvar-local magit-submodule-list-predicate nil)
+  :interactive nil
+  :group 'magit-repolist
+  (setq-local tabulated-list-revert-hook
+              (list #'magit-submodule-list-refresh t)))
 
 (defun magit-submodule-list-setup (columns &optional predicate)
   (magit-display-buffer
@@ -653,33 +656,47 @@ These sections can be expanded to show the respective commits."
   (magit-submodule-list-mode)
   (setq-local magit-repolist-columns columns)
   (setq-local magit-repolist-sort-key magit-submodule-list-sort-key)
-  (setq-local magit-submodule-list-predicate predicate)
+  (when predicate
+    (setq-local magit-submodule-list-predicate predicate))
   (magit-repolist-setup-1)
   (magit-submodule-list-refresh))
 
 (defun magit-submodule-list-refresh ()
   (setq tabulated-list-entries
-        (seq-keep
-         (lambda (module)
-           (let ((default-directory
-                  (expand-file-name (file-name-as-directory module))))
-             (and (file-exists-p ".git")
-                  (or (not magit-submodule-list-predicate)
-                      (funcall magit-submodule-list-predicate module))
-                  (list module
-                        (vconcat
-                         (mapcar (pcase-lambda (`(,title ,width ,fn ,props))
-                                   (or (funcall fn `((:path  ,module)
-                                                     (:title ,title)
-                                                     (:width ,width)
-                                                     ,@props))
-                                       ""))
-                                 magit-repolist-columns))))))
-         (magit-list-module-paths)))
+        (seq-keep #'magit-submodule--format-module (magit-list-module-paths)))
   (message "Listing submodules...")
   (tabulated-list-init-header)
   (tabulated-list-print t)
   (message "Listing submodules...done"))
+
+(defun magit-submodule--format-module (module)
+  (and (funcall magit-submodule-list-predicate module)
+       (let ((default-directory
+              (expand-file-name (file-name-as-directory module))))
+         (list default-directory
+               (vconcat
+                (mapcar
+                 (pcase-lambda (`(,title ,width ,fn ,props))
+                   (or (and (or (file-exists-p ".git")
+                                (and
+                                 (symbolp fn)
+                                 (get fn 'magit-submodule-support-unpopulated)))
+                            (funcall fn `((:path  ,module)
+                                          (:title ,title)
+                                          (:width ,width)
+                                          ,@props)))
+                       ""))
+                 magit-repolist-columns))))))
+
+(put 'magit-modulelist-column-path 'magit-submodule-support-unpopulated t)
+(put 'magit-repolist-column-path   'magit-submodule-support-unpopulated t)
+(put 'magit-repolist-column-branch 'magit-submodule-support-unpopulated t)
+
+(defun magit-submodule-list-module-populated-p (module)
+  "Return t if MODULE is populated, nil otherwise.
+This is only suitable as a value of `magit-submodule-list-predicate'."
+  (file-exists-p
+   (expand-file-name (concat (file-name-as-directory module) ".git"))))
 
 (defun magit-modulelist-column-path (spec)
   "Insert the relative path of the submodule."
@@ -718,4 +735,20 @@ These sections can be expanded to show the respective commits."
 
 ;;; _
 (provide 'magit-submodule)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
+;;   ("while-let"    . "cond-let--while-let")
+;;   ("match-string" . "match-string")
+;;   ("match-str"    . "match-string-no-properties"))
+;; End:
 ;;; magit-submodule.el ends here

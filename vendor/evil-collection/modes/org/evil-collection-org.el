@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, org, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -24,33 +24,65 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;; Evil basic bindings for org-mode. It's NOT intended to supersede
+;; Evil basic bindings for org-mode.  It's NOT intended to supersede
 ;; `evil-org-mode'.
 ;;
 
 ;;; Code:
 (require 'evil-collection)
+(require 'org nil t)
 
-(defconst evil-collection-org-maps '(org-mode-map))
+
+(defconst evil-collection-org-maps '(org-mode-map
+                                     org-capture-mode-map
+                                     org-read-date-minibuffer-local-map))
 
 (declare-function org-shifttab "org")
 (declare-function org-backward-paragraph "org")
 (declare-function org-forward-paragraph "org")
 (declare-function org-backward-sentence "org")
 (declare-function org-forward-sentence "org")
+(declare-function org-capture-finalize "org-capture")
+(declare-function org-capture-kill "org-capture")
+(declare-function org-capture-refile "org-capture")
+
+(declare-function org-calendar-forward-day "org")
+(declare-function org-calendar-backward-day "org")
+(declare-function org-calendar-forward-week "org")
+(declare-function org-calendar-backward-week "org")
+(declare-function org-calendar-forward-month "org")
+(declare-function org-calendar-backward-month "org")
+(declare-function org-calendar-forward-year "org")
+(declare-function org-calendar-backward-year "org")
+(declare-function org-defkey "org")
 
 ;;;###autoload
 (defun evil-collection-org-setup ()
   "Set up `evil' bindings for `org'."
   (evil-collection-define-key 'normal 'org-mode-map
-    [tab] 'org-cycle
     [S-tab] 'org-shifttab)
+  (evil-collection-bind 'org-mode-map 'section-toggle 'org-cycle)
 
   (evil-collection-define-key 'motion 'org-mode-map
     "{" 'org-backward-paragraph
     "}" 'org-forward-paragraph
     "(" 'org-backward-sentence
-    ")" 'org-forward-sentence))
+    ")" 'org-forward-sentence)
+
+  (evil-collection-define-key 'normal 'org-capture-mode-map
+    "ZR" 'org-capture-refile)
+  (evil-collection-bind 'org-capture-mode-map
+                        'quit-save 'org-capture-finalize
+                        'quit-cancel 'org-capture-kill)
+
+  (org-defkey org-read-date-minibuffer-local-map (kbd "M-l") #'org-calendar-forward-day)
+  (org-defkey org-read-date-minibuffer-local-map (kbd "M-h") #'org-calendar-backward-day)
+  (org-defkey org-read-date-minibuffer-local-map (kbd "M-j") #'org-calendar-forward-week)
+  (org-defkey org-read-date-minibuffer-local-map (kbd "M-k") #'org-calendar-backward-week)
+  (org-defkey org-read-date-minibuffer-local-map (kbd "M-L") #'org-calendar-forward-month)
+  (org-defkey org-read-date-minibuffer-local-map (kbd "M-H") #'org-calendar-backward-month)
+  (org-defkey org-read-date-minibuffer-local-map (kbd "M-J") #'org-calendar-forward-year)
+  (org-defkey org-read-date-minibuffer-local-map (kbd "M-K") #'org-calendar-backward-year))
 
 (provide 'evil-collection-org)
 ;;; evil-collection-org.el ends here

@@ -1,9 +1,9 @@
 ;;; magit-pull.el --- Update local objects and refs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2024 The Magit Project Contributors
+;; Copyright (C) 2008-2026 The Magit Project Contributors
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
+;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -38,16 +38,18 @@
 
 ;;; Commands
 
-;;;###autoload (autoload 'magit-pull "magit-pull" nil t)
+;;;###autoload(autoload 'magit-pull "magit-pull" nil t)
 (transient-define-prefix magit-pull ()
   "Pull from another repository."
   :man-page "git-pull"
-  :incompatible '(("--ff-only" "--rebase"))
+  :incompatible
+  '(("--ff-only" "--rebase=true" "--rebase=merges" "--rebase=interactive"))
   [:description
    (lambda () (if magit-pull-or-fetch "Pull arguments" "Arguments"))
    ("-f" "Fast-forward only" "--ff-only")
-   ("-r" "Rebase local commits" ("-r" "--rebase"))
-   ("-A" "Autostash" "--autostash" :level 7)]
+   ("-r" magit-pull:--rebase)
+   ("-A" "Autostash" "--autostash" :level 7)
+   ("-F" "Force" ("-f" "--force"))]
   [:description
    (lambda ()
      (if-let ((branch (magit-get-current-branch)))
@@ -59,6 +61,11 @@
    ("p" magit-pull-from-pushremote)
    ("u" magit-pull-from-upstream)
    ("e" "elsewhere"         magit-pull-branch)]
+  [:description
+   (lambda ()
+     (format (propertize "Pull into %s from" 'face 'transient-heading)
+             (magit-get-upstream-branch)))
+   ("U" magit-pull-into-upstream :level 7)]
   ["Fetch from"
    :if-non-nil magit-pull-or-fetch
    ("f" "remotes"           magit-fetch-all-no-prune)
@@ -77,7 +84,14 @@
 (defun magit-pull-arguments ()
   (transient-args 'magit-pull))
 
-;;;###autoload (autoload 'magit-pull-from-pushremote "magit-pull" nil t)
+(transient-define-infix magit-pull:--rebase ()
+  :class 'transient-option
+  :description "Rebase local commits"
+  :argument "--rebase="
+  :shortarg "-r"
+  :choices '("true" "merges" "interactive" "false"))
+
+;;;###autoload(autoload 'magit-pull-from-pushremote "magit-pull" nil t)
 (transient-define-suffix magit-pull-from-pushremote (args)
   "Pull from the push-remote of the current branch.
 
@@ -98,16 +112,14 @@ push-remote."
          (target (magit-get-push-branch branch t))
          (remote (magit-get-push-remote branch))
          (v (magit--push-remote-variable branch t)))
-    (cond
-     (target)
-     ((member remote (magit-list-remotes))
-      (format "%s, replacing non-existent" v))
-     (remote
-      (format "%s, replacing invalid" v))
-     (t
-      (format "%s, setting that" v)))))
+    (cond (target)
+          ((member remote (magit-list-remotes))
+           (format "%s, replacing non-existent" v))
+          (remote
+           (format "%s, replacing invalid" v))
+          ((format "%s, setting that" v)))))
 
-;;;###autoload (autoload 'magit-pull-from-upstream "magit-pull" nil t)
+;;;###autoload(autoload 'magit-pull-from-upstream "magit-pull" nil t)
 (transient-define-suffix magit-pull-from-upstream (args)
   "Pull from the upstream of the current branch.
 
@@ -133,22 +145,51 @@ the upstream."
     (magit-run-git-with-editor "pull" args remote merge)))
 
 (defun magit-pull--upstream-description ()
-  (and-let* ((branch (magit-get-current-branch)))
+  (and-let ((branch (magit-get-current-branch)))
     (or (magit-get-upstream-branch branch)
         (let ((remote (magit-get "branch" branch "remote"))
               (merge  (magit-get "branch" branch "merge"))
               (u (magit--propertize-face "@{upstream}" 'bold)))
           (cond
-           ((magit--unnamed-upstream-p remote merge)
-            (format "%s of %s"
-                    (magit--propertize-face merge 'magit-branch-remote)
-                    (magit--propertize-face remote 'bold)))
-           ((magit--valid-upstream-p remote merge)
-            (concat u ", replacing non-existent"))
-           ((or remote merge)
-            (concat u ", replacing invalid"))
-           (t
-            (concat u ", setting that")))))))
+            ((magit--unnamed-upstream-p remote merge)
+             (format "%s of %s"
+                     (magit--propertize-face merge 'magit-branch-remote)
+                     (magit--propertize-face remote 'bold)))
+            ((magit--valid-upstream-p remote merge)
+             (concat u ", replacing non-existent"))
+            ((or remote merge)
+             (concat u ", replacing invalid"))
+            ((concat u ", setting that")))))))
+
+;;;###autoload(autoload 'magit-pull-into-upstream "magit-pull" nil t)
+(transient-define-suffix magit-pull-into-upstream ()
+  "Update the upstream of the current branch from its own upstream.
+
+If the upstream of the current branch is a local branch, and the
+upstream of that is a remote branch, then update the local upstream.
+This makes it possible to update the upstream branch, without having
+to first check it out."
+  :if #'magit-pull--upstreams
+  :description (##cdr (magit-pull--upstreams))
+  (interactive)
+  (if-let ((upstreams (magit-pull--upstreams)))
+      (pcase-let* ((`(,up1 . ,up2) upstreams)
+                   (`(,remote . ,branch) (magit-split-branch-name up2)))
+        (magit-run-git-async "fetch" remote branch)
+        (set-process-sentinel
+         magit-this-process
+         (lambda (process _event)
+           (when (memq (process-status process) '(exit signal))
+             (magit-run-git-async "update-ref" (concat "refs/heads/" up1)
+                                  "FETCH_HEAD")))))
+    (user-error "Cannot perform background update of upstream branch")))
+
+(defun magit-pull--upstreams ()
+  (and-let* ((up1 (magit-get-upstream-branch))
+             (_   (magit-local-branch-p up1))
+             (up2 (magit-get-upstream-branch up1))
+             (_   (magit-remote-branch-p up2)))
+    (cons up1 up2)))
 
 ;;;###autoload
 (defun magit-pull-branch (source args)
@@ -162,4 +203,20 @@ the upstream."
 
 ;;; _
 (provide 'magit-pull)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
+;;   ("while-let"    . "cond-let--while-let")
+;;   ("match-string" . "match-string")
+;;   ("match-str"    . "match-string-no-properties"))
+;; End:
 ;;; magit-pull.el ends here

@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, woman, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -37,15 +37,14 @@
 (defun evil-collection-woman-setup ()
   "Set up `evil' bindings for `woman'."
   (evil-set-initial-state 'woman-mode 'normal)
-  (evil-collection-define-key 'normal 'woman-mode-map
-    (kbd "]]") 'WoMan-next-manpage
-    (kbd "[[") 'WoMan-previous-manpage
-
-    ;; goto
-    ;; "gm" 'woman
-
-    ;; refresh
-    "gr" 'woman-reformat-last-file))
+  ;; goto
+  ;; "gm" 'woman
+  (evil-collection-bind 'woman-mode-map
+                        'next-item 'WoMan-next-manpage
+                        'prev-item 'WoMan-previous-manpage
+                        'next-section 'WoMan-next-manpage
+                        'prev-section 'WoMan-previous-manpage
+                        'refresh 'woman-reformat-last-file))
 
 (provide 'evil-collection-woman)
 ;;; evil-collection-woman.el ends here

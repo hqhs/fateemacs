@@ -1,4 +1,4 @@
-;;; evil-snipe.el --- emulate vim-sneak & vim-seek -*- lexical-binding: t -*-
+;;; evil-snipe.el --- emulate vim-sneak & vim-seek
 ;;
 ;; Copyright (C) 2014-20 Henrik Lissner
 ;;
@@ -92,12 +92,12 @@ See `evil-snipe-spillover-scope' to fall back to another scope if the first
 snipe yields no matches."
   :group 'evil-snipe
   :type '(choice
-          (const :tag "Forward line" 'line)
-          (const :tag "Forward buffer" 'buffer)
-          (const :tag "Forward visible buffer" 'visible)
-          (const :tag "Whole line" 'whole-line)
-          (const :tag "Whole buffer" 'whole-buffer)
-          (const :tag "Whole visible buffer" 'whole-visible)))
+          (const :tag "Forward line" line)
+          (const :tag "Forward buffer" buffer)
+          (const :tag "Forward visible buffer" visible)
+          (const :tag "Whole line" whole-line)
+          (const :tag "Whole buffer" whole-buffer)
+          (const :tag "Whole visible buffer" whole-visible)))
 
 (defcustom evil-snipe-repeat-scope nil
   "Dictates the scope of repeat searches.

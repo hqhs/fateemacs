@@ -7,7 +7,7 @@
 ;; Maintainer: James Nguyen <james@jojojames.com>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.0
-;; Package-Requires: ((emacs "27.1"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, convenience, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -64,22 +64,27 @@
     (kbd "q") 'quit-window)
 
   (evil-collection-define-key 'normal 'ement-directory-mode-map
-    (kbd "RET")      'ement-directory-RET
-    (kbd "<return>") 'ement-directory-RET
     (kbd "s")        'ement-directory-search
     (kbd "q")        'quit-window)
+  (evil-collection-bind 'ement-directory-mode-map 'action 'ement-directory-RET)
 
   (evil-collection-define-key 'normal 'ement-room-list-mode-map
     (kbd "d")     'ement-room-list-kill-buffer
     (kbd "x")     'ement-room-leave
-    (kbd "X")     'ement-forget-room
-    (kbd "RET")   'ement-room-list-RET
-    (kbd "<return>") 'ement-room-list-RET)
+    (kbd "X")     'ement-forget-room)
+  (evil-collection-bind 'ement-room-list-mode-map 'action 'ement-room-list-RET)
+
+  (evil-collection-bind 'ement-room-mode-map
+                        'repl-submit 'ement-room-send-message
+                        'repl-newline 'newline
+                        'repl-force-newline 'newline
+                        'next-item 'ement-room-goto-next
+                        'prev-item 'ement-room-goto-prev
+                        'next-section 'ement-room-goto-next
+                        'prev-section 'ement-room-goto-prev)
 
   (evil-collection-define-key '(normal motion) 'ement-room-mode-map
     (kbd "<")  'ement-room-transient
-    (kbd "<return>")   'ement-room-send-message
-    (kbd "RET")        'ement-room-send-message
     (kbd "M-RET")      'ement-room-compose-message
     (kbd "<M-return>") 'ement-room-compose-message
     (kbd "a")  'ement-room-send-message
@@ -87,8 +92,6 @@
     (kbd "d")  'ement-room-delete-message
     (kbd "D")  'ement-room-delete-message
     (kbd "J")  'ement-room-write-reply
-    (kbd "]]") 'ement-room-goto-next
-    (kbd "[[") 'ement-room-goto-prev
     (kbd "gr") 'ement-room-sync
     (kbd "gu") 'ement-room-goto-fully-read-marker
     (kbd "gm") 'ement-room-mark-read

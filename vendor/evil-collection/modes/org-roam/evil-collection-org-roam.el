@@ -6,7 +6,7 @@
 ;; Maintainer: James Nguyen <james@jojojames.com>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.2
-;; Package-Requires: ((emacs "27.1"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, convenience, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -39,9 +39,10 @@
   "Set up `evil' bindings for org-roam."
   (evil-collection-define-key 'normal 'org-roam-mode-map
     [C-return]  'org-roam-buffer-visit-thing
-    (kbd "C-m") 'org-roam-buffer-visit-thing
-    [remap revert-buffer] 'org-roam-buffer-refresh
-    "gr" 'org-roam-buffer-refresh)
+    [remap revert-buffer] 'org-roam-buffer-refresh)
+  (evil-collection-bind 'org-roam-mode-map
+                        'action 'org-roam-buffer-visit-thing
+                        'refresh 'org-roam-buffer-refresh)
 
   (evil-collection-define-key 'normal 'org-roam-node-map
     [remap org-roam-buffer-visit-thing] 'org-roam-node-visit)

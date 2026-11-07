@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, eshell, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -43,7 +43,7 @@
 (defun evil-collection-eshell-next-prompt-on-insert ()
   "Go to next prompt on `evil' replace/insert enter."
   (dolist (hook '(evil-replace-state-entry-hook evil-insert-state-entry-hook))
-    (add-hook hook 'evil-collection-eshell-next-prompt nil t)))
+    (add-hook hook #'evil-collection-eshell-next-prompt nil t)))
 
 (defun evil-collection-eshell-interrupt-process ()
   "Interupt `eshell' process and enter insert state."
@@ -102,26 +102,30 @@ appropriate in some cases like terminals."
   "Set up `evil' bindings for `eshell'."
   (evil-collection-define-key 'normal 'eshell-mode-map
     ;; motion
-    "[[" 'eshell-previous-prompt
-    "]]" 'eshell-next-prompt
-    (kbd "C-k") 'eshell-previous-prompt
-    (kbd "C-j") 'eshell-next-prompt
-    "gk" 'eshell-previous-prompt
-    "gj" 'eshell-next-prompt
-    "0" 'eshell-bol
-    "^" 'eshell-bol
     (kbd "M-h") 'eshell-backward-argument
     (kbd "M-l") 'eshell-forward-argument
 
-    (kbd "C-n") 'eshell-next-matching-input-from-input
-    (kbd "C-p") 'eshell-previous-matching-input-from-input
 
-    (kbd "RET") 'eshell-send-input
     (kbd "C-c C-c") 'evil-collection-eshell-interrupt-process
     "c" 'evil-collection-eshell-evil-change
     "C" 'evil-collection-eshell-evil-change-line
     "d" 'evil-collection-eshell-evil-delete
     "D" 'evil-collection-eshell-evil-delete-line)
+  (evil-collection-bind 'eshell-mode-map
+                        'next-item 'eshell-next-prompt
+                        'prev-item 'eshell-previous-prompt
+                        'next-section 'eshell-next-prompt
+                        'prev-section 'eshell-previous-prompt
+                        'history-previous 'eshell-previous-matching-input-from-input
+                        'history-next     'eshell-next-matching-input-from-input
+                        'repl-submit 'eshell-send-input
+                        'repl-newline 'newline
+                        'repl-force-newline 'newline)
+
+  (when (< emacs-major-version 30)
+    (evil-collection-define-key 'normal 'eshell-mode-map
+      "0" 'eshell-bol
+      "^" 'eshell-bol))
 
   (when evil-want-C-u-delete
     (evil-collection-define-key 'insert 'eshell-mode-map
@@ -135,9 +139,12 @@ appropriate in some cases like terminals."
     (kbd "C-k") 'eshell-previous-prompt
     (kbd "C-j") 'eshell-next-prompt
     "gk" 'eshell-previous-prompt
-    "gj" 'eshell-next-prompt
-    "0" 'eshell-bol
-    "^" 'eshell-bol)
+    "gj" 'eshell-next-prompt)
+
+  (when (< emacs-major-version 30)
+    (evil-collection-define-key 'visual 'eshell-mode-map
+      "0" 'eshell-bol
+      "^" 'eshell-bol))
 
   (evil-normalize-keymaps)
   (unless evil-collection-always-run-setup-hook-after-load
@@ -148,9 +155,9 @@ appropriate in some cases like terminals."
 ;;;###autoload
 (defun evil-collection-eshell-setup ()
   "Set up `evil' bindings for `eshell'."
-  (add-hook 'eshell-mode-hook 'evil-collection-eshell-escape-stay)
-  (add-hook 'eshell-mode-hook 'evil-collection-eshell-next-prompt-on-insert)
-  (add-hook 'eshell-first-time-mode-hook 'evil-collection-eshell-setup-keys))
+  (add-hook 'eshell-mode-hook #'evil-collection-eshell-escape-stay)
+  (add-hook 'eshell-mode-hook #'evil-collection-eshell-next-prompt-on-insert)
+  (add-hook 'eshell-first-time-mode-hook #'evil-collection-eshell-setup-keys))
 
 (provide 'evil-collection-eshell)
 ;;; evil-collection-eshell.el ends here

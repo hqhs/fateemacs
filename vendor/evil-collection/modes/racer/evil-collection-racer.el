@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: emacs, rust, tools, evil
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -36,13 +36,12 @@
 ;;;###autoload
 (defun evil-collection-racer-setup ()
   "Set up `evil' bindings for `racer'."
-  (evil-collection-define-key 'normal 'racer-mode-map
-    "gd" 'racer-find-definition
-    (kbd "C-t") 'pop-tag-mark
-    "K" 'racer-describe)
+  (evil-collection-bind 'racer-mode-map
+                        'find-definition 'racer-find-definition
+                        'pop-definition 'pop-tag-mark
+                        'lookup-doc 'racer-describe)
 
-  (evil-collection-define-key 'normal 'racer-help-mode-map
-    "q" 'quit-window))
+  (evil-collection-bind 'racer-help-mode-map 'quit 'quit-window))
 
 (provide 'evil-collection-racer)
 ;;; evil-collection-racer.el ends here

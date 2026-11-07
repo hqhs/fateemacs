@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, custom, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -39,30 +39,21 @@
 
   (evil-collection-define-key 'normal 'custom-mode-map
     ;; motion
-    (kbd "<tab>") 'widget-forward
-    (kbd "S-<tab>") 'widget-backward
-    (kbd "<backtab>") 'widget-backward
-    (kbd "SPC") 'scroll-up-command
-    (kbd "S-SPC") 'scroll-down-command
     (kbd "<delete>") 'scroll-down-command
-    (kbd "RET") 'Custom-newline
-    (kbd "]]") 'widget-forward
-    (kbd "[[") 'widget-backward
-    ;; TODO: Should the following be added?
-    (kbd "C-j") 'widget-forward
-    (kbd "C-k") 'widget-backward
-    "gj" 'widget-forward
-    "gk" 'widget-backward
 
     "^" 'Custom-goto-parent
     (kbd "C-o") 'Custom-goto-parent
     ;; TODO: Should the following be added?
-    "<" 'Custom-goto-parent
-
-    ;; quit
-    "q" 'Custom-buffer-done
-    "ZQ" 'evil-quit
-    "ZZ" 'Custom-buffer-done))
+    "<" 'Custom-goto-parent)
+  (evil-collection-bind 'custom-mode-map
+                        'scroll-down 'scroll-up-command
+                        'scroll-up 'scroll-down-command
+                        'action 'Custom-newline
+                        'cycle-next 'widget-forward
+                        'cycle-previous 'widget-backward
+                        'quit 'Custom-buffer-done
+                        'quit-save 'Custom-buffer-done
+                        'quit-cancel 'evil-quit))
 
 (provide 'evil-collection-custom)
 ;;; evil-collection-custom.el ends here

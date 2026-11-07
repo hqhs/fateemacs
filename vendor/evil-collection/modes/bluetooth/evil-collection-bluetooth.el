@@ -6,7 +6,7 @@
 ;; Maintainer: Arian Dehghani <arianxdehghani@gmail.com>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "27.1"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, tools, blutooth
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -41,19 +41,20 @@
     "c" 'bluetooth-connect
     "d" 'bluetooth-disconnect
     "b" 'bluetooth-toggle-blocked
-    "t" 'bluetooth-toggle-trusted
     "a" 'bluetooth-set-alias
     "r" 'bluetooth-start-discovery
     "R" 'bluetooth-stop-discovery
     "s" 'bluetooth-toggle-powered
+    "p" 'bluetooth-toggle-pairable
     "P" 'bluetooth-pair
     "D" 'bluetooth-toggle-discoverable
-    "x" 'bluetooth-toggle-pairable
     "i" 'bluetooth-show-device-info
     "A" 'bluetooth-show-adapter-info
-    "K" 'bluetooth-remove-device
     "<" 'bluetooth-beginning-of-list
-    ">" 'bluetooth-end-of-list))
+    ">" 'bluetooth-end-of-list)
+  (evil-collection-bind 'bluetooth-mode-map
+                        'delete-2 'bluetooth-remove-device
+                        'toggle 'bluetooth-toggle-trusted))
 
 (provide 'evil-collection-bluetooth)
 ;;; evil-collection-bluetooth.el ends here

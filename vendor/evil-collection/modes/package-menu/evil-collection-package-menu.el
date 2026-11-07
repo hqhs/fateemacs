@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, package-menu, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -39,22 +39,19 @@
   (evil-collection-set-readonly-bindings 'package-menu-mode-map)
   (evil-collection-define-key 'normal 'package-menu-mode-map
     "i" 'package-menu-mark-install
-    "U" 'package-menu-mark-upgrades
-    "d" 'package-menu-mark-delete
-    "gr" 'revert-buffer
+    "U" 'package-menu-mark-upgrades)
 
-    ;; undo
-    "u" 'package-menu-mark-unmark
-
-    ;; execute
-    "x" 'package-menu-execute
-
-    "g?" 'package-menu-describe-package)
+  (evil-collection-bind 'package-menu-mode-map
+                        'unmark 'package-menu-mark-unmark
+                        'mark-delete 'package-menu-mark-delete
+                        'execute-marks 'package-menu-execute
+                        'describe-mode 'package-menu-describe-package
+                        'refresh 'revert-buffer)
 
   ;; It's introduced since Emacs 28.
   (when (fboundp 'package-browse-url)
-    (evil-collection-define-key 'normal 'package-menu-mode-map
-      "B" 'package-browse-url)))
+    (evil-collection-bind 'package-menu-mode-map
+                          'browse-url 'package-browse-url)))
 
 (provide 'evil-collection-package-menu)
 ;;; evil-collection-package-menu.el ends here

@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -41,9 +41,10 @@
     [remap evil-write] 'wdired-finish-edit)
 
   (evil-collection-define-key 'normal 'wdired-mode-map
-    "ZQ" 'wdired-abort-changes
-    "ZZ" 'wdired-finish-edit
-    (kbd "<escape>") 'wdired-exit))
+    (kbd "<escape>") 'wdired-exit)
+  (evil-collection-bind 'wdired-mode-map
+                        'quit-save 'wdired-finish-edit
+                        'quit-cancel 'wdired-abort-changes))
 
 (provide 'evil-collection-wdired)
 ;;; evil-collection-wdired.el ends here

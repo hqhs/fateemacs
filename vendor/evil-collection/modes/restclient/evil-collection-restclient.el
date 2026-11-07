@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.2
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -50,9 +50,11 @@
 ;;;###autoload
 (defun evil-collection-restclient-setup ()
   "Set up `evil' bindings for `restclient'."
-  (evil-collection-define-key 'normal 'restclient-mode-map
-    "[[" 'restclient-jump-prev
-    "]]" 'restclient-jump-next)
+  (evil-collection-bind 'restclient-mode-map
+                        'next-item 'restclient-jump-next
+                        'prev-item 'restclient-jump-prev
+                        'next-section 'restclient-jump-next
+                        'prev-section 'restclient-jump-prev)
   (evil-collection-define-key 'normal 'evil-collection-restclient-mode-map
     "q" #'quit-window
     "ZZ" #'quit-window

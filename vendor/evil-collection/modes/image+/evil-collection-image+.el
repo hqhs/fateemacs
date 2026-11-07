@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, image, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -36,10 +36,7 @@
 (defun evil-collection-image+-setup ()
   "Set up `evil' bindings for `image+'."
   (evil-collection-define-key 'normal 'image-mode-map
-    ;; zoom
-    "+" 'imagex-sticky-zoom-in
-    "=" 'imagex-sticky-zoom-in
-    "-" 'imagex-sticky-zoom-out
+    ;; `+'/`='/`-' come from the theme; keep `O' inline as synonym for reset.
     "O" 'imagex-sticky-restore-original
 
     "M" 'imagex-sticky-maximize
@@ -48,7 +45,11 @@
     "r" 'imagex-sticky-rotate-right
     "R" 'imagex-sticky-rotate-left
     "<" 'imagex-sticky-rotate-left ; like sxiv
-    ">" 'imagex-sticky-rotate-right)) ; like sxiv
+    ">" 'imagex-sticky-rotate-right) ; like sxiv
+  (evil-collection-bind 'image-mode-map
+                        'zoom-in    'imagex-sticky-zoom-in
+                        'zoom-out   'imagex-sticky-zoom-out
+                        'zoom-reset 'imagex-sticky-restore-original))
 
 (provide 'evil-collection-image+)
 ;;; evil-collection-image+.el ends here

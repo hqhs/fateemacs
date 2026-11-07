@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, games
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -45,10 +45,11 @@
     (kbd "<up>") '2048-up
     (kbd "<left>") '2048-left
     (kbd "<right>") '2048-right
-    (kbd "<down>") '2048-down
-    "q" 'quit-window
-    "ZQ" 'evil-quit
-    "ZZ" 'quit-window))
+    (kbd "<down>") '2048-down)
+  (evil-collection-bind '2048-mode-map
+                        'quit 'quit-window
+                        'quit-save 'quit-window
+                        'quit-cancel 'evil-quit))
 
 (provide 'evil-collection-2048-game)
 ;;; evil-collection-2048-game.el ends here

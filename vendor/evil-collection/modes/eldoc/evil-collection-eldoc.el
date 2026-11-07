@@ -6,7 +6,7 @@
 ;; Maintainer: James Nguyen <james@jojojames.com>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.2
-;; Package-Requires: ((emacs "27.1"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -51,17 +51,17 @@
 ;;;###autoload
 (defun evil-collection-eldoc-setup ()
   "Set up `evil' bindings for `eldoc'."
-  (evil-collection-define-key 'normal 'evil-collection-eldoc-doc-buffer-mode-map
-    "q" #'quit-window
-    "ZZ" #'quit-window
-    "ZQ" #'evil-quit)
+  (evil-collection-bind 'evil-collection-eldoc-doc-buffer-mode-map
+                        'quit 'quit-window
+                        'quit-save 'quit-window
+                        'quit-cancel 'evil-quit)
 
   ;; 'special-mode' is used in eldoc since
   ;; https://github.com/emacs-mirror/emacs/commit/97abe8511a829861f6efb865209ac2dd0e7ae129
   (when (< emacs-major-version 29)
     ;; Enable a separate minor mode so that we can bind keys to it.
     (advice-add 'eldoc-doc-buffer
-                :after 'evil-collection-eldoc-setup-doc-buffer-mode)))
+                :after #'evil-collection-eldoc-setup-doc-buffer-mode)))
 
 (provide 'evil-collection-eldoc)
 ;;; evil-collection-eldoc.el ends here

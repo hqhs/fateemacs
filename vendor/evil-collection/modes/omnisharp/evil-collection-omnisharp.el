@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, omnisharp, convenience
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -35,10 +35,10 @@
 ;;;###autoload
 (defun evil-collection-omnisharp-setup ()
   "Set up `evil' bindings for `omnisharp'."
-  (evil-collection-define-key '(normal visual) 'omnisharp-mode-map
-    "gd" 'omnisharp-go-to-definition
-    "gR" 'omnisharp-reload-solution
-    "K" 'omnisharp-current-type-documentation))
+  (evil-collection-bind 'omnisharp-mode-map
+                        'find-definition 'omnisharp-go-to-definition
+                        'lookup-doc 'omnisharp-current-type-documentation
+                        'refresh-all 'omnisharp-reload-solution))
 
 (provide 'evil-collection-omnisharp)
 ;;; evil-collection-omnisharp.el ends here

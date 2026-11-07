@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, arc-mode, archive, bindings, files
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -37,42 +37,34 @@
   "Set up `evil' bindings for `arc-mode'."
   (evil-set-initial-state 'arc-mode 'normal)
   (evil-set-initial-state 'archive-mode 'normal)
+  (evil-collection-bind 'archive-mode-map 'rename 'archive-rename-entry)
   (evil-collection-define-key 'normal 'archive-mode-map
     "j" 'archive-next-line
     "k" 'archive-previous-line
-    (kbd "C-j") 'archive-next-line
-    (kbd "C-k") 'archive-previous-line
-    "gj" 'archive-next-line
-    "gk" 'archive-previous-line
 
     "gg" 'beginning-of-buffer
     "G" 'end-of-buffer
 
-    ;; open
-    (kbd "RET") 'archive-extract
-    (kbd "S-<return>") 'archive-extract-other-window
-    (kbd "M-<return>") 'archive-view
-    "go" 'archive-extract-other-window
-
     "a" 'archive-alternate-display
-    "d" 'archive-flag-deleted
-    "r" 'archive-rename-entry
-    "x" 'archive-expunge
     "C" 'archive-copy-file
     "M" 'archive-chmod-entry
     "O" 'archive-chown-entry
-    "P" 'archive-chgrp-entry
-
-    ;; refresh
-    "gr" 'revert-buffer
-
-    ;; mark
-    "m" 'archive-mark
-    "u" 'archive-unflag
-    "U" 'archive-unmark-all-files
-
-    ;; quit
-    "q" 'quit-window))
+    "P" 'archive-chgrp-entry)
+  (evil-collection-bind 'archive-mode-map
+                        'mark 'archive-mark
+                        'unmark 'archive-unflag
+                        'unmark-all 'archive-unmark-all-files
+                        'mark-delete 'archive-flag-deleted
+                        'execute-marks 'archive-expunge
+                        'action 'archive-extract
+                        'action-other 'archive-extract-other-window
+                        'action-stay 'archive-view
+                        'next-item 'archive-next-line
+                        'prev-item 'archive-previous-line
+                        'next-section 'archive-next-line
+                        'prev-section 'archive-previous-line
+                        'quit 'quit-window
+                        'refresh 'revert-buffer))
 
 (provide 'evil-collection-arc-mode)
 ;;; evil-collection-arc-mode.el ends here

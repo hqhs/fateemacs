@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, rtags, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -49,93 +49,76 @@
   (evil-set-initial-state 'rtags-location-stack-visualize-mode 'normal)
 
   (evil-collection-define-key 'normal 'rtags-mode-map
-    ;; open
-    (kbd "RET") 'rtags-select
-    (kbd "S-<return>") 'rtags-select-other-window
-    (kbd "M-<return>") 'rtags-show-in-other-window
-    (kbd "go") 'rtags-select-other-window
-    (kbd "gO") 'rtags-show-in-other-window
     [mouse-1] 'rtags-select-other-window
     [mouse-2] 'rtags-select-other-window
 
     "c" 'rtags-select-caller
-    "C" 'rtags-select-caller-other-window
-    "x" 'rtags-select-and-remove-rtags-buffer
-    "q" 'rtags-call-bury-or-delete)
+    "C" 'rtags-select-caller-other-window)
+  (evil-collection-bind 'rtags-mode-map
+                        'action 'rtags-select
+                        'action-other 'rtags-select-other-window
+                        'action-stay 'rtags-show-in-other-window
+                        'quit 'rtags-call-bury-or-delete
+                        'delete 'rtags-select-and-remove-rtags-buffer
+                        'delete-2 'rtags-select-and-remove-rtags-buffer)
 
+  (evil-collection-bind 'rtags-dependency-tree-mode-map 'section-toggle 'rtags-dependency-tree-toggle-current-expanded)
   (evil-collection-define-key 'normal 'rtags-dependency-tree-mode-map
-    (kbd "<tab>") 'rtags-dependency-tree-toggle-current-expanded
     "E" 'rtags-dependency-tree-expand-all
     "c" 'rtags-dependency-tree-collapse-all
     "-" 'rtags-dependency-tree-collapse-current
     "+" 'rtags-dependency-tree-expand-current
     "P" 'rtags-dependency-tree-find-path
-    "gf" 'rtags-dependency-tree-find-path
 
-    "gj" 'rtags-dependency-tree-next-level
-    "gk" 'rtags-dependency-tree-previous-level
-
-    (kbd "C-j") 'rtags-dependency-tree-next-level
-    (kbd "C-k") 'rtags-dependency-tree-previous-level
-    "]]" 'rtags-dependency-tree-next-level
-    "[[" 'rtags-dependency-tree-previous-level
-
-    ;; open
-    (kbd "RET") 'rtags-select
-    (kbd "S-<return>") 'rtags-select-other-window
-    (kbd "M-<return>") 'rtags-show-in-other-window
-    "go" 'rtags-select-other-window
-    "gO" 'rtags-show-in-other-window
     [mouse-1] 'rtags-select-other-window
     [mouse-2] 'rtags-select-other-window
-    "s" 'rtags-show-in-other-window
+    "s" 'rtags-show-in-other-window)
+  (evil-collection-bind 'rtags-dependency-tree-mode-map
+                        'action 'rtags-select
+                        'action-other 'rtags-select-other-window
+                        'action-stay 'rtags-show-in-other-window
+                        'next-item 'rtags-dependency-tree-next-level
+                        'prev-item 'rtags-dependency-tree-previous-level
+                        'next-section 'rtags-dependency-tree-next-level
+                        'prev-section 'rtags-dependency-tree-previous-level
+                        'quit 'rtags-call-bury-or-delete
+                        'find-file 'rtags-dependency-tree-find-path
+                        'delete 'rtags-select-and-remove-rtags-buffer
+                        'delete-2 'rtags-select-and-remove-rtags-buffer)
 
-    "x" 'rtags-select-and-remove-rtags-buffer
-    "q" 'rtags-call-bury-or-delete)
-
+  (evil-collection-bind 'rtags-references-tree-mode-map 'section-toggle 'rtags-references-tree-toggle-current-expanded)
   (evil-collection-define-key 'normal 'rtags-references-tree-mode-map
-    (kbd "<tab>") 'rtags-references-tree-toggle-current-expanded
-
     "E" 'rtags-references-tree-expand-all
     "c" 'rtags-references-tree-collapse-all
     "-" 'rtags-references-tree-collapse-current
     "+" 'rtags-references-tree-expand-current
 
-    "gj" 'rtags-references-tree-next-level
-    "gk" 'rtags-references-tree-previous-level
-
-    (kbd "C-j") 'rtags-references-tree-next-level
-    (kbd "C-k") 'rtags-references-tree-previous-level
-
-    "]]" 'rtags-references-tree-next-level
-    "[[" 'rtags-references-tree-previous-level
-
-    ;; open
-    (kbd "RET") 'rtags-select
-    (kbd "S-<return>") 'rtags-select-other-window
-    (kbd "M-<return>") 'rtags-show-in-other-window
-    "go" 'rtags-select-other-window
-    "gO" 'rtags-show-in-other-window
     [mouse-1] 'rtags-select-other-window
     [mouse-2] 'rtags-select-other-window
-    "s" 'rtags-show-in-other-window
-
-    "x" 'rtags-select-and-remove-rtags-buffer
-    "q" 'rtags-call-bury-or-delete)
+    "s" 'rtags-show-in-other-window)
+  (evil-collection-bind 'rtags-references-tree-mode-map
+                        'action 'rtags-select
+                        'action-other 'rtags-select-other-window
+                        'action-stay 'rtags-show-in-other-window
+                        'next-item 'rtags-references-tree-next-level
+                        'prev-item 'rtags-references-tree-previous-level
+                        'next-section 'rtags-references-tree-next-level
+                        'prev-section 'rtags-references-tree-previous-level
+                        'quit 'rtags-call-bury-or-delete
+                        'delete 'rtags-select-and-remove-rtags-buffer
+                        'delete-2 'rtags-select-and-remove-rtags-buffer)
 
   (evil-collection-define-key 'normal 'rtags-location-stack-visualize-mode-map
-    ;; open
-    (kbd "RET") 'rtags-select
-    (kbd "S-<return>") 'rtags-select-other-window
-    (kbd "M-<return>") 'rtags-show-in-other-window
-    (kbd "go") 'rtags-select-other-window
-    (kbd "gO") 'rtags-show-in-other-window
     [mouse-1] 'rtags-select-other-window
     [mouse-2] 'rtags-select-other-window
-    "s" 'rtags-show-in-other-window
-
-    "x" 'rtags-select-and-remove-rtags-buffer
-    "q" 'rtags-call-bury-or-delete))
+    "s" 'rtags-show-in-other-window)
+  (evil-collection-bind 'rtags-location-stack-visualize-mode-map
+                        'action 'rtags-select
+                        'action-other 'rtags-select-other-window
+                        'action-stay 'rtags-show-in-other-window
+                        'quit 'rtags-call-bury-or-delete
+                        'delete 'rtags-select-and-remove-rtags-buffer
+                        'delete-2 'rtags-select-and-remove-rtags-buffer))
 
 (provide 'evil-collection-rtags)
 ;;; evil-collection-rtags.el ends here

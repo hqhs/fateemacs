@@ -8,7 +8,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, vterm, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -245,9 +245,9 @@ But don't allow the cursor to move bellow the last prompt line."
 
   (add-hook 'vterm-mode-hook #'evil-collection-vterm-escape-stay)
 
-  ;; Open to a better binding...
-  (evil-collection-define-key '(normal insert) 'vterm-mode-map
-    (kbd "C-c C-z") 'evil-collection-vterm-toggle-send-escape)
+  (evil-collection-bind 'vterm-mode-map
+                              'term-toggle-escape
+                              'evil-collection-vterm-toggle-send-escape)
 
   ;; Evil has some "C-" bindings in insert state that shadow regular terminal
   ;; bindings. Don't raw-send "C-c" (prefix key) nor "C-h" (help prefix).
@@ -273,9 +273,13 @@ But don't allow the cursor to move bellow the last prompt line."
     (kbd "C-z") 'vterm--self-insert
     (kbd "<delete>") 'vterm-send-delete)
 
+  (evil-collection-bind 'vterm-mode-map
+                        'repl-submit 'vterm-send-return
+                        'next-item 'vterm-next-prompt
+                        'prev-item 'vterm-previous-prompt
+                        'next-section 'vterm-next-prompt
+                        'prev-section 'vterm-previous-prompt)
   (evil-collection-define-key 'normal 'vterm-mode-map
-    "[[" 'vterm-previous-prompt
-    "]]" 'vterm-next-prompt
     "p" 'evil-collection-vterm-paste-after
     "P" 'vterm-yank
     "a" 'evil-collection-vterm-append
@@ -284,7 +288,6 @@ But don't allow the cursor to move bellow the last prompt line."
     "D" 'evil-collection-vterm-delete-line
     "x" 'evil-collection-vterm-delete-char
     "X" 'evil-collection-vterm-delete-backward-char
-    (kbd "RET") 'vterm-send-return
     "^" 'evil-collection-vterm-first-non-blank
     "i" 'evil-collection-vterm-insert
     "I" 'evil-collection-vterm-insert-line

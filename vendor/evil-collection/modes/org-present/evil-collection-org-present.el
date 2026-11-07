@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, tools, minimalist, presentation
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -38,28 +38,27 @@
   (evil-collection-define-key 'normal 'org-present-mode-keymap
     "J" 'org-present-next
     "K" 'org-present-prev
-    "gj" 'org-present-next
-    "gk" 'org-present-prev
-    "]]" 'org-present-next
-    "[[" 'org-present-prev
     (kbd "SPC") 'org-present-next
     (kbd "S-SPC") 'org-present-prev
-    (kbd "C-j") 'org-present-next
     (kbd "M-j") 'org-present-next
-    (kbd "C-k") 'org-present-prev
     (kbd "M-k") 'org-present-prev
     "zi" 'org-present-big
     "zo" 'org-present-small
     "+" 'org-present-big
     "=" 'org-present-big
     "-" 'org-present-small
-    "q" 'org-present-quit
-    "ZQ" 'org-present-quit
-    "ZZ" 'org-present-quit
     "r" 'org-present-read-only
     "gw" 'org-present-read-write
     "gg" 'org-present-beginning
-    "G" 'org-present-end))
+    "G" 'org-present-end)
+  (evil-collection-bind 'org-present-mode-keymap
+                        'next-item 'org-present-next
+                        'prev-item 'org-present-prev
+                        'next-section 'org-present-next
+                        'prev-section 'org-present-prev
+                        'quit 'org-present-quit
+                        'quit-save 'org-present-quit
+                        'quit-cancel 'org-present-quit))
 
 (provide 'evil-collection-org-present)
 ;;; evil-collection-org-present.el ends here

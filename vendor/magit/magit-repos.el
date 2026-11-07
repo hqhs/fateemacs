@@ -1,9 +1,9 @@
 ;;; magit-repos.el --- Listing repositories  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2024 The Magit Project Contributors
+;; Copyright (C) 2008-2026 The Magit Project Contributors
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
+;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -31,6 +31,7 @@
 (require 'magit-core)
 
 (declare-function magit-status-setup-buffer "magit-status" (&optional directory))
+(declare-function magit-dired-jump "magit-dired" (&optional other-window))
 
 (defvar x-stretch-cursor)
 
@@ -56,27 +57,29 @@ This option controls which repositories are being listed by
   :link '(info-link "(magit)Repository List")
   :group 'magit-modes)
 
-(defcustom magit-repolist-mode-hook '(hl-line-mode)
+(defcustom magit-repolist-mode-hook (list #'hl-line-mode)
   "Hook run after entering Magit-Repolist mode."
   :package-version '(magit . "2.9.0")
   :group 'magit-repolist
   :type 'hook
   :get #'magit-hook-custom-get
-  :options '(hl-line-mode))
+  :options (list #'hl-line-mode))
 
 (defcustom magit-repolist-columns
-  '(("Name"    25 magit-repolist-column-ident nil)
-    ("Version" 25 magit-repolist-column-version
+  `(("Name"    25 ,#'magit-repolist-column-ident
+     ())
+    ("Version" 25 ,#'magit-repolist-column-version
      ((:sort magit-repolist-version<)))
-    ("B<U"      3 magit-repolist-column-unpulled-from-upstream
+    ("B<U"      3 ,#'magit-repolist-column-unpulled-from-upstream
      (;; (:help-echo "Upstream changes not in branch")
       (:right-align t)
       (:sort <)))
-    ("B>U"      3 magit-repolist-column-unpushed-to-upstream
+    ("B>U"      3 ,#'magit-repolist-column-unpushed-to-upstream
      (;; (:help-echo "Local changes not in upstream")
       (:right-align t)
       (:sort <)))
-    ("Path"    99 magit-repolist-column-path nil))
+    ("Path"    99 ,#'magit-repolist-column-path
+     ()))
   "List of columns displayed by `magit-list-repositories'.
 
 Each element has the form (HEADER WIDTH FORMAT PROPS).
@@ -116,9 +119,9 @@ than 9."
                                        (sexp   :tag "Value"))))))
 
 (defcustom magit-repolist-column-flag-alist
-  '((magit-untracked-files . "N")
-    (magit-unstaged-files . "U")
-    (magit-staged-files . "S"))
+  `((,#'magit-untracked-files . "N")
+    (,#'magit-unstaged-files . "U")
+    (,#'magit-staged-files . "S"))
   "Association list of predicates and flags for `magit-repolist-column-flag'.
 
 Each element is of the form (FUNCTION . FLAG).  Each FUNCTION is
@@ -178,14 +181,14 @@ repositories are displayed."
   "Fetch all marked or listed repositories."
   (interactive (list (magit-repolist--get-repos ?*)))
   (run-hooks 'magit-credential-hook)
-  (magit-repolist--mapc (apply-partially #'magit-run-git "remote" "update")
+  (magit-repolist--mapc (##magit-run-git "remote" "update")
                         repos "Fetching in %s..."))
 
 (defun magit-repolist-find-file-other-frame (repos file)
   "Find a file in all marked or listed repositories."
   (interactive (list (magit-repolist--get-repos ?*)
                      (read-string "Find file in repositories: ")))
-  (magit-repolist--mapc (apply-partially #'find-file-other-frame file) repos))
+  (magit-repolist--mapc (##find-file-other-frame file) repos))
 
 (defun magit-repolist--ensure-padding ()
   "Set `tabulated-list-padding' to 2, unless that is already non-zero."
@@ -240,17 +243,16 @@ If it contains \"%s\" then the directory is substituted for that."
   (let ((base default-directory)
         (len (length repos))
         (i 0))
-    (mapc (lambda (repo)
-            (let ((default-directory
-                   (file-name-as-directory (expand-file-name repo base))))
-              (if msg
-                  (let ((msg (concat (format "(%s/%s) " (cl-incf i) len)
-                                     (format msg default-directory))))
-                    (message msg)
-                    (funcall fn)
-                    (message (concat msg "done")))
-                (funcall fn))))
-          repos)))
+    (dolist (repo repos)
+      (let ((default-directory
+             (file-name-as-directory (expand-file-name repo base))))
+        (if msg
+            (let ((msg (concat (format "(%s/%s) " (incf i) len)
+                               (format msg default-directory))))
+              (message msg)
+              (funcall fn)
+              (message (concat msg "done")))
+          (funcall fn))))))
 
 ;;;; Mode
 
@@ -261,13 +263,16 @@ If it contains \"%s\" then the directory is substituted for that."
   "m"   #'magit-repolist-mark
   "u"   #'magit-repolist-unmark
   "f"   #'magit-repolist-fetch
-  "5"   #'magit-repolist-find-file-other-frame)
+  "5"   #'magit-repolist-find-file-other-frame
+  "<remap> <dired-jump>" #'magit-dired-jump)
 
 (define-derived-mode magit-repolist-mode tabulated-list-mode "Repos"
   "Major mode for browsing a list of Git repositories."
+  :interactive nil
+  :group 'magit-repolist
   (setq-local x-stretch-cursor nil)
   (setq tabulated-list-padding 0)
-  (add-hook 'tabulated-list-revert-hook #'magit-repolist-refresh nil t)
+  (setq-local tabulated-list-revert-hook (list #'magit-repolist-refresh t))
   (setq imenu-prev-index-position-function
         #'magit-repolist--imenu-prev-index-position)
   (setq imenu-extract-index-name-function #'tabulated-list-get-id))
@@ -277,6 +282,7 @@ If it contains \"%s\" then the directory is substituted for that."
     (user-error "You need to customize `magit-repository-directories' %s"
                 "before you can list repositories"))
   (with-current-buffer (get-buffer-create "*Magit Repositories*")
+    (setq default-directory (expand-file-name "~"))
     (magit-repolist-mode)
     (setq-local magit-repolist-columns columns)
     (magit-repolist-setup-1)
@@ -305,31 +311,33 @@ If it contains \"%s\" then the directory is substituted for that."
                                            sort-fn #'identity idx))
                                          (sort-fn sort-fn)
                                          (sort-set nil)
-                                         (t t)))
+                                         (t)))
                              (flatten-tree props))))
                   magit-repolist-columns))))
 
 (defun magit-repolist-refresh ()
   (setq tabulated-list-entries
-        (mapcar (pcase-lambda (`(,id . ,path))
-                  (let ((default-directory path))
-                    (list path
-                          (vconcat
-                           (mapcar (pcase-lambda (`(,title ,width ,fn ,props))
-                                     (or (funcall fn `((:id ,id)
-                                                       (:title ,title)
-                                                       (:width ,width)
-                                                       ,@props))
-                                         ""))
-                                   magit-repolist-columns)))))
+        (mapcar #'magit-repolist--format-entry
                 (magit-list-repos-uniquify
-                 (--map (cons (file-name-nondirectory (directory-file-name it))
-                              it)
-                        (magit-list-repos)))))
+                 (mapcar (##cons (file-name-nondirectory (directory-file-name %))
+                                 %)
+                         (magit-list-repos)))))
   (message "Listing repositories...")
   (tabulated-list-init-header)
   (tabulated-list-print t)
   (message "Listing repositories...done"))
+
+(defun magit-repolist--format-entry (entry)
+  (pcase-let ((`(,id . ,default-directory) entry))
+    (list default-directory
+          (vconcat
+           (mapcar (pcase-lambda (`(,title ,width ,fn ,props))
+                     (or (funcall fn `((:id ,id)
+                                       (:title ,title)
+                                       (:width ,width)
+                                       ,@props))
+                         ""))
+                   magit-repolist-columns)))))
 
 (defun magit-repolist--imenu-prev-index-position ()
   (and (not (bobp))
@@ -364,15 +372,12 @@ Usually this is just its basename."
 \\(?:-\\(?4:dirty\\)\\)\
 ?\\'")
 
-(defvar magit-repolist-column-version-resume-regexp
-  "\\`Resume development\\'")
-
 (defun magit-repolist-column-version (_)
   "Insert a description of the repository's `HEAD' revision."
-  (and-let* ((v (or (magit-git-string "describe" "--tags" "--dirty")
-                    ;; If there are no tags, use the date in MELPA format.
-                    (magit-rev-format "%cd-g%h" nil
-                                      "--date=format:%Y%m%d.%H%M"))))
+  (and-let ((v (or (magit-git-string "describe" "--tags" "--dirty")
+                   ;; If there are no tags, use the date in MELPA format.
+                   (magit-rev-format "%cd-g%h" nil
+                                     "--date=format:%Y%m%d.%H%M"))))
     (save-match-data
       (when (string-match magit-repolist-column-version-regexp v)
         (magit--put-face (match-beginning 0) (match-end 0) 'shadow v)
@@ -380,32 +385,31 @@ Usually this is just its basename."
           (magit--put-face (match-beginning 2) (match-end 2) 'bold v))
         (when (match-end 4)
           (magit--put-face (or (match-beginning 3) (match-beginning 4))
-                           (match-end 4) 'error v))
-        (when (and (equal (match-string 2 v) "1")
-                   (string-match-p magit-repolist-column-version-resume-regexp
-                                   (magit-rev-format "%s")))
-          (setq v (replace-match (propertize "+" 'face 'shadow) t t v 1))))
-      (if (and v (string-match "\\`[0-9]" v))
-          (concat " " v)
-        (when (and v (string-match "\\`[^0-9]+" v))
-          (magit--put-face 0 (match-end 0) 'shadow v))
-        v))))
+                           (match-end 4) 'error v)))
+      (cond ((not v) nil)
+            ((string-match "\\`[0-9]" v)
+             (concat " " v))
+            ((string-match "\\`[^0-9]+" v)
+             (magit--put-face 0 (match-end 0) 'shadow v)
+             v)))))
 
 (defun magit-repolist-version< (a b)
   (save-match-data
     (let ((re "[0-9]+\\(\\.[0-9]*\\)*"))
-      (setq a (and (string-match re a) (match-string 0 a)))
-      (setq b (and (string-match re b) (match-string 0 b)))
+      (setq a (and (string-match re a) (match-str 0 a)))
+      (setq b (and (string-match re b) (match-str 0 b)))
       (cond ((and a b) (version< a b))
             (b nil)
-            (t t)))))
+            (t)))))
 
 (defun magit-repolist-column-branch (_)
   "Insert the current branch."
-  (let ((branch (magit-get-current-branch)))
-    (if (member branch magit-main-branch-names)
-        (magit--propertize-face branch 'shadow)
-      branch)))
+  (if (file-exists-p ".git")
+      (let ((branch (magit-get-current-branch)))
+        (if (member branch magit-main-branch-names)
+            (magit--propertize-face branch 'shadow)
+          branch))
+    (magit--propertize-face "(unpopulated)" 'warning)))
 
 (defun magit-repolist-column-upstream (_)
   "Insert the upstream branch of the current branch."
@@ -434,23 +438,27 @@ which only lists the first one found."
 
 (defun magit-repolist-column-unpulled-from-upstream (spec)
   "Insert number of upstream commits not in the current branch."
-  (and-let* ((br (magit-get-upstream-branch)))
-    (magit-repolist-insert-count (cadr (magit-rev-diff-count "HEAD" br)) spec)))
+  (and$ (magit-get-upstream-branch)
+        (magit-repolist-insert-count (cadr (magit-rev-diff-count "HEAD" $))
+                                     spec)))
 
 (defun magit-repolist-column-unpulled-from-pushremote (spec)
   "Insert number of commits in the push branch but not the current branch."
-  (and-let* ((br (magit-get-push-branch nil t)))
-    (magit-repolist-insert-count (cadr (magit-rev-diff-count "HEAD" br)) spec)))
+  (and$ (magit-get-push-branch nil t)
+        (magit-repolist-insert-count (cadr (magit-rev-diff-count "HEAD" $))
+                                     spec)))
 
 (defun magit-repolist-column-unpushed-to-upstream (spec)
   "Insert number of commits in the current branch but not its upstream."
-  (and-let* ((br (magit-get-upstream-branch)))
-    (magit-repolist-insert-count (car (magit-rev-diff-count "HEAD" br)) spec)))
+  (and$ (magit-get-upstream-branch)
+        (magit-repolist-insert-count (car (magit-rev-diff-count "HEAD" $))
+                                     spec)))
 
 (defun magit-repolist-column-unpushed-to-pushremote (spec)
   "Insert number of commits in the current branch but not its push branch."
-  (and-let* ((br (magit-get-push-branch nil t)))
-    (magit-repolist-insert-count (car (magit-rev-diff-count "HEAD" br)) spec)))
+  (and$ (magit-get-push-branch nil t)
+        (magit-repolist-insert-count (car (magit-rev-diff-count "HEAD" $))
+                                     spec)))
 
 (defun magit-repolist-column-branches (spec)
   "Insert number of branches."
@@ -487,7 +495,16 @@ instead."
   (if-let ((repos (and (not read-directory-name)
                        magit-repository-directories
                        (magit-repos-alist))))
-      (let ((reply (magit-completing-read "Git repository" repos)))
+      (let ((reply (magit-completing-read
+                    "Git repository" repos nil 'any nil nil
+                    (and-let* ((_(derived-mode-p 'dired-mode))
+                               (path (and (fboundp 'dired-get-filename)
+                                          (dired-get-filename nil t)))
+                               (_(magit-git-repo-p path))
+                               (name (file-relative-name path)))
+                      (if (member (cdr (assoc name repos)) (list path nil))
+                          name
+                        path)))))
         (file-name-as-directory
          (or (cdr (assoc reply repos))
              (if (file-directory-p reply)
@@ -498,18 +515,18 @@ instead."
                           (or (magit-toplevel) default-directory)))))
 
 (defun magit-list-repos ()
-  (cl-mapcan (pcase-lambda (`(,dir . ,depth))
-               (magit-list-repos-1 dir depth))
-             magit-repository-directories))
+  (mapcan (pcase-lambda (`(,dir . ,depth))
+            (magit-list-repos-1 dir depth))
+          magit-repository-directories))
 
 (defun magit-list-repos-1 (directory depth)
   (cond ((file-readable-p (expand-file-name ".git" directory))
          (list (file-name-as-directory directory)))
-        ((and (> depth 0) (magit-file-accessible-directory-p directory))
-         (--mapcat (and (file-directory-p it)
-                        (magit-list-repos-1 it (1- depth)))
-                   (directory-files directory t
-                                    directory-files-no-dot-files-regexp t)))))
+        ((and (> depth 0) (file-accessible-directory-p directory))
+         (mapcan (##and (file-directory-p %)
+                        (magit-list-repos-1 % (1- depth)))
+                 (directory-files directory t
+                                  directory-files-no-dot-files-regexp t)))))
 
 (defun magit-list-repos-uniquify (alist)
   (let (result (dict (make-hash-table :test #'equal)))
@@ -520,23 +537,43 @@ instead."
        (if (length= value 1)
            (push (cons key (car value)) result)
          (setq result
-               (append result
-                       (magit-list-repos-uniquify
-                        (--map (cons (concat
-                                      key "\\"
-                                      (file-name-nondirectory
-                                       (directory-file-name
-                                        (substring it 0 (- (1+ (length key)))))))
-                                     it)
-                               value))))))
+               (append
+                result
+                (magit-list-repos-uniquify
+                 (mapcar (lambda (v)
+                           (cons (concat
+                                  key
+                                  (or (bound-and-true-p uniquify-separator)
+                                      "\\")
+                                  (file-name-nondirectory
+                                   (directory-file-name
+                                    (substring v 0 (- (1+ (length key)))))))
+                                 v))
+                         value))))))
      dict)
     result))
 
 (defun magit-repos-alist ()
   (magit-list-repos-uniquify
-   (--map (cons (file-name-nondirectory (directory-file-name it)) it)
-          (magit-list-repos))))
+   (mapcar (##cons (file-name-nondirectory (directory-file-name %)) %)
+           (magit-list-repos))))
 
 ;;; _
 (provide 'magit-repos)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
+;;   ("while-let"    . "cond-let--while-let")
+;;   ("match-string" . "match-string")
+;;   ("match-str"    . "match-string-no-properties"))
+;; End:
 ;;; magit-repos.el ends here

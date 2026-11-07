@@ -1,9 +1,9 @@
 ;;; magit-merge.el --- Merge functionality  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2024 The Magit Project Contributors
+;; Copyright (C) 2008-2026 The Magit Project Contributors
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
+;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -33,7 +33,7 @@
 
 ;;; Commands
 
-;;;###autoload (autoload 'magit-merge "magit" nil t)
+;;;###autoload(autoload 'magit-merge "magit" nil t)
 (transient-define-prefix magit-merge ()
   "Merge branches."
   :man-page "git-merge"
@@ -47,7 +47,8 @@
    (5 "-b" "Ignore changes in amount of whitespace" "-Xignore-space-change")
    (5 "-w" "Ignore whitespace when comparing lines" "-Xignore-all-space")
    (5 magit-diff:--diff-algorithm :argument "-Xdiff-algorithm=")
-   (5 magit:--gpg-sign)]
+   (magit:--gpg-sign)
+   (magit:--signoff)]
   ["Actions"
    :if-not magit-merge-in-progress-p
    [("m" "Merge"                  magit-merge-plain)
@@ -57,7 +58,7 @@
    [("p" "Preview merge"          magit-merge-preview)
     ""
     ("s" "Squash merge"           magit-merge-squash)
-    ("i" "Dissolve"               magit-merge-into)]]
+    ("d" "Dissolve"               magit-merge-dissolve)]]
   ["Actions"
    :if magit-merge-in-progress-p
    ("m" "Commit merge" magit-commit-create)
@@ -94,8 +95,10 @@ the user inspect the result.  With a prefix argument pretend the
 merge failed to give the user the opportunity to inspect the
 merge.
 
+To create an octopus-merge, separate branches with commas.
+
 \(git merge --no-edit|--no-commit [ARGS] REV)"
-  (interactive (list (magit-read-other-branch-or-commit "Merge")
+  (interactive (list (magit-read-other-branches-or-commits "Merge")
                      (magit-merge-arguments)
                      current-prefix-arg))
   (magit-merge-assert)
@@ -104,31 +107,37 @@ merge.
 ;;;###autoload
 (defun magit-merge-editmsg (rev &optional args)
   "Merge commit REV into the current branch; and edit message.
+
 Perform the merge and prepare a commit message but let the user
 edit it.
-\n(git merge --edit --no-ff [ARGS] REV)"
-  (interactive (list (magit-read-other-branch-or-commit "Merge")
+
+To create an octopus-merge, separate branches with commas.
+
+\(git merge --edit --no-ff [ARGS] REV)"
+  (interactive (list (magit-read-other-branches-or-commits "Merge")
                      (magit-merge-arguments)))
   (magit-merge-assert)
   (cl-pushnew "--no-ff" args :test #'equal)
-  (apply #'magit-run-git-with-editor "merge" "--edit"
-         (append (delete "--ff-only" args)
-                 (list rev))))
+  (magit-run-git-with-editor "merge" "--edit" (delete "--ff-only" args) rev))
 
 ;;;###autoload
 (defun magit-merge-nocommit (rev &optional args)
   "Merge commit REV into the current branch; pretending it failed.
+
 Pretend the merge failed to give the user the opportunity to
 inspect the merge and change the commit message.
-\n(git merge --no-commit --no-ff [ARGS] REV)"
-  (interactive (list (magit-read-other-branch-or-commit "Merge")
+
+To create an octopus-merge, separate branches with commas.
+
+\(git merge --no-commit --no-ff [ARGS] REV)"
+  (interactive (list (magit-read-other-branches-or-commits "Merge")
                      (magit-merge-arguments)))
   (magit-merge-assert)
   (cl-pushnew "--no-ff" args :test #'equal)
   (magit-run-git-async "merge" "--no-commit" args rev))
 
 ;;;###autoload
-(defun magit-merge-into (branch &optional args)
+(defun magit-merge-dissolve (branch &optional args)
   "Merge the current branch into BRANCH and remove the former.
 
 Before merging, force push the source branch to its push-remote,
@@ -138,15 +147,12 @@ obsolete version of the commits that are being merged.  Finally
 if `forge-branch-pullreq' was used to create the merged branch,
 then also remove the respective remote branch."
   (interactive
-   (list (magit-read-other-local-branch
-          (format "Merge `%s' into"
-                  (or (magit-get-current-branch)
-                      (magit-rev-parse "HEAD")))
-          nil
-          (and-let* ((upstream (magit-get-upstream-branch))
-                     (upstream (cdr (magit-split-branch-name upstream))))
-            (and (magit-branch-p upstream) upstream)))
-         (magit-merge-arguments)))
+    (list (let ((branch (magit-get-current-branch)))
+            (magit-read-other-local-branch
+             (format "Merge `%s' into" (or branch (magit-rev-parse "HEAD")))
+             nil
+             (and branch (magit-get-local-upstream-branch branch))))
+          (magit-merge-arguments)))
   (let ((current (magit-get-current-branch))
         (head (magit-rev-parse "HEAD")))
     (when (zerop (magit-call-git "checkout" branch))
@@ -168,25 +174,27 @@ then also remove the respective remote branch."
                      (magit-merge-arguments)))
   (magit--merge-absorb branch args))
 
-(defun magit--merge-absorb (branch args)
+(defun magit--merge-absorb (branch args &optional message)
   (when (equal branch (magit-main-branch))
     (unless (yes-or-no-p
              (format "Do you really want to merge `%s' into another branch? "
                      branch))
       (user-error "Abort")))
-  (if-let ((target (magit-get-push-branch branch t)))
-      (progn
-        (magit-git-push branch target (list "--force-with-lease"))
-        (set-process-sentinel
-         magit-this-process
-         (lambda (process event)
-           (when (memq (process-status process) '(exit signal))
-             (if (not (zerop (process-exit-status process)))
-                 (magit-process-sentinel process event)
-               (process-put process 'inhibit-refresh t)
-               (magit-process-sentinel process event)
-               (magit--merge-absorb-1 branch args))))))
-    (magit--merge-absorb-1 branch args)))
+  (cond-let
+    ([target (magit-get-push-branch branch t)]
+     (magit-git-push branch target (list "--force-with-lease"))
+     (set-process-sentinel
+      magit-this-process
+      (lambda (process event)
+        (when (memq (process-status process) '(exit signal))
+          (if (not (zerop (process-exit-status process)))
+              (magit-process-sentinel process event)
+            (process-put process 'inhibit-refresh t)
+            (magit-process-sentinel process event)
+            (magit--merge-absorb-1 branch args))
+          (when message
+            (message message))))))
+    ((magit--merge-absorb-1 branch args))))
 
 (defun magit--merge-absorb-1 (branch args)
   (if-let ((pr (magit-get "branch" branch "pullRequest")))
@@ -240,16 +248,15 @@ then also remove the respective remote branch."
 (defun magit-checkout-stage (file arg)
   "During a conflict checkout and stage side, or restore conflict."
   (interactive
-   (let ((file (magit-completing-read "Checkout file"
-                                      (magit-tracked-files) nil nil nil
-                                      'magit-read-file-hist
-                                      (magit-current-file))))
-     (cond ((member file (magit-unmerged-files))
-            (list file (magit-checkout-read-stage file)))
-           ((yes-or-no-p (format "Restore conflicts in %s? " file))
-            (list file "--merge"))
-           (t
-            (user-error "Quit")))))
+    (let ((file (magit-completing-read "Checkout file"
+                                       (magit-tracked-files) nil 'any nil
+                                       'magit-read-file-hist
+                                       (magit-current-file))))
+      (cond ((member file (magit-unmerged-files))
+             (list file (magit-checkout-read-stage file)))
+            ((yes-or-no-p (format "Restore conflicts in %s? " file))
+             (list file "--merge"))
+            ((user-error "Quit")))))
   (pcase (cons arg (cddr (car (magit-file-status file))))
     ((or `("--ours"   ?D ,_)
          '("--ours"   ?U ?A)
@@ -274,7 +281,7 @@ then also remove the respective remote branch."
                 (car (magit-file-lines
                       (expand-file-name "MERGE_HEAD" (magit-gitdir)))))))
   (and head
-       (concat (magit-git-string "merge-base" "--octopus" "HEAD" head)
+       (concat (magit-merge-base "HEAD" head "--octopus")
                ".." head)))
 
 (defun magit-merge-assert ()
@@ -291,10 +298,6 @@ then also remove the respective remote branch."
 
 ;;; Sections
 
-(defvar-keymap magit-unmerged-section-map
-  :doc "Keymap for `unmerged' sections."
-  :parent magit-log-section-map)
-
 (defun magit-insert-merge-log ()
   "Insert section for the on-going merge.
 Display the heads that are being merged.
@@ -306,7 +309,7 @@ If no merge is in progress, do nothing."
            (range (magit--merge-range (car heads))))
       (magit-insert-section (unmerged range)
         (magit-insert-heading
-          (format "Merging %s:" (mapconcat #'identity heads ", ")))
+          (format "Merging %s:" (string-join heads ", ")))
         (magit--insert-log nil
           range
           (let ((args magit-buffer-log-args))
@@ -316,4 +319,20 @@ If no merge is in progress, do nothing."
 
 ;;; _
 (provide 'magit-merge)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
+;;   ("while-let"    . "cond-let--while-let")
+;;   ("match-string" . "match-string")
+;;   ("match-str"    . "match-string-no-properties"))
+;; End:
 ;;; magit-merge.el ends here

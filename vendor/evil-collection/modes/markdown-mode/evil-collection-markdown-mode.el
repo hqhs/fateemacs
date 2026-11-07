@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -42,9 +42,9 @@
     "{" 'markdown-backward-paragraph
     "}" 'markdown-forward-paragraph
     [tab] 'markdown-cycle
-    [S-tab] 'markdown-shifttab
-    ;; `evil-markdown' doesn't bind but spacemacs does.
-    (kbd "RET") 'markdown-do))
+    [S-tab] 'markdown-shifttab)
+  ;; `evil-markdown' doesn't bind but spacemacs does.
+  (evil-collection-bind 'markdown-mode-map 'action 'markdown-do))
 
 (provide 'evil-collection-markdown-mode)
 ;;; evil-collection-markdown-mode.el ends here

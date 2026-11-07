@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, dired, image, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -44,7 +44,6 @@
 
     (kbd "SPC") 'image-dired-display-next-thumbnail-original
     (kbd "S-SPC") 'image-dired-display-previous-thumbnail-original
-    (kbd "RET") 'image-dired-display-thumbnail-original-image
 
     "c" 'image-dired-comment-thumbnail
     "d" 'image-dired-thumbnail-set-image-description
@@ -63,12 +62,12 @@
 
     "ff" 'image-dired-line-up
     "fd" 'image-dired-line-up-dynamic
-    "fi" 'image-dired-line-up-interactive
-
-    ;; quit
-    "q" 'quit-window
-    "ZQ" 'evil-quit
-    "ZZ" 'quit-window))
+    "fi" 'image-dired-line-up-interactive)
+  (evil-collection-bind 'image-dired-thumbnail-mode-map
+                        'action 'image-dired-display-thumbnail-original-image
+                        'quit 'quit-window
+                        'quit-save 'quit-window
+                        'quit-cancel 'evil-quit))
 
 (provide 'evil-collection-image-dired)
 ;;; evil-collection-image-dired.el ends here

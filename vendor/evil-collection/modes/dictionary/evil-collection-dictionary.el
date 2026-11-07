@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, dictionary, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -44,8 +44,9 @@
     ;; mouse
     [mouse-1] 'link-selected
     ;; misc
-    "g?" 'dictionary-help ; normally under `h` which is rebound here
-    (kbd "C-o") 'dictionary-previous)) ; normally under `l` which is rebound here
+    (kbd "C-o") 'dictionary-previous) ; normally under `l` which is rebound here
+
+  (evil-collection-bind 'dictionary-mode-map 'describe-mode 'dictionary-help))
 
 (provide 'evil-collection-dictionary)
 ;;; evil-collection-dictionary.el ends here

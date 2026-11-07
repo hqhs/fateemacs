@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, p4, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -57,67 +57,65 @@
   (evil-set-initial-state 'p4-diff-mode-map 'normal)
   (evil-set-initial-state 'p4-annotate-mode-map 'normal)
 
+  (evil-collection-bind 'p4-basic-mode-map
+                        'quit 'quit-window
+                        'refresh 'revert-buffer
+                        'action 'p4-buffer-commands)
   (evil-collection-define-key 'normal 'p4-basic-mode-map
     [mouse-1] 'p4-buffer-mouse-clicked
     "k" 'evil-previous-line
     "j" 'evil-next-line
-    (kbd "C-j") 'p4-forward-active-link
-    (kbd "C-k") 'p4-backward-active-link
-    (kbd "RET") 'p4-buffer-commands
-    "q" 'quit-window
-    "gr" 'revert-buffer
-    "]]" 'p4-scroll-down-1-window
-    "[[" 'p4-scroll-up-1-window
     "gg" 'p4-top-of-buffer
     "G" 'p4-bottom-of-buffer
     "=" 'delete-other-windows)
+  (evil-collection-bind 'p4-basic-mode-map
+                        'next-section 'p4-scroll-down-1-window
+                        'prev-section 'p4-scroll-up-1-window
+                        'next-section-2 'p4-forward-active-link
+                        'prev-section-2 'p4-backward-active-link)
 
-  (evil-collection-define-key 'normal 'p4-basic-list-mode-map
-    (kbd "RET") 'p4-basic-list-activate)
+  (evil-collection-bind 'p4-basic-list-mode-map 'action 'p4-basic-list-activate)
 
   (evil-collection-define-key 'normal 'p4-opened-list-mode-map
     "R" 'p4-revert
     "T" 'p4-opened-list-type
     "C" 'p4-opened-list-change)
 
-  (evil-collection-define-key 'normal 'p4-status-list-mode-map
-    (kbd "RET") 'p4-status-list-activate)
+  (evil-collection-bind 'p4-status-list-mode-map 'action 'p4-status-list-activate)
+
+  (evil-collection-bind 'p4-filelog-mode-map 'find-file 'p4-find-file-other-window)
 
   (evil-collection-define-key 'normal 'p4-filelog-mode-map
     "d" 'p4-diff2
-    "gf" 'p4-find-file-other-window
     "S" 'p4-filelog-short-format
     "L" 'p4-filelog-long-format
     " " 'p4-scroll-up-1-window
     "gg" 'p4-top-of-buffer
     "G" 'p4-bottom-of-buffer
-    "=" 'p4-delete-other-windows
-    "]]" 'p4-goto-next-change
-    "[[" 'p4-goto-prev-change
-    (kbd "C-j") 'p4-goto-next-change
-    (kbd "C-k") 'p4-goto-prev-change)
+    "=" 'p4-delete-other-windows)
+  (evil-collection-bind 'p4-filelog-mode-map
+                        'next-section 'p4-goto-next-change
+                        'prev-section 'p4-goto-prev-change)
 
+  (evil-collection-bind 'p4-diff-mode-map 'action 'p4-buffer-commands)
   (evil-collection-define-key 'normal 'p4-diff-mode-map
-    "]]" 'diff-hunk-next
-    (kbd "C-j") 'diff-hunk-next
     (kbd "M-j") 'diff-file-next
-    "[[" 'diff-hunk-prev
-    (kbd "C-k") 'diff-hunk-prev
     (kbd "M-k") 'diff-file-prev
     "\t" 'diff-hunk-next
     [backtab] 'diff-hunk-prev
     "}" 'diff-file-next
     "{" 'diff-file-prev
-    "\C-m" 'p4-buffer-commands
     [mouse-2] 'p4-buffer-commands
     "gb" 'p4-buffer-commands)
+  (evil-collection-bind 'p4-diff-mode-map
+                        'next-section 'diff-hunk-next
+                        'prev-section 'diff-hunk-prev)
 
   (evil-collection-define-key 'normal 'p4-annotate-mode-map
-    "]]" 'p4-next-change-rev-line
-    "[[" 'p4-prev-change-rev-line
-    (kbd "C-j") 'p4-next-change-rev-line
-    (kbd "C-k") 'p4-prev-change-rev-line
-    "L" 'p4-toggle-line-wrap))
+    "L" 'p4-toggle-line-wrap)
+  (evil-collection-bind 'p4-annotate-mode-map
+                        'next-section 'p4-next-change-rev-line
+                        'prev-section 'p4-prev-change-rev-line))
 
 (provide 'evil-collection-p4)
 ;;; evil-collection-p4.el ends here

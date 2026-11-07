@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: emacs, evil, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -30,13 +30,13 @@
 (require 'evil-collection)
 (require 'kotlin-mode nil t)
 
-(defconst evil-collection-kotlin-maps '(kotlin-mode-map))
+(defconst evil-collection-kotlin-mode-maps '(kotlin-mode-map))
+
 
 ;;;###autoload
 (defun evil-collection-kotlin-mode-setup ()
   "Set up `evil' bindings for `kotlin-mode'."
-  (evil-collection-define-key 'normal 'kotlin-mode-map
-    "gz" 'kotlin-repl))
+  (evil-collection-bind 'kotlin-mode-map 'goto-repl 'kotlin-repl))
 
 (provide 'evil-collection-kotlin-mode)
 ;;; evil-collection-kotlin-mode.el ends here

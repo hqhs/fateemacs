@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, bm, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -38,16 +38,14 @@
   (evil-set-initial-state 'bm-show-mode 'normal)
 
   (evil-collection-define-key 'normal 'bm-show-mode-map
-    "q" 'bm-show-quit-window
-    "gr" 'revert-buffer
-    "g?" 'describe-mode
-
     "j" 'bm-show-next
-    "k" 'bm-show-prev
-
-    ;; open
-    (kbd "RET") 'bm-show-goto-bookmark
-    (kbd "S-<return>") 'bm-show-bookmark))
+    "k" 'bm-show-prev)
+  (evil-collection-bind 'bm-show-mode-map
+                        'action 'bm-show-goto-bookmark
+                        'action-other 'bm-show-bookmark
+                        'quit 'bm-show-quit-window
+                        'describe-mode 'describe-mode
+                        'refresh 'revert-buffer))
 
 
 (provide 'evil-collection-bm)

@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -37,28 +37,26 @@
 (defun evil-collection-deadgrep-setup ()
   "Set up `evil' bindings for deadgrep.."
   (evil-collection-define-key 'normal 'deadgrep-edit-mode-map
-    (kbd "RET") 'deadgrep-visit-result
     (kbd "<escape>") 'deadgrep-mode)
   (evil-collection-define-key 'normal 'deadgrep-mode-map
-    (kbd "RET") 'deadgrep-visit-result
-    (kbd "<S-return>") 'deadgrep-visit-result-other-window
-    "go" 'deadgrep-visit-result-other-window
-    "gr" 'deadgrep-restart
-    (kbd "C-j") 'deadgrep-forward
-    (kbd "C-k") 'deadgrep-backward
-    "gj" 'deadgrep-forward
-    "gk" 'deadgrep-backward
-    (kbd "TAB") 'deadgrep-toggle-file-results
-
-    "i" 'deadgrep-edit-mode
-
-    ;; FIXME: Maybe we should bind this to something?
-    ;; (define-key map (kbd "C-c C-k") #'deadgrep-kill-process)
-
-    ;; Quit
-    "q" 'quit-window
-    "ZZ" 'quit-window
-    "ZQ" 'evil-quit))
+    "i" 'deadgrep-edit-mode)
+  (evil-collection-define-push-action evil-collection-deadgrep-action
+                                      deadgrep-visit-result)
+  (evil-collection-bind 'deadgrep-mode-map
+                        'section-toggle 'deadgrep-toggle-file-results
+                        'action 'evil-collection-deadgrep-action
+                        'action-other 'deadgrep-visit-result-other-window
+                        'next-item 'deadgrep-forward
+                        'prev-item 'deadgrep-backward
+                        'next-section 'deadgrep-forward
+                        'prev-section 'deadgrep-backward
+                        'quit 'quit-window
+                        'quit-save 'quit-window
+                        'quit-cancel 'evil-quit
+                        'refresh 'deadgrep-restart
+                        'delete-2 'deadgrep-kill-process)
+  (evil-collection-bind 'deadgrep-edit-mode-map
+                        'action 'deadgrep-visit-result))
 
 (provide 'evil-collection-deadgrep)
 ;;; evil-collection-deadgrep.el ends here

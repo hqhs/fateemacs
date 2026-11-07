@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, tools, minimalist, presentation
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -38,12 +38,12 @@
 (defun evil-collection-zmusic-setup ()
   "Set up `evil' bindings for `zmusic'."
   (evil-collection-define-key 'normal 'zmusic-mode-map
-    (kbd "RET") 'zmusic/toggle-play
     "j" 'zmusic/next-beat
     "k" 'zmusic/previous-beat
     "h" 'zmusic/backward-degree
     "l" 'zmusic/forward-degree
-    "d" 'zmusic/kill-beat))
+    "d" 'zmusic/kill-beat)
+  (evil-collection-bind 'zmusic-mode-map 'action 'zmusic/toggle-play))
 
 (provide 'evil-collection-zmusic)
 ;;; evil-collection-zmusic.el ends here

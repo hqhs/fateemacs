@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "27.1"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, tab-bar, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -40,19 +40,18 @@
     ;; Movement
     "j" 'tab-switcher-next-line
     "k" 'tab-switcher-prev-line
-    "gj" 'tab-switcher-next-line
-    "gk" 'tab-switcher-prev-line
 
     ;; Mark
     "d" 'tab-switcher-delete
-    (kbd "RET") 'tab-switcher-select
     "u" 'tab-switcher-unmark
-    "x" 'tab-switcher-execute
-
-    ;; Quit
-    "q" 'quit-window
-    "ZZ" 'quit-window
-    "ZQ" 'quit-window))
+    "x" 'tab-switcher-execute)
+  (evil-collection-bind 'tab-switcher-mode-map
+                        'action 'tab-switcher-select
+                        'next-item 'tab-switcher-next-line
+                        'prev-item 'tab-switcher-prev-line
+                        'quit 'quit-window
+                        'quit-save 'quit-window
+                        'quit-cancel 'quit-window))
 
 (provide 'evil-collection-tab-bar)
 

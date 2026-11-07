@@ -1,9 +1,9 @@
 ;;; magit-clone.el --- Clone a repository  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2024 The Magit Project Contributors
+;; Copyright (C) 2008-2026 The Magit Project Contributors
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
+;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -43,9 +43,9 @@ If t, then set without asking.  If nil, then don't set.  If
 `ask', then ask."
   :package-version '(magit . "2.4.0")
   :group 'magit-commands
-  :type '(choice (const :tag "set" t)
-                 (const :tag "ask" ask)
-                 (const :tag "don't set" nil)))
+  :type '(choice (const :tag "Set" t)
+                 (const :tag "Ask" ask)
+                 (const :tag "Don't set" nil)))
 
 (defcustom magit-clone-default-directory nil
   "Default directory to use when `magit-clone' reads destination.
@@ -54,9 +54,9 @@ If a directory, then use that.  If a function, then call that
 with the remote url as only argument and use the returned value."
   :package-version '(magit . "2.90.0")
   :group 'magit-commands
-  :type '(choice (const     :tag "value of default-directory")
-                 (directory :tag "constant directory")
-                 (function  :tag "function's value")))
+  :type '(choice (const     :tag "Value of default-directory")
+                 (directory :tag "Constant directory")
+                 (function  :tag "Function's value")))
 
 (defcustom magit-clone-always-transient nil
   "Whether `magit-clone' always acts as a transient prefix command.
@@ -123,7 +123,7 @@ directory where the repository has been cloned."
 
 ;;; Commands
 
-;;;###autoload (autoload 'magit-clone "magit-clone" nil t)
+;;;###autoload(autoload 'magit-clone "magit-clone" nil t)
 (transient-define-prefix magit-clone (&optional transient)
   "Clone a repository."
   :man-page "git-clone"
@@ -135,9 +135,7 @@ directory where the repository has been cloned."
   ["Setup arguments"
    ("-o" "Set name of remote"     ("-o" "--origin="))
    ("-b" "Set HEAD branch"        ("-b" "--branch="))
-   (magit-clone:--filter
-    :if (lambda () (magit-git-version>= "2.17.0"))
-    :level 7)
+   (magit-clone:--filter :level 7)
    ("-g" "Separate git directory" "--separate-git-dir="
     transient-read-directory :level 7)
    ("-t" "Use template directory" "--template="
@@ -150,9 +148,7 @@ directory where the repository has been cloned."
    ("s" "shallow"            magit-clone-shallow)
    ("d" "shallow since date" magit-clone-shallow-since :level 7)
    ("e" "shallow excluding"  magit-clone-shallow-exclude :level 7)
-   (">" "sparse checkout"    magit-clone-sparse
-    :if (lambda () (magit-git-version>= "2.25.0"))
-    :level 6)
+   (">" "sparse checkout"    magit-clone-sparse :level 6)
    ("b" "bare"               magit-clone-bare)
    ("m" "mirror"             magit-clone-mirror)]
   (interactive (list (or magit-clone-always-transient current-prefix-arg)))
@@ -278,9 +274,6 @@ Then show the status buffer for the new repository."
              (unless magit-clone-set-remote-head
                (magit-remote-unset-head remote))))
          (when (and sparse checkout)
-           (when (magit-git-version< "2.25.0")
-             (user-error
-              "`git sparse-checkout' not available until Git v2.25"))
            (let ((default-directory directory))
              (magit-call-git "sparse-checkout" "init" "--cone")
              (magit-call-git "checkout" (magit-get-current-branch))))
@@ -315,19 +308,19 @@ Then show the status buffer for the new repository."
         (concat "file://"
                 (magit-convert-filename-for-git
                  (read-directory-name "Clone repository: file://"))))
-    (?b "or [b]undle"
+    (?b "[b]undle"
         (magit-convert-filename-for-git
          (read-file-name "Clone from bundle: ")))))
 
 (defun magit-clone--url-to-name (url)
   (and (string-match "\\([^/:]+?\\)\\(/?\\.git\\)?$" url)
-       (match-string 1 url)))
+       (match-str 1 url)))
 
 (defun magit-clone--name-to-url (name)
   (or (seq-some
        (pcase-lambda (`(,re ,host ,user))
          (and (string-match re name)
-              (let ((repo (match-string 1 name)))
+              (let ((repo (match-str 1 name)))
                 (magit-clone--format-url host user repo))))
        magit-clone-name-alist)
       (user-error "Not an url and no matching entry in `%s'"
@@ -343,16 +336,32 @@ Then show the status buffer for the new repository."
       (format-spec
        url-format
        `((?h . ,host)
-         (?n . ,(if (string-search "/" repo)
-                    repo
-                  (if (string-search "." user)
-                      (if-let ((user (magit-get user)))
-                          (concat user "/" repo)
-                        (user-error "Set %S or specify owner explicitly" user))
-                    (concat user "/" repo))))))
+         (?n . ,(cond
+                  ((string-search "/" repo) repo)
+                  ((string-search "." user)
+                   (if-let ((user (magit-get user)))
+                       (concat user "/" repo)
+                     (user-error "Set %S or specify owner explicitly" user)))
+                  ((concat user "/" repo))))))
     (user-error
      "Bogus `magit-clone-url-format' (bad type or missing default)")))
 
 ;;; _
 (provide 'magit-clone)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
+;;   ("while-let"    . "cond-let--while-let")
+;;   ("match-string" . "match-string")
+;;   ("match-str"    . "match-string-no-properties"))
+;; End:
 ;;; magit-clone.el ends here

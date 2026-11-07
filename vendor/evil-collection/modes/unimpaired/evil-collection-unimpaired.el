@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, unimpaired, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -53,13 +53,13 @@
   :group 'evil-collection-unimpaired)
 
 ;;;###autoload
-(define-global-minor-mode global-evil-collection-unimpaired-mode
-  evil-collection-unimpaired-mode evil-collection-unimpaired-mode-on
-  :group 'evil-collection-unimpaired)
+(define-globalized-minor-mode global-evil-collection-unimpaired-mode
+  evil-collection-unimpaired-mode evil-collection-unimpaired-mode-on)
 
 (defun evil-collection-unimpaired-mode-on ()
   "Turn on `evil-collection-unimpaired-mode'."
-  (evil-collection-unimpaired-mode 1))
+  (evil-collection-unimpaired-mode 1)
+  (evil-normalize-keymaps))
 
 (evil-define-motion evil-collection-unimpaired-next-error (count)
   "Go to next error."

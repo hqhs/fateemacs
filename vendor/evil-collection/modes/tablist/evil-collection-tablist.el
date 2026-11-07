@@ -2,7 +2,7 @@
 
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, tablist, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -35,32 +35,42 @@
 (defun evil-collection-tablist-setup ()
   "Set up `evil' bindings for `tablist'."
 
-  (evil-collection-define-key 'normal 'tablist-mode-map
-    (kbd "RET") 'tablist-find-entry
-    "d" 'tablist-flag-forward
-    "f" 'tablist-find-entry
-    "X" 'tablist-do-delete
-    "C" 'tablist-do-copy
-    "R" 'tablist-do-rename
-    "x" 'tablist-do-flagged-delete)
+  (let ((common-bindings
+         (list
+          "U"  'tablist-unmark-all-marks
+          "g%" tablist-mode-regexp-map
+          "g*" tablist-mode-mark-map
+          "g/" tablist-mode-filter-map
+          "m"  'tablist-mark-forward
+          "u"  'tablist-unmark-forward)))
 
-  (evil-collection-define-key 'normal 'tablist-minor-mode-map
-    "<"  'tablist-shrink-column
-    ">"  'tablist-enlarge-column
-    "U"  'tablist-unmark-all-marks
-    "\t" 'tablist-forward-column
-    "g%" tablist-mode-regexp-map
-    "g*" tablist-mode-mark-map
-    "g/" tablist-mode-filter-map
-    "gr" 'tablist-revert
-    "K"  'tablist-do-kill-lines
-    "m"  'tablist-mark-forward
-    "q"  'tablist-quit
-    "s"  'tablist-sort
-    "t"  'tablist-toggle-marks
-    "u"  'tablist-unmark-forward
-    (kbd "TAB") 'tablist-forward-column
-    [backtab] 'tablist-backward-column))
+    ;; "S" is only bound in the major mode: `tablist-minor-mode-map' takes
+    ;; precedence over the major mode map of the buffers enabling it.
+    (apply #'evil-collection-define-key 'normal 'tablist-mode-map
+           "f" 'tablist-find-entry
+           "S" 'tablist-sort
+           "X" 'tablist-do-delete
+           common-bindings)
+    (evil-collection-bind 'tablist-mode-map
+                          'mark 'tablist-mark-forward
+                          'toggle 'tablist-toggle-marks
+                          'toggle-all 'tablist-toggle-marks
+                          'unmark 'tablist-unmark-forward
+                          'unmark-all 'tablist-unmark-all-marks
+                          'mark-delete 'tablist-flag-forward
+                          'execute-marks 'tablist-do-flagged-delete
+                          'action 'tablist-find-entry
+                          'search-or-filter 'tablist-do-kill-lines)
+
+    (apply #'evil-collection-define-key 'normal 'tablist-minor-mode-map
+           common-bindings)
+    (evil-collection-bind 'tablist-mode-map 'refresh 'tablist-revert)
+    (evil-collection-bind 'tablist-minor-mode-map
+                          'quit 'tablist-quit
+                          'refresh 'tablist-revert
+                          'toggle 'tablist-toggle-marks
+                          'toggle-all 'tablist-toggle-marks
+                          'search-or-filter 'tablist-do-kill-lines)))
 
 (provide 'evil-collection-tablist)
 ;;; evil-collection-tablist.el ends here

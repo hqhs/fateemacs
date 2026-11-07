@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, outline, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -59,9 +59,9 @@ you can do:
   "Set up `evil' bindings for `outline'."
   (evil-set-initial-state 'outline-mode 'normal)
   (when evil-collection-outline-bind-tab-p
-    (evil-collection-define-key 'normal 'outline-mode-map
-      (kbd "<backtab>") 'outline-show-all ; Also "z r" by default
-      (kbd "<tab>") 'outline-toggle-children)) ; Also "z a" by default
+    (evil-collection-bind 'outline-mode-map
+                          'section-toggle 'outline-toggle-children ; Also "z a" by default
+                          'section-toggle-all 'outline-show-all)) ; Also "z r" by default
   (evil-collection-define-key 'normal 'outline-mode-map
     ;; folding
     ;; Evil default keys:
@@ -92,19 +92,19 @@ you can do:
     ;; TODO: To mark subtree ("C-c @"), we would need to define a tree object.
 
     ;; motion
-    "[[" 'outline-previous-visible-heading
-    "]]" 'outline-next-visible-heading
-    (kbd "C-k") 'outline-backward-same-level
-    (kbd "C-j") 'outline-forward-same-level
-    "gk" 'outline-backward-same-level
-    "gj" 'outline-forward-same-level
-
     (kbd "M-h") 'outline-promote ; Org-mode has "M-<left>", Evil-org has "M-h"
     (kbd "M-j") 'outline-move-subtree-down ; Org-mode has "M-<down>", Evil-org has "M-j"
     (kbd "M-k") 'outline-move-subtree-up ; Org-mode has "M-<up>", Evil-org has "M-k"
     (kbd "M-l") 'outline-demote ; Org-mode has "M-<right>", Evil-org has "M-l"
 
     (kbd "M-<return>") 'outline-insert-heading) ; Org-mode has "M-<return>"
+  (evil-collection-bind 'outline-mode-map
+                        'next-item 'outline-forward-same-level
+                        'prev-item 'outline-backward-same-level
+                        'next-section 'outline-next-visible-heading
+                        'prev-section 'outline-previous-visible-heading
+                        'next-section-2 'outline-forward-same-level
+                        'prev-section-2 'outline-backward-same-level)
 
   ;; Enable bindings in Outline minor mode if requested
   (when evil-collection-outline-enable-in-minor-mode-p

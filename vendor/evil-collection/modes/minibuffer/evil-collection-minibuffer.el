@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, minibuffer, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -34,6 +34,7 @@
                                             minibuffer-local-completion-map
                                             minibuffer-local-must-match-map
                                             minibuffer-local-isearch-map
+                                            evil-ex-search-keymap
                                             evil-ex-completion-map))
 
 (defun evil-collection-minibuffer-insert ()
@@ -70,9 +71,9 @@ it does not have a mode."
   (dolist (map evil-collection-minibuffer-maps)
     (evil-collection-define-key 'normal map "c" 'evil-collection-change-in-minibuffer)
     (evil-collection-define-key 'normal map (kbd "<escape>") 'abort-recursive-edit)
-    (evil-collection-define-key 'normal map (kbd "RET") 'exit-minibuffer))
+    (evil-collection-bind map 'action 'exit-minibuffer))
 
-  (add-hook 'minibuffer-setup-hook 'evil-collection-minibuffer-insert)
+  (add-hook 'minibuffer-setup-hook #'evil-collection-minibuffer-insert)
   ;; Because of the above minibuffer-setup-hook, some evil-ex bindings need be reset.
   (evil-collection-define-key 'normal 'evil-ex-completion-map (kbd "<escape>") 'abort-recursive-edit)
   (evil-collection-define-key 'insert 'evil-ex-completion-map (kbd "C-p") 'previous-complete-history-element)

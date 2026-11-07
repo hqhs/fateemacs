@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: emacs, evil, tools, robe
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -35,11 +35,11 @@
 ;;;###autoload
 (defun evil-collection-robe-setup ()
   "Set up `evil' bindings for `robe'."
-  (evil-collection-define-key 'normal 'robe-mode-map
-    "gd" 'robe-jump
-    (kbd "C-t") 'pop-tag-mark
-    "K" 'robe-doc
-    "gr" 'robe-rails-refresh))
+  (evil-collection-bind 'robe-mode-map
+                        'find-definition 'robe-jump
+                        'pop-definition 'pop-tag-mark
+                        'lookup-doc 'robe-doc
+                        'refresh 'robe-rails-refresh))
 
 (provide 'evil-collection-robe)
 ;;; evil-collection-robe.el ends here

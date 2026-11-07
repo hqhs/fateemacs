@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, helm, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -108,8 +108,8 @@
 ;;;###autoload
 (defun evil-collection-helm-setup ()
   "Set up `evil' bindings for `helm'."
-  (add-hook 'helm-minibuffer-set-up-hook 'evil-collection-helm-hide-minibuffer-maybe)
-  (setq helm-default-prompt-display-function 'evil-collection-helm--set-prompt-display)
+  (add-hook 'helm-minibuffer-set-up-hook #'evil-collection-helm-hide-minibuffer-maybe)
+  (setq helm-default-prompt-display-function #'evil-collection-helm--set-prompt-display)
   (custom-set-variables
    '(helm-minibuffer-history-key "M-p"))
 
@@ -177,9 +177,12 @@
     (kbd "RET") 'helm-maybe-exit-minibuffer
     (kbd "M-v") 'helm-previous-page
     (kbd "C-v") 'helm-next-page
-    (kbd "C-p") 'helm-previous-line
-    (kbd "C-n") 'helm-next-line
     (kbd "C-o") 'helm-next-source)
+  (evil-collection-bind 'helm-map
+                        'completion-previous 'helm-previous-line
+                        'completion-next     'helm-next-line
+                        'history-previous    'helm-previous-line
+                        'history-next        'helm-next-line)
 
   (when evil-want-C-u-scroll
     (evil-collection-define-key 'normal 'helm-map
@@ -191,10 +194,6 @@
 
   (evil-collection-define-key 'normal 'helm-map
     (kbd "<tab>") 'helm-select-action   ; TODO: Ivy has "ga".
-    (kbd "[[") 'helm-previous-source
-    (kbd "]]") 'helm-next-source
-    "gk" 'helm-previous-source
-    "gj" 'helm-next-source
     (kbd "(") 'helm-prev-visible-mark
     (kbd ")") 'helm-next-visible-mark
     "j" 'helm-next-line
@@ -204,13 +203,16 @@
 
     "/" 'helm-quit-and-find-file
 
-    ;; refresh
-    "gr" 'helm-refresh
-
     "yp" 'helm-yank-selection
     "yP" 'helm-copy-to-buffer
     "yy" 'helm-kill-selection-and-quit
     (kbd "SPC") 'helm-toggle-visible-mark)
+  (evil-collection-bind 'helm-map
+                        'next-item 'helm-next-source
+                        'prev-item 'helm-previous-source
+                        'next-section 'helm-next-source
+                        'prev-section 'helm-previous-source
+                        'refresh 'helm-refresh)
 
   (evil-collection-define-key 'normal 'helm-occur-mode-map
     (kbd "RET") 'helm-occur-mode-goto-line
@@ -218,10 +220,11 @@
     (kbd "M-n") 'helm-occur-mode-goto-line-ow-forward
     (kbd "M-p") 'helm-occur-mode-goto-line-ow-backward
     "go"        'helm-occur-mode-goto-line-ow
-    "gj"        'helm-occur-mode-goto-line-ow-forward
-    "gk"        'helm-occur-mode-goto-line-ow-backward
     (kbd "M-N") 'helm-gm-next-file
     (kbd "M-P") 'helm-gm-precedent-file)
+  (evil-collection-bind 'helm-occur-mode-map
+                        'next-item 'helm-occur-mode-goto-line-ow-forward
+                        'prev-item 'helm-occur-mode-goto-line-ow-backward)
 
   (evil-collection-define-key 'normal 'helm-grep-mode-map
     (kbd "RET") 'helm-grep-mode-jump
@@ -229,10 +232,11 @@
     (kbd "M-n") 'helm-grep-mode-jump-other-window-forward
     (kbd "M-p") 'helm-grep-mode-jump-other-window-backward
     "go"        'helm-grep-mode-jump-other-window
-    "gj"        'helm-grep-mode-jump-other-window-forward
-    "gk"        'helm-grep-mode-jump-other-window-backward
     (kbd "M-N") 'helm-gm-next-file
-    (kbd "M-P") 'helm-gm-precedent-file))
+    (kbd "M-P") 'helm-gm-precedent-file)
+  (evil-collection-bind 'helm-grep-mode-map
+                        'next-item 'helm-grep-mode-jump-other-window-forward
+                        'prev-item 'helm-grep-mode-jump-other-window-backward))
 
 (provide 'evil-collection-helm)
 ;;; evil-collection-helm.el ends here

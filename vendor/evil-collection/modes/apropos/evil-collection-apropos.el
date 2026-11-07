@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, help, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -36,17 +36,15 @@
 (defun evil-collection-apropos-setup ()
   "Set up `evil' bindings for `apropos'."
   (evil-set-initial-state 'apropos-mode 'normal)
-  (evil-collection-define-key 'normal 'apropos-mode-map
-    (kbd "RET") 'apropos-follow
-    (kbd "TAB") 'forward-button
-    (kbd "S-TAB") 'backward-button
-    "g?" 'describe-mode
-    "gr" 'revert-buffer
-
-    ;; quit
-    "q" 'quit-window
-    "ZQ" 'evil-quit
-    "ZZ" 'quit-window))
+  (evil-collection-bind 'apropos-mode-map
+                        'next-button 'forward-button
+                        'previous-button 'backward-button
+                        'action 'apropos-follow
+                        'quit 'quit-window
+                        'quit-save 'quit-window
+                        'quit-cancel 'evil-quit
+                        'describe-mode 'describe-mode
+                        'refresh 'revert-buffer))
 
 (provide 'evil-collection-apropos)
 ;;; evil-collection-apropos.el ends here

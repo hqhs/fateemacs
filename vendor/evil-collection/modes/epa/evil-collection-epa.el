@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, epa, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -38,34 +38,34 @@
 ;;;###autoload
 (defun evil-collection-epa-setup ()
   (evil-collection-define-key 'normal 'epa-key-list-mode-map
-    (kbd "<tab>") 'widget-forward
-    "gr" 'revert-buffer
-    "q" 'epa-exit-buffer
     "E" 'epa-decrypt-file
     "d" 'epa-delete-keys
-    "ZZ" 'quit-window
-    "ZQ" 'evil-quit
     "V" 'epa-verify-file
-
-    ;; mark
-    "m" 'epa-mark-key
-    "u" 'epa-unmark-key
 
     ;; Unchanged keybindings.
     "s" 'epa-sign-file
     "e" 'epa-encrypt-file
     "i" 'epa-import-keys
     "o" 'epa-export-keys)
+  (evil-collection-bind 'epa-key-list-mode-map
+                        'cycle-next 'widget-forward
+                        'cycle-previous 'widget-backward
+                        'mark 'epa-mark-key
+                        'unmark 'epa-unmark-key
+                        'quit 'epa-exit-buffer
+                        'quit-save 'quit-window
+                        'quit-cancel 'evil-quit
+                        'refresh 'revert-buffer)
 
-  (evil-collection-define-key 'normal 'epa-key-mode-map
-    "q" 'epa-exit-buffer
-    "ZZ" 'quit-window
-    "ZQ" 'evil-quit)
+  (evil-collection-bind 'epa-key-mode-map
+                        'quit 'epa-exit-buffer
+                        'quit-save 'quit-window
+                        'quit-cancel 'evil-quit)
 
-  (evil-collection-define-key 'normal 'epa-info-mode-map
-    "q" 'delete-window
-    "ZZ" 'quit-window
-    "ZQ" 'evil-quit))
+  (evil-collection-bind 'epa-info-mode-map
+                        'quit 'delete-window
+                        'quit-save 'quit-window
+                        'quit-cancel 'evil-quit))
 
 (provide 'evil-collection-epa)
 ;;; evil-collection-epa.el ends here

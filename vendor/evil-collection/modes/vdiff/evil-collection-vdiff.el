@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, vdiff, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -36,8 +36,8 @@
 ;;;###autoload
 (defun evil-collection-vdiff-setup ()
   "Set up `evil' bindings for `vdiff-mode'."
-  (add-hook 'vdiff-mode-hook 'evil-normalize-keymaps)
-  (add-hook 'vdiff-3way-mode-hook 'evil-normalize-keymaps)
+  (add-hook 'vdiff-mode-hook #'evil-normalize-keymaps)
+  (add-hook 'vdiff-3way-mode-hook #'evil-normalize-keymaps)
 
   (dolist (keymap evil-collection-vdiff-maps)
     (evil-collection-define-key 'normal keymap

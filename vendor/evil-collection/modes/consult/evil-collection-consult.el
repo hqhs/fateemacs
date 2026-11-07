@@ -1,13 +1,13 @@
 ;;; evil-collection-consult.el --- Evil bindings for consult -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017 James Nguyen
+;; Copyright (C) 2017, 2024 James Nguyen
 
 ;; Author: James Nguyen <james@jojojames.com>
 ;; Maintainer: James Nguyen <james@jojojames.com>
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, consult, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -30,14 +30,18 @@
 ;;
 ;; `consult-outline'
 ;; `consult-mark'
+;; `consult-global-mark'
 ;; `consult-imenu'
 ;; `consult-org-heading'
+;; `consult-org-agenda'
 ;; `consult-line'
 ;;
 ;; are all autoloaded, no (require 'consult nil t) is needed.
 
 ;;; Code:
 (require 'evil-collection)
+
+(defconst evil-collection-consult-maps nil)
 
 (defvar consult-line-numbers-widen)
 (declare-function consult--forbid-minibuffer "consult")
@@ -57,6 +61,7 @@
                  consult-global-mark
                  consult-imenu
                  consult-org-heading
+                 consult-org-agenda
                  consult-line))
     (evil-declare-not-repeat cmd)
     (evil-set-command-property cmd :jump t)))
@@ -76,7 +81,6 @@ as defined in `evil-collection-consult--evil-mark-ring'."
   (consult--forbid-minibuffer)
   (unless (evil-collection-consult--evil-mark-ring)
     (user-error "No marks"))
-  (consult--fontify-all)
   (let* ((candidates)
          (current-buf (current-buffer)))
     (save-excursion

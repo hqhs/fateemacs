@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, alchemist, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -55,60 +55,60 @@
   (evil-set-initial-state 'alchemist-test-mode 'normal)
   (evil-set-initial-state 'alchemist-test-report-mode 'normal)
 
-  (evil-collection-define-key 'normal 'alchemist-compile-mode-map
-    "q" 'quit-window)
+  (evil-collection-bind 'alchemist-compile-mode-map 'quit 'quit-window)
 
-  (evil-collection-define-key 'normal 'alchemist-eval-mode-map
-    "q" 'quit-window)
+  (evil-collection-bind 'alchemist-eval-mode-map 'quit 'quit-window)
 
-  (evil-collection-define-key 'normal 'alchemist-execute-mode-map
-    "q" 'quit-window)
+  (evil-collection-bind 'alchemist-execute-mode-map 'quit 'quit-window)
 
-  (evil-collection-define-key 'normal 'alchemist-message-mode-map
-    "q" 'quit-window)
+  (evil-collection-bind 'alchemist-message-mode-map 'quit 'quit-window)
 
   (evil-collection-define-key 'normal 'alchemist-help-minor-mode-map
-    "q" 'quit-window
-    "K" 'alchemist-help-search-at-point
     "m" 'alchemist-help-module
     "s" 'alchemist-help
-    "gh" 'alchemist-help-history
-    "gd" 'alchemist-goto-definition-at-point
-    "g?" 'alchemist-help-minor-mode-key-binding-summary)
+    "gh" 'alchemist-help-history)
+  (evil-collection-bind 'alchemist-help-minor-mode-map
+                        'quit 'quit-window
+                        'describe-mode 'alchemist-help-minor-mode-key-binding-summary
+                        'find-definition 'alchemist-goto-definition-at-point
+                        'lookup-doc 'alchemist-help-search-at-point)
 
-  (evil-collection-define-key 'normal 'alchemist-macroexpand-mode-map
-    "q" 'quit-window)
+  (evil-collection-bind 'alchemist-macroexpand-mode-map 'quit 'quit-window)
 
   (evil-collection-define-key 'normal 'alchemist-refcard-mode-map
-    "gd" 'alchemist-refcard--describe-funtion-at-point
-    "g?" 'alchemist-refcard--describe-funtion-at-point
-    "q" 'quit-window)
+    "gd" 'alchemist-refcard--describe-funtion-at-point)
+  (evil-collection-bind 'alchemist-refcard-mode-map
+                        'quit 'quit-window
+                        'describe-mode 'alchemist-refcard--describe-funtion-at-point)
 
   (evil-collection-define-key 'normal 'alchemist-mix-mode-map
-    "q" 'quit-window
-    "i" 'alchemist-mix-send-input-to-mix-process
-    "gr" 'alchemist-mix-rerun-last-task)
+    "i" 'alchemist-mix-send-input-to-mix-process)
+  (evil-collection-bind 'alchemist-mix-mode-map
+                        'quit 'quit-window
+                        'refresh 'alchemist-mix-rerun-last-task)
 
+  (evil-collection-bind 'alchemist-test-report-mode-map
+                        'next-item 'alchemist-test-next-result
+                        'prev-item 'alchemist-test-previous-result
+                        'next-section 'alchemist-test-next-stacktrace-file
+                        'prev-section 'alchemist-test-previous-stacktrace-file)
   (evil-collection-define-key 'normal 'alchemist-test-report-mode-map
-    "q" 'quit-window
-    "t" 'toggle-truncate-lines
-    "gr" 'alchemist-mix-rerun-last-test
-    "gj" 'alchemist-test-next-result
-    "gk" 'alchemist-test-previous-result
-    (kbd "C-j") 'alchemist-test-next-result
-    (kbd "C-k") 'alchemist-test-previous-result
-    "]]" 'alchemist-test-next-stacktrace-file
-    "[[" 'alchemist-test-previous-stacktrace-file
     (kbd "C-c C-k") 'alchemist-report-interrupt-current-process)
+  (evil-collection-bind 'alchemist-test-report-mode-map
+                        'next-section-2 'alchemist-test-next-result
+                        'prev-section-2 'alchemist-test-previous-result
+                        'quit 'quit-window
+                        'refresh 'alchemist-mix-rerun-last-test
+                        'toggle 'toggle-truncate-lines)
 
-  (evil-collection-define-key 'normal 'alchemist-mode-map
-    "gz" 'alchemist-iex-run
-    "K" 'alchemist-help-search-at-point
-    "gd" 'alchemist-goto-definition-at-point
-    (kbd "C-t") 'alchemist-goto-jump-back
-    "g?" 'alchemist-help
-    (kbd "C-j") 'alchemist-goto-jump-to-next-def-symbol
-    (kbd "C-k") 'alchemist-goto-jump-to-previous-def-symbol))
+  (evil-collection-bind 'alchemist-mode-map
+                        'next-section 'alchemist-goto-jump-to-next-def-symbol
+                        'prev-section 'alchemist-goto-jump-to-previous-def-symbol
+                        'find-definition 'alchemist-goto-definition-at-point
+                        'pop-definition 'alchemist-goto-jump-back
+                        'lookup-doc 'alchemist-help-search-at-point
+                        'goto-repl 'alchemist-iex-run
+                        'describe-mode 'alchemist-help))
 
 (provide 'evil-collection-alchemist)
 ;;; evil-collection-alchemist.el ends here

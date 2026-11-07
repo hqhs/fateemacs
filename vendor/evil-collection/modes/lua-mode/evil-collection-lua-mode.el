@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -42,9 +42,9 @@
   "Set up `evil' bindings for `lua-mode'."
   (add-hook 'lua-mode-hook #'evil-collection-lua-mode-set-evil-shift-width)
 
-  (evil-collection-define-key 'normal 'lua-mode-map
-    "K" 'lua-search-documentation
-    "gz" 'run-lua))
+  (evil-collection-bind 'lua-mode-map
+                        'lookup-doc 'lua-search-documentation
+                        'goto-repl 'run-lua))
 
 (provide 'evil-collection-lua-mode)
 ;;; evil-collection-lua-mode.el ends here

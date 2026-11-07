@@ -5,7 +5,7 @@
 ;; Maintainer: Joseph Turner <joseph@breatheoutbreathe.in>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, simple-mpc, processes, mpd
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -45,41 +45,35 @@ Other modes that are configured:
     "<" 'simple-mpc-prev
     "f" 'simple-mpc-seek-forward
     "b" 'simple-mpc-seek-backward
-    "s" 'simple-mpc-query
     "c" 'simple-mpc-view-current-playlist
     "l" 'simple-mpc-load-playlist
     "S" 'simple-mpc-shuffle-current-playlist
     "C" 'simple-mpc-clear-current-playlist
     "+" 'simple-mpc-increase-volume
-    "-" 'simple-mpc-decrease-volume
+    "-" 'simple-mpc-decrease-volume)
+  (evil-collection-bind 'simple-mpc-mode-map
+                        'quit 'simple-mpc-quit
+                        'quit-save 'simple-mpc-quit
+                        'quit-cancel 'simple-mpc-quit
+                        'search-or-filter 'simple-mpc-query)
 
-    "q" 'simple-mpc-quit
-    "ZQ" 'simple-mpc-quit
-    "ZZ" 'simple-mpc-quit)
-
-  (evil-collection-define-key 'normal 'simple-mpc-current-playlist-mode-map
-    "x" 'simple-mpc-delete
-    "d" 'simple-mpc-delete
-
-    "q" 'simple-mpc-current-playlist-quit
-    "ZQ" 'simple-mpc-current-playlist-quit
-    "ZZ" 'simple-mpc-current-playlist-quit
-
-    "<return>" 'simple-mpc-play-current-line
-    (kbd "RET") 'simple-mpc-play-current-line)
+  (evil-collection-bind 'simple-mpc-current-playlist-mode-map
+                        'quit 'simple-mpc-current-playlist-quit
+                        'quit-save 'simple-mpc-current-playlist-quit
+                        'quit-cancel 'simple-mpc-current-playlist-quit
+                        'action 'simple-mpc-play-current-line
+                        'delete 'simple-mpc-delete
+                        'delete-2 'simple-mpc-delete)
 
   (evil-collection-define-key 'normal 'simple-mpc-query-mode-map
-    "o" 'simple-mpc-query-sort
-
-    "q" 'simple-mpc-query-quit
-    "ZQ" 'simple-mpc-query-quit
-    "ZZ" 'simple-mpc-query-quit
-
-    "<S-return>" 'simple-mpc-query-add
-    (kbd "M-RET") 'simple-mpc-query-add
-
-    "<return>" 'simple-mpc-query-add-and-play
-    (kbd "RET") 'simple-mpc-query-add-and-play))
+    "o" 'simple-mpc-query-sort)
+  (evil-collection-bind 'simple-mpc-query-mode-map
+                        'quit 'simple-mpc-query-quit
+                        'quit-save 'simple-mpc-query-quit
+                        'quit-cancel 'simple-mpc-query-quit
+                        'action-other 'simple-mpc-query-add
+                        'action-stay 'simple-mpc-query-add
+                        'action 'simple-mpc-query-add-and-play))
 
 (defvar simple-mpc-main-buffer-name "*simple-mpc-main*")
 
@@ -114,9 +108,9 @@ Other modes that are configured:
 (defun evil-collection-simple-mpc-setup ()
   "Set up simple-mpc bindings and main view."
   (evil-collection-simple-mpc-set-bindings)
-  (add-hook 'simple-mpc-mode-hook 'evil-collection-simple-mpc-replace-main-view)
-  (add-hook 'simple-mpc-query-mode-hook 'evil-normalize-keymaps)
-  (add-hook 'simple-mpc-current-playlist-mode-hook 'evil-normalize-keymaps))
+  (add-hook 'simple-mpc-mode-hook #'evil-collection-simple-mpc-replace-main-view)
+  (add-hook 'simple-mpc-query-mode-hook #'evil-normalize-keymaps)
+  (add-hook 'simple-mpc-current-playlist-mode-hook #'evil-normalize-keymaps))
 
 (provide 'evil-collection-simple-mpc)
 ;;; evil-collection-simple-mpc.el ends here

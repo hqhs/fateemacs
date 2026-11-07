@@ -6,7 +6,7 @@
 ;; Maintainer: James Nguyen <james@jojojames.com>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, elisp, lisp
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -37,11 +37,11 @@
 ;;;###autoload
 (defun evil-collection-distel-setup ()
   "Set up `evil' bindings for `distel'."
-  (evil-collection-define-key 'normal 'erlang-extended-mode-map
-    "gd" 'erl-find-source-under-point
-    (kbd "C-t") 'erl-find-source-unwind
-    "gz" 'erl-ie-show-session
-    "K" 'erl-find-doc-under-point)
+  (evil-collection-bind 'erlang-extended-mode-map
+                        'find-definition 'erl-find-source-under-point
+                        'pop-definition 'erl-find-source-unwind
+                        'lookup-doc 'erl-find-doc-under-point
+                        'goto-repl 'erl-ie-show-session)
 
   (when evil-collection-setup-debugger-keys
     (evil-collection-define-key 'normal 'erlang-extended-mode-map
@@ -53,29 +53,29 @@
       ;; ("\C-c\C-dm" edb-monitor)
       )
 
-    (evil-collection-define-key 'normal 'edb-monitor-mode-map
-      (kbd "RET") 'edb-attach-command
-      "q" 'erl-bury-viewer)
+    (evil-collection-bind 'edb-monitor-mode-map
+                          'action 'edb-attach-command
+                          'quit 'erl-bury-viewer)
 
-    (evil-collection-define-key 'normal 'edb-variables-mode-map
-      (kbd "RET") 'edb-show-variable)
+    (evil-collection-bind 'edb-variables-mode-map 'action 'edb-show-variable)
 
     (evil-collection-define-key 'normal 'edb-attach-mode-map
-      "i" 'edb-attach-step ;; Step Into
-      "n" 'edb-attach-next
-      "c" 'edb-attach-continue
-      "U" 'edb-attach-up
-      "D" 'edb-attach-down
-      "H" 'edb-attach-finish
-      "q" 'erl-quit-viewer
-      "g?" 'edb-attach-help
-      "b" 'edb-toggle-breakpoint))
+      "H" 'edb-attach-finish)
+    (evil-collection-bind 'edb-attach-mode-map
+                          'quit 'erl-quit-viewer
+                          'describe-mode 'edb-attach-help))
 
-  (when evil-collection-want-find-usages-bindings
-    (evil-collection-define-key 'normal 'erlang-extended-mode-map
-      "gr" 'erl-who-calls))
+  (evil-collection-bind 'edb-attach-mode-map
+                        'debug-continue 'edb-attach-continue
+                        'debug-step-over 'edb-attach-next
+                        'debug-step-into 'edb-attach-step
+                        'debug-breakpoint 'edb-toggle-breakpoint
+                        'debug-frame-up 'edb-attach-up
+                        'debug-frame-down 'edb-attach-down)
 
-  (add-hook 'erlang-extended-mode-hook 'evil-normalize-keymaps))
+  (evil-collection-bind 'erlang-extended-mode-map 'find-usages 'erl-who-calls)
+
+  (add-hook 'erlang-extended-mode-hook #'evil-normalize-keymaps))
 
 (provide 'evil-collection-distel)
 ;;; evil-collection-distel.el ends here

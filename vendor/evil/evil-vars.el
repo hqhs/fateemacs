@@ -175,6 +175,7 @@ The number of columns by which a line is shifted.
 This applies to the shifting operators \\[evil-shift-right] and \
 \\[evil-shift-left]."
   :type 'integer
+  :safe #'integerp
   :group 'evil)
 
 (defcustom evil-shift-round t
@@ -197,7 +198,10 @@ value of `indent-tabs-mode'."
   "The default cursor.
 May be a cursor type as per `cursor-type', a color string as passed
 to `set-cursor-color', a zero-argument function for changing the
-cursor, or a list of the above."
+cursor, or a list of the above.
+
+nil is interpreted as t; if you want the nil `cursor-type' (i.e.,
+you want to disable the cursor), set this variable to (list nil)."
   :type '(set symbol (cons symbol symbol) string function)
   :group 'evil)
 
@@ -558,11 +562,11 @@ ubiquity of prefix arguments."
            (cond
             ((and (not value)
                   (eq (lookup-key evil-command-line-map (kbd "C-w"))
-                      #'backward-kill-word))
+                      'evil-delete-backward-word))
              (define-key evil-command-line-map (kbd "C-w") nil))
             ((and value
                   (null (lookup-key evil-command-line-map (kbd "C-w"))))
-             (define-key evil-command-line-map (kbd "C-w") #'backward-kill-word))))
+             (define-key evil-command-line-map (kbd "C-w") 'evil-delete-backward-word))))
          (when (boundp 'evil-ex-search-keymap)
            (cond
             ((and (not value)
@@ -1738,6 +1742,16 @@ instead of `buffer-undo-list'.")
 
 (evil-define-local-var evil-visual-selection nil
   "The kind of Visual selection.
+This is a selection as defined by `evil-define-visual-selection'.")
+
+(evil-define-local-var evil-prev-visual-point nil
+  "The previous position of point in Visual state, a marker.")
+
+(evil-define-local-var evil-prev-visual-mark nil
+  "The previous position of mark in Visual state, a marker.")
+
+(evil-define-local-var evil-prev-visual-selection nil
+  "The previous kind of Visual selection.
 This is a selection as defined by `evil-define-visual-selection'.")
 
 ;; we could infer the direction by comparing `evil-visual-mark'

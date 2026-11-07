@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, debbugs, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -37,18 +37,14 @@
   "Set up `evil' bindings for `debbugs-gnu-mode'."
   (evil-set-initial-state 'debbugs-gnu-mode 'normal)
 
+  (evil-collection-bind 'debbugs-gnu-mode-map
+                        'next-button 'forward-button
+                        'previous-button 'backward-button)
   (evil-collection-define-key 'normal 'debbugs-gnu-mode-map
-    ;; motion
-    (kbd "<tab>") 'forward-button
-    (kbd "<backtab>") 'backward-button
-    (kbd "SPC") 'scroll-up-command
-
-    (kbd "RET") 'debbugs-gnu-select-report
     "c" 'debbugs-gnu-send-control-message
     "d" 'debbugs-gnu-display-status
 
     ;; filter
-    "s" 'debbugs-gnu-narrow-to-status
     "S" 'debbugs-gnu-search
     ;; "S" 'debbugs-gnu-widen ; Useless if we can just press "s RET" (empty filter).
     "x" 'debbugs-gnu-toggle-suppress
@@ -65,17 +61,17 @@
     ;; mark
     "m" 'debbugs-gnu-toggle-tag
 
-    ;; refresh
-    "gr" 'debbugs-gnu-rescan
-
-    "g?" 'debbugs-gnu-manual
     "gt" 'debbugs-gnu-view-bug-triage
-    "g#" 'debbugs-gnu-bugs
-
-    ;; quit
-    "q" 'quit-window
-    "ZQ" 'quit-window
-    "ZZ" 'quit-window))
+    "g#" 'debbugs-gnu-bugs)
+  (evil-collection-bind 'debbugs-gnu-mode-map
+                        'scroll-down 'scroll-up-command
+                        'action 'debbugs-gnu-select-report
+                        'quit 'quit-window
+                        'quit-save 'quit-window
+                        'quit-cancel 'quit-window
+                        'describe-mode 'debbugs-gnu-manual
+                        'refresh 'debbugs-gnu-rescan
+                        'search-or-filter 'debbugs-gnu-narrow-to-status))
 
 (provide 'evil-collection-debbugs)
 ;;; evil-collection-debbugs.el ends here

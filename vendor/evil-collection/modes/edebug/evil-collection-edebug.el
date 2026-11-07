@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, edebug, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -51,29 +51,23 @@
   ;; `lispyville' and `edebug' 's' key?
   (evil-collection-define-key 'normal 'edebug-mode-map
     ;; control
-    "s" 'edebug-step-mode
-    "n" 'edebug-next-mode
+    "gs" 'edebug-step-mode
     "go" 'edebug-go-mode
     "gO" 'edebug-Go-nonstop-mode
     "t" 'edebug-trace-mode
     "T" 'edebug-Trace-fast-mode
-    "c" 'edebug-continue-mode
     "C" 'edebug-Continue-fast-mode
 
     "f" 'edebug-forward-sexp
     "H" 'edebug-goto-here
     "I" 'edebug-instrument-callee
-    "i" 'edebug-step-in
-    "o" 'edebug-step-out
 
     ;; quit
-    "q" 'top-level
     "Q" 'edebug-top-level-nonstop
     "a" 'abort-recursive-edit
     "S" 'edebug-stop
 
     ;; breakpoints
-    "b" 'edebug-set-breakpoint
     "u" 'edebug-unset-breakpoint
     "B" 'edebug-next-breakpoint
     "x" 'edebug-set-conditional-breakpoint
@@ -81,7 +75,6 @@
 
     ;; evaluation
     "r" 'edebug-previous-result
-    "e" 'edebug-eval-expression
     (kbd "C-x C-e") 'edebug-eval-last-sexp
     "EL" 'edebug-visit-eval-list
 
@@ -92,7 +85,6 @@
     "WS" 'edebug-toggle-save-windows
 
     ;; misc
-    "g?" 'edebug-help
     "d" 'edebug-backtrace
 
     "-" 'negative-argument
@@ -109,18 +101,30 @@
     (kbd "C-c C-d") 'edebug-unset-breakpoint
     (kbd "C-c C-t") (lambda () (interactive) (edebug-set-breakpoint t))
     (kbd "C-c C-l") 'edebug-where)
+  (evil-collection-bind 'edebug-mode-map
+                        'quit 'top-level
+                        'describe-mode 'edebug-help
+                        'debug-continue 'edebug-continue-mode
+                        'debug-step-over 'edebug-next-mode
+                        'debug-step-into 'edebug-step-in
+                        'debug-step-out 'edebug-step-out
+                        'debug-breakpoint 'edebug-set-breakpoint
+                        'debug-eval 'edebug-eval-expression)
 
   (with-eval-after-load 'edebug-x
     (evil-collection-define-key 'normal 'edebug-x-instrumented-function-list-mode-map
       "E" 'edebug-x-evaluate-function
-      "Q" 'edebug-x-clear-data
-      (kbd "RET") 'edebug-x-find-function
-      "q" 'quit-window)
+      "Q" 'edebug-x-clear-data)
+    (evil-collection-bind 'edebug-x-instrumented-function-list-mode-map
+                          'quit 'quit-window
+                          'action 'edebug-x-find-function)
     (evil-collection-define-key 'normal 'edebug-x-breakpoint-list-mode-map
-      (kbd "RET") 'edebug-x-visit-breakpoint
-      "x" 'edebug-x-kill-breakpoint
-      "Q" 'edebug-x-clear-data
-      "q" 'quit-window)))
+      "Q" 'edebug-x-clear-data)
+    (evil-collection-bind 'edebug-x-breakpoint-list-mode-map
+                          'quit 'quit-window
+                          'action 'edebug-x-visit-breakpoint
+                          'delete 'edebug-x-kill-breakpoint
+                          'delete-2 'edebug-x-kill-breakpoint)))
 
 (provide 'evil-collection-edebug)
 ;;; evil-collection-edebug.el ends here

@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, bookmark, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -49,11 +49,8 @@
     "^" 'image-bol
     "$" 'image-eol
     (kbd "C-d") 'image-scroll-up
-    (kbd "SPC") 'image-scroll-up
-    (kbd "S-SPC") 'image-scroll-down
     (kbd "<delete>") 'image-scroll-down
     ;; animation
-    (kbd "RET") 'image-toggle-animation
     "a0" 'image-reset-speed
     "ar" 'image-reverse-speed
     "F" 'image-goto-frame
@@ -66,23 +63,20 @@
     "H" 'image-transform-fit-to-height
     "W" 'image-transform-fit-to-width
 
-    "+" 'image-increase-size
-    "=" 'image-increase-size
-    "-" 'image-decrease-size
-
-    "[[" 'image-previous-file
-    "]]" 'image-next-file
-    "gk" 'image-previous-file
-    "gj" 'image-next-file
-    (kbd "C-k") 'image-previous-file
-    (kbd "C-j") 'image-next-file
-
-    (kbd "C-c C-c") 'image-toggle-display
-
-    ;; quit
-    "q" 'quit-window
-    "ZQ" 'evil-quit
-    "ZZ" 'quit-window)
+    (kbd "C-c C-c") 'image-toggle-display)
+  (evil-collection-bind 'image-mode-map
+                        'zoom-in 'image-increase-size
+                        'zoom-out 'image-decrease-size
+                        'scroll-down 'image-scroll-up
+                        'scroll-up 'image-scroll-down
+                        'action 'image-toggle-animation
+                        'next-item 'image-next-file
+                        'prev-item 'image-previous-file
+                        'next-section 'image-next-file
+                        'prev-section 'image-previous-file
+                        'quit 'quit-window
+                        'quit-save 'quit-window
+                        'quit-cancel 'evil-quit)
 
   ;; TODO: What if the user changes `evil-want-C-u-scroll' after this is run?
   (when evil-want-C-u-scroll

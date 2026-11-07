@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, calendar, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -80,8 +80,6 @@
     "0" 'calendar-beginning-of-week
     "^" 'calendar-beginning-of-week
     "$" 'calendar-end-of-week
-    "[[" 'calendar-backward-year
-    "]]" 'calendar-forward-year
     (kbd "M-<") 'calendar-beginning-of-year
     (kbd "M->") 'calendar-end-of-year
     "(" 'calendar-beginning-of-month
@@ -95,10 +93,6 @@
     (kbd "C-f") 'calendar-scroll-left-three-months
     "{" 'calendar-backward-month
     "}" 'calendar-forward-month
-    (kbd "C-k") 'calendar-backward-month
-    (kbd "C-j") 'calendar-forward-month
-    "gk" 'calendar-backward-month
-    "gj" 'calendar-forward-month
 
     ;; visual
     "v" 'calendar-set-mark
@@ -106,7 +100,6 @@
     ;; goto
     "." 'calendar-goto-today
     "o" 'calendar-other-month
-    "gd" 'calendar-goto-date ; "gd" in evil-org-agenda, "gd" in Emacs.
     "gD" 'calendar-other-month
 
     ;; diary
@@ -130,17 +123,21 @@
     "a" 'calendar-list-holidays
     "r" 'calendar-cursor-holidays
 
-    ;; refresh
-    "gr" 'calendar-redraw
-
-    "g?" 'calendar-goto-info-node
     "?" 'calendar-goto-info-node ; Search is not very useful.
-    (kbd "M-=") 'calendar-count-days-region
-
-    ;; quit
-    "q" 'calendar-exit
-    "ZQ" 'evil-quit
-    "ZZ" 'calendar-exit))
+    (kbd "M-=") 'calendar-count-days-region)
+  (evil-collection-bind 'calendar-mode-map
+                        'next-item 'calendar-forward-month
+                        'prev-item 'calendar-backward-month
+                        'next-section 'calendar-forward-year
+                        'prev-section 'calendar-backward-year
+                        'next-section-2 'calendar-forward-month
+                        'prev-section-2 'calendar-backward-month
+                        'quit 'calendar-exit
+                        'quit-save 'calendar-exit
+                        'quit-cancel 'evil-quit
+                        'refresh 'calendar-redraw
+                        'find-definition 'calendar-goto-date
+                        'describe-mode 'calendar-goto-info-node))
 
 (provide 'evil-collection-calendar)
 ;;; evil-collection-calendar.el ends here

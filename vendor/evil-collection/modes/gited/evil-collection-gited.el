@@ -6,7 +6,7 @@
 ;; Maintainer: Earl Hyatt <okamsn@protonmail.com>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3") (evil "1.2") (gited "0.6"))
+;; Package-Requires: ((emacs "29.1") (evil "1.2") (gited "0.6"))
 ;; Keywords: evil, git, tools, vc
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -37,10 +37,18 @@
 (defun evil-collection-gited-setup ()
   "Set up `evil' bindings for `gited'."
   (evil-collection-set-readonly-bindings 'gited-mode-map)
+  (evil-collection-bind 'gited-mode-map
+                        'rename 'gited-rename-branch
+                        'next-item 'gited-next-marked-branch
+                        'prev-item 'gited-prev-marked-branch
+                        'next-section 'gited-next-marked-branch
+                        'prev-section 'gited-prev-marked-branch
+                        'describe-mode 'gited-summary
+                        'refresh 'gited-update
+                        'jump 'gited-goto-branch)
+
   (evil-collection-define-key 'normal 'gited-mode-map
-    "g?" 'gited-summary
     "(" 'gited-hide-details-mode
-    "gr" 'gited-update
     (kbd "C-c C-c") 'gited-commit
     (kbd "C-c C-b") 'gited-list-branches
 
@@ -51,19 +59,14 @@
     (kbd "M-}") 'gited-next-marked-branch
     "G" 'gited-goto-last-branch
     "gg" 'gited-goto-first-branch
-    "gj" 'gited-next-marked-branch
-    "gk" 'gited-prev-marked-branch
     "gl" 'tabulated-list-next-column
     "gh" 'tabulated-list-previous-column
-    "]]" 'gited-next-marked-branch
-    "[[" 'gited-prev-marked-branch
     "<" 'gited-prev-marked-branch
     ">" 'gited-next-marked-branch
     " " 'gited-next-line
     [?\S-\ ] 'gited-prev-line
     [remap next-line] 'gited-next-line
     [remap previous-line] 'gited-prev-line
-    "J" 'gited-goto-branch
 
     "gA" 'gited-move-to-end-of-author
     "ga" 'gited-move-to-author
@@ -79,7 +82,6 @@
     "B" 'gited-bisect
     "C" 'gited-copy-branch
     "c" 'gited-checkout-branch
-    "d" 'gited-flag-branch-deletion
     "e" 'gited-extract-patches
     "F" 'gited-pull ; Similar to Magit binding. Don't conflict with "f".
     "gR" 'gited-change-current-remote-rep
@@ -87,7 +89,6 @@
     "gs" 'gited-status             ; These "g"-prefixed operations open
     "gL" 'gited-log                ; new windows.
     "gN" 'gited-log-last-n-commits ;
-    "gO" 'gited-origin             ; Use "go" to visit branch source.
     "gc" 'gited-show-commit        ;
 
     "M" 'gited-merge-branch
@@ -95,7 +96,6 @@
     "o" 'tabulated-list-sort
     "P" 'gited-push                ; Only branches.
     "p" 'gited-set-object-upstream ; Pushes branches and tags.
-    "R" 'gited-rename-branch
     "r" 'gited-reset-branch
     "s" nil                ; Don't conflict with `tabulated-list-sort' on "S".
     "ss" 'gited-stash
@@ -106,14 +106,9 @@
     "sd" 'gited-stash-drop
     "Y" 'gited-copy-branchname-as-kill
 
-    (kbd "RET") 'gited-visit-branch-sources
-    "go" 'gited-visit-branch-sources
-
     ;; Operations on Marked and Flagged Branches/Tags
     "D" 'gited-do-delete
-    "K" 'gited-do-kill-lines
     "T" 'gited-do-sync-with-trunk
-    "x" 'gited-do-flagged-delete
 
     ;; Marks
     "*" nil
@@ -129,11 +124,6 @@
     "*l" 'gited-mark-local-tags
     "*N" 'gited-number-marked
 
-    "U" 'gited-unmark-all-marks
-    "m" 'gited-mark
-    "t" 'gited-toggle-marks
-    "~" 'gited-toggle-marks
-    "u" 'gited-unmark
     (kbd "<delete>") 'gited-unmark-backward
 
     ;; Searching for marks
@@ -151,7 +141,19 @@
     (kbd "C-t a") 'gited-tag-add
     (kbd "C-t d") 'gited-tag-delete
     (kbd "C-t D") 'gited-remote-tag-delete
-    (kbd "C-t F") 'gited-fetch-remote-tags))
+    (kbd "C-t F") 'gited-fetch-remote-tags)
+  (evil-collection-bind 'gited-mode-map
+                        'mark 'gited-mark
+                        'unmark 'gited-unmark
+                        'unmark-all 'gited-unmark-all-marks
+                        'toggle 'gited-toggle-marks
+                        'toggle-all 'gited-toggle-marks
+                        'mark-delete 'gited-flag-branch-deletion
+                        'execute-marks 'gited-do-flagged-delete
+                        'action 'gited-visit-branch-sources
+                        'action-other 'gited-visit-branch-sources
+                        'action-stay 'gited-origin
+                        'search-or-filter 'gited-do-kill-lines))
 
 (provide 'evil-collection-gited)
 ;;; evil-collection-gited.el ends here

@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, process, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -36,19 +36,18 @@
   "Set up `evil' bindings for `list-processes'."
   (evil-collection-set-readonly-bindings 'process-menu-mode-map)
   (evil-collection-define-key 'normal 'process-menu-mode-map
-    (kbd "<tab>") 'forward-button
-    (kbd "<backtab>") 'backward-button
+    "S" 'tabulated-list-sort)
 
-    "S" 'tabulated-list-sort
-    "D" 'process-menu-delete-process
-
-    ;; motion
-    ;; TODO: Implement beginning-of-buffer / end-of-buffer.
-    (kbd "SPC") 'evil-scroll-down
-    (kbd "S-SPC") 'evil-scroll-up
-
-    ;; refresh
-    "gr" 'revert-buffer))
+  ;; motion
+  ;; TODO: Implement beginning-of-buffer / end-of-buffer.
+  (evil-collection-bind 'process-menu-mode-map
+                        'next-button 'forward-button
+                        'previous-button 'backward-button
+                        'scroll-down 'evil-scroll-down
+                        'scroll-up 'evil-scroll-up
+                        'refresh 'revert-buffer
+                        'delete 'process-menu-delete-process
+                        'delete-2 'process-menu-delete-process))
 
 (provide 'evil-collection-process-menu)
 ;;; evil-collection-process-menu.el ends here

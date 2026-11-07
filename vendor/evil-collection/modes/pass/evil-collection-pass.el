@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, pass, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -32,7 +32,7 @@
 
 (defvar pass-mode-map)
 
-(declare-function "pass--display-keybinding" "pass")
+(declare-function pass--display-keybinding "pass")
 
 (defconst evil-collection-pass-maps '(pass-mode-map))
 
@@ -63,40 +63,40 @@ keybindings listed in `evil-collection-pass-command-to-label'."
 (defun evil-collection-pass-setup ()
   "Set up `evil' bindings for `pass-mode'."
 
+  (evil-collection-bind 'pass-mode-map 'rename 'pass-rename)
+
+  ;; https://github.com/NicolasPetton/pass/pull/47
+  (when (fboundp 'pass-edit)
+    (evil-collection-bind 'pass-mode-map 'edit 'pass-edit))
+
   (advice-add 'pass--display-keybinding
-              :around 'evil-collection-pass-display-keybinding)
+              :around #'evil-collection-pass-display-keybinding)
 
   (evil-collection-define-operator-key 'yank 'pass-mode-map
     "f" 'pass-copy-field
     "n" 'pass-copy-username
     "u" 'pass-copy-url)
 
-  ;; https://github.com/NicolasPetton/pass/pull/47
-  (when (fboundp 'pass-edit)
-    (evil-collection-define-key 'normal 'pass-mode-map
-      "E" 'pass-edit))
-
   (evil-collection-define-key 'normal 'pass-mode-map
-    "gj" 'pass-next-entry
-    "gk" 'pass-prev-entry
-    (kbd "C-j") 'pass-next-entry
-    (kbd "C-k") 'pass-prev-entry
-    (kbd "]]") 'pass-next-directory
-    (kbd "[[") 'pass-prev-directory
-    "d" 'pass-kill
-    "x" 'pass-kill
-    "s" 'isearch-forward
-    "J" 'pass-goto-entry
-    "g?" 'describe-mode
-    "gr" 'pass-update-buffer
     "i" 'pass-insert
     "I" 'pass-insert-generated
     "Y" 'pass-copy
-    "r" 'pass-rename
-    "R" 'pass-rename
-    "o" 'pass-otp-options
-    (kbd "RET") 'pass-view
-    "q" 'pass-quit))
+    "o" 'pass-otp-options)
+  (evil-collection-bind 'pass-mode-map
+                        'next-item 'pass-next-entry
+                        'prev-item 'pass-prev-entry
+                        'next-section 'pass-next-directory
+                        'prev-section 'pass-prev-directory
+                        'next-section-2 'pass-next-entry
+                        'prev-section-2 'pass-prev-entry
+                        'jump 'pass-goto-entry
+                        'action 'pass-view
+                        'quit 'pass-quit
+                        'describe-mode 'describe-mode
+                        'refresh 'pass-update-buffer
+                        'search-or-filter 'isearch-forward
+                        'delete 'pass-kill
+                        'delete-2 'pass-kill))
 
 (provide 'evil-collection-pass)
 ;;; evil-collection-pass.el ends here

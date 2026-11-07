@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: emacs, tools, evil
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -30,16 +30,32 @@
 (require 'notmuch nil t)
 (require 'evil-collection)
 
+(defcustom evil-collection-notmuch-delete-tag "deleted"
+  "Tag toggled by the delete bindings (`d') in notmuch modes.
+
+Defaults to \"deleted\" for backwards compatibility with the self-hosted
+notmuch convention where a cron job removes files matching `tag:deleted'.
+
+Set to \"trash\" when syncing with services that map a Trash tag/label
+back to the server (e.g. lieer/Gmail's TRASH label, or an IMAP setup
+that moves trashed messages out of the inbox)."
+  :type 'string
+  :group 'evil-collection-notmuch)
+
 (declare-function notmuch-show-get-tags "notmuch-show")
 (declare-function notmuch-show-tag "notmuch-show")
 (declare-function notmuch-search-get-tags "notmuch")
 (declare-function notmuch-search-tag "notmuch")
 (declare-function notmuch-tree-tag "notmuch-tree")
 
+(declare-function widget-field-at "wid-edit")
+(declare-function widget-field-activate "wid-edit")
+(declare-function widget-button-press "wid-edit")
+
 ;; Since all the other maps in `evil-collection-notmuch-maps`
 ;; have notmuch-common-keymap as parent
 ;; https://git.notmuchmail.org/git?p=notmuch;a=blob;f=emacs/notmuch-hello.el;h=fa31694ff0f79a7f2781849394390a673f75aade;hb=HEAD#l651
-;; 
+;;
 ;; When `evil-collection-setup-hook` runs, if it changes keymaps
 ;; using a `dolist` over `evil-collection-notmuch-maps`, then a binding might
 ;; see 2 changes at once. To avoid that, notmuch-common-keymap is last
@@ -62,19 +78,19 @@
     (funcall next)))
 
 (defun evil-collection-notmuch-show-toggle-delete ()
-  "Toggle deleted tag for message."
+  "Toggle `evil-collection-notmuch-delete-tag' for message."
   (interactive)
-  (evil-collection-notmuch-toggle-tag "deleted" "show"))
+  (evil-collection-notmuch-toggle-tag evil-collection-notmuch-delete-tag "show"))
 
 (defun evil-collection-notmuch-tree-toggle-delete ()
-  "Toggle deleted tag for message."
+  "Toggle `evil-collection-notmuch-delete-tag' for message."
   (interactive)
-  (evil-collection-notmuch-toggle-tag "deleted" "tree"))
+  (evil-collection-notmuch-toggle-tag evil-collection-notmuch-delete-tag "tree"))
 
 (defun evil-collection-notmuch-search-toggle-delete ()
-  "Toggle deleted tag for message."
+  "Toggle `evil-collection-notmuch-delete-tag' for message."
   (interactive)
-  (evil-collection-notmuch-toggle-tag "deleted" "search" 'notmuch-search-next-thread))
+  (evil-collection-notmuch-toggle-tag evil-collection-notmuch-delete-tag "search" 'notmuch-search-next-thread))
 
 (defun evil-collection-notmuch-tree-toggle-unread ()
   "Toggle unread tag for message."
@@ -103,8 +119,9 @@
 
 (defun evil-collection-notmuch-hello-ret ()
   (interactive)
-  (evil-execute-in-emacs-state)
-  (call-interactively (key-binding (kbd "RET"))))
+  (if (widget-field-at (point))
+      (call-interactively #'widget-field-activate)
+    (call-interactively #'widget-button-press)))
 
 ;;;###autoload
 (defun evil-collection-notmuch-setup ()
@@ -118,27 +135,26 @@
   (evil-set-initial-state 'notmuch-hello-mode 'normal)
   (evil-set-initial-state 'notmuch-tree-mode 'normal)
 
+  (evil-collection-bind 'notmuch-common-keymap 'describe-mode 'notmuch-help)
+
   (evil-collection-define-key 'normal 'notmuch-common-keymap
-    "g?" 'notmuch-help
-    "q" 'notmuch-bury-or-kill-this-buffer
-    "s" 'notmuch-search
     "S" 'notmuch-tree
     "C" 'notmuch-mua-new-mail           ; like mu4e
     "cc" 'notmuch-mua-new-mail          ; like mu4e
-    "gr" 'notmuch-refresh-this-buffer
-    "gA" 'notmuch-refresh-all-buffers
-    "gR" 'notmuch-poll-and-refresh-this-buffer
-    "J" 'notmuch-jump-search)
-
-  (evil-collection-define-key 'normal 'notmuch-hello-mode-map
-    "g?" 'notmuch-version
-    (kbd "TAB") 'widget-forward
-    (kbd "RET") 'evil-collection-notmuch-hello-ret
-    (kbd "S-TAB") 'widget-backward
-    (kbd "<C-tab>") 'widget-backward)
+    "gA" 'notmuch-refresh-all-buffers)
+  (evil-collection-bind 'notmuch-common-keymap
+                        'quit 'notmuch-bury-or-kill-this-buffer
+                        'refresh 'notmuch-refresh-this-buffer
+                        'refresh-all 'notmuch-poll-and-refresh-this-buffer
+                        'jump 'notmuch-jump-search
+                        'search-or-filter 'notmuch-search)
+  (evil-collection-bind 'notmuch-hello-mode-map
+                        'describe-mode 'notmuch-version
+                        'cycle-next 'widget-forward
+                        'cycle-previous 'widget-backward
+                        'action 'evil-collection-notmuch-hello-ret)
 
   (evil-collection-define-key 'normal 'notmuch-show-mode-map
-    "gd" 'goto-address-at-point
     "p" 'notmuch-show-save-attachments  ; like mu4e
     "A" 'notmuch-show-archive-thread-then-next
     "S" 'notmuch-show-filter-thread
@@ -154,12 +170,6 @@
     "d" 'evil-collection-notmuch-show-toggle-delete
     "=" 'evil-collection-notmuch-show-toggle-flagged
     "H" 'notmuch-show-toggle-visibility-headers
-    "gj" 'notmuch-show-next-open-message
-    "gk" 'notmuch-show-previous-open-message
-    "]]" 'notmuch-show-next-message
-    "[[" 'notmuch-show-previous-message
-    (kbd "C-j") 'notmuch-show-next-message
-    (kbd "C-k") 'notmuch-show-previous-message
     (kbd "M-j") 'notmuch-show-next-thread-show
     (kbd "M-k") 'notmuch-show-previous-thread-show
     "cr" 'notmuch-show-reply-sender
@@ -168,18 +178,27 @@
     "*" 'notmuch-show-tag-all
     "-" 'notmuch-show-remove-tag
     "+" 'notmuch-show-add-tag
-    (kbd "TAB") 'notmuch-show-next-button
-    (kbd "<backtab>") 'notmuch-show-previous-button
-    (kbd "RET") 'notmuch-show-toggle-message
     "." 'notmuch-show-part-map)
+  (evil-collection-bind 'notmuch-show-mode-map
+                        'next-button 'notmuch-show-next-button
+                        'previous-button 'notmuch-show-previous-button
+                        'action 'notmuch-show-toggle-message
+                        'next-item 'notmuch-show-next-open-message
+                        'prev-item 'notmuch-show-previous-open-message
+                        'next-section 'notmuch-show-next-message
+                        'prev-section 'notmuch-show-previous-message
+                        'next-section-2 'notmuch-show-next-message
+                        'prev-section-2 'notmuch-show-previous-message
+                        'find-definition 'goto-address-at-point)
+
+  (evil-collection-bind 'notmuch-tree-mode-map
+                        'describe-mode 'notmuch-help
+                        'jump 'notmuch-jump-search)
 
   (evil-collection-define-key 'normal 'notmuch-tree-mode-map
-    "g?" 'notmuch-help
-    "q" 'notmuch-tree-quit
     "S" 'notmuch-tree-to-search
     "C" 'notmuch-mua-new-mail ; like mu4e
     "cc" 'notmuch-mua-new-mail ; like mu4e
-    "J" 'notmuch-jump-search
     "zv" 'notmuch-search-from-tree-current-query ; like mu4e-conversation
     "cr" 'notmuch-show-reply-sender ; like mu4e
     "cR" 'notmuch-show-reply
@@ -187,27 +206,30 @@
     "!" 'evil-collection-notmuch-tree-toggle-unread
     "=" 'evil-collection-notmuch-tree-toggle-flagged
     "K" 'notmuch-tag-jump
-    (kbd "RET") 'notmuch-tree-show-message
     [mouse-1] 'notmuch-tree-show-message
     "A" 'notmuch-tree-archive-thread-then-next
     "a" 'notmuch-tree-archive-message-then-next
-    "s" 'notmuch-tree-to-tree
-    "gj" 'notmuch-tree-next-matching-message
-    "gk" 'notmuch-tree-prev-matching-message
-    "]]" 'notmuch-tree-next-message
-    "[[" 'notmuch-tree-prev-message
-    (kbd "C-k") 'notmuch-tree-prev-thread
-    (kbd "C-j") 'notmuch-tree-next-thread
     "|" 'notmuch-show-pipe-message
     "-" 'notmuch-tree-remove-tag
     "+" 'notmuch-tree-add-tag
     "*" 'notmuch-tree-tag-thread
     "e" 'notmuch-tree-resume-message)
+  (evil-collection-bind 'notmuch-tree-mode-map
+                        'action 'notmuch-tree-show-message
+                        'next-item 'notmuch-tree-next-matching-message
+                        'prev-item 'notmuch-tree-prev-matching-message
+                        'next-section 'notmuch-tree-next-message
+                        'prev-section 'notmuch-tree-prev-message
+                        'next-section-2 'notmuch-tree-next-thread
+                        'prev-section-2 'notmuch-tree-prev-thread
+                        'quit 'notmuch-tree-quit
+                        'search-or-filter 'notmuch-tree-to-tree)
+
+  (evil-collection-bind 'notmuch-search-mode-map 'jump 'notmuch-jump-search)
 
   (dolist (state '(normal visual))
     (evil-collection-define-key state 'notmuch-search-mode-map
       "cC" 'compose-mail-other-frame
-      "J" 'notmuch-jump-search
       "S" 'notmuch-search-filter
       "K" 'notmuch-tag-jump
       "o" 'notmuch-search-toggle-order
@@ -218,14 +240,15 @@
       "d" 'evil-collection-notmuch-search-toggle-delete
       "!" 'evil-collection-notmuch-search-toggle-unread
       "=" 'evil-collection-notmuch-search-toggle-flagged
-      "q" 'notmuch-bury-or-kill-this-buffer
       "cr" 'notmuch-search-reply-to-thread-sender
       "cR" 'notmuch-search-reply-to-thread
       "t" 'notmuch-search-filter-by-tag
       [mouse-1] 'notmuch-search-show-thread
       "-" 'notmuch-search-remove-tag
-      "+" 'notmuch-search-add-tag
-      (kbd "RET") 'notmuch-search-show-thread))
+      "+" 'notmuch-search-add-tag))
+  (evil-collection-bind 'notmuch-search-mode-map
+                        'action 'notmuch-search-show-thread
+                        'quit 'notmuch-bury-or-kill-this-buffer)
 
   ;; ys
   (evil-collection-define-operator-key 'yank 'notmuch-search-mode-map

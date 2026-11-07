@@ -5,7 +5,7 @@
 ;; Author: Ruoyu Feng <mail@vonfry.name>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "27.1"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, tools, bufler, buffer list
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -49,9 +49,10 @@
     "F"   'bufler-list-group-make-frame
     "r"   'bufler-list-buffer-name-workspace
     "D"   'bufler-list-buffer-kill
-    "w"   'bufler-list-buffer-save
-    (kbd "RET") 'bufler-list-buffer-switch
-    "J"   'bufler-list-buffer-peek))
+    "w"   'bufler-list-buffer-save)
+  (evil-collection-bind 'bufler-list-mode-map
+                        'action 'bufler-list-buffer-switch
+                        'jump 'bufler-list-buffer-peek))
 
 (provide 'evil-collection-bufler)
 ;;; evil-collection-bufler.el ends here

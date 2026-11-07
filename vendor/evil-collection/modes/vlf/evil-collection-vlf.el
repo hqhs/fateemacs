@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, vlf, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -46,33 +46,38 @@
   "Set up `evil' bindings for `vlf'."
   (evil-set-initial-state 'vlf-mode 'normal)
 
-  (evil-collection-define-key 'normal 'vlf-mode-map
-    "gj" 'vlf-next-batch
-    "gk" 'vlf-prev-batch
-    (kbd "C-j") 'vlf-next-batch
-    (kbd "C-k") 'vlf-prev-batch
-    "]]" 'vlf-next-batch
-    "[[" 'vlf-prev-batch
+  (add-hook 'vlf-mode-hook #'evil-normalize-keymaps)
 
+  (evil-collection-define-key 'normal 'vlf-prefix-map
     "+" 'vlf-change-batch-size
     "-" 'evil-collection-vlf-decrease-batch-size
     "=" 'vlf-next-batch-from-point
+    "g%" 'vlf-query-replace)
+  (evil-collection-bind 'vlf-prefix-map
+                        'action 'evil-ret
+                        'action-other 'vlf-occur
+                        'next-item 'vlf-next-batch
+                        'prev-item 'vlf-prev-batch
+                        'next-section 'vlf-next-batch
+                        'prev-section 'vlf-prev-batch
+                        'refresh 'vlf-revert
+                        'jump 'vlf-jump-to-chunk)
 
-    ;; refresh
-    "gr" 'vlf-revert
-
-    "s" 'vlf-re-search-forward
-    "S" 'vlf-re-search-backward
-
-    "gg" 'vlf-beginning-of-file
-    "G" 'vlf-end-of-file
-    "J" 'vlf-jump-to-chunk
-    "E" 'vlf-ediff-buffers
-
-    "g%" 'vlf-query-replace
-    "go" 'vlf-occur
-    "L" 'vlf-goto-line
-    "F" 'vlf-toggle-follow))
+  (if evil-collection-want-g-bindings
+      (evil-collection-define-key 'normal 'vlf-prefix-map
+        "g/" 'vlf-re-search-forward
+        "g?" 'vlf-re-search-backward
+        "gJ" 'vlf-jump-to-chunk
+        "gE" 'vlf-ediff-buffers
+        "g:" 'vlf-goto-line
+        "gF" 'vlf-toggle-follow)
+    (evil-collection-define-key 'normal 'vlf-prefix-map
+      "S" 'vlf-re-search-backward
+      "E" 'vlf-ediff-buffers
+      "L" 'vlf-goto-line
+      "F" 'vlf-toggle-follow)
+    (evil-collection-bind 'vlf-prefix-map
+                          'search-or-filter 'vlf-re-search-forward)))
 
 (provide 'evil-collection-vlf)
 ;;; evil-collection-vlf.el ends here

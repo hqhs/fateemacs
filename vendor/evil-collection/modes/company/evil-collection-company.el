@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, company, abbrev, convenience, matching
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -96,12 +96,23 @@ C-x C-l."
 (defun evil-collection-company-setup ()
   "Set up `evil' bindings for `company'."
   (evil-collection-define-key nil 'company-active-map
-    (kbd "C-n") 'company-select-next-or-abort
-    (kbd "C-p") 'company-select-previous-or-abort
     (kbd "C-j") 'company-select-next-or-abort
     (kbd "C-k") 'company-select-previous-or-abort
     (kbd "M-j") 'company-select-next
     (kbd "M-k") 'company-select-previous)
+
+  ;; company-active-map is bound across all states (`nil'), so we use the
+  ;; `completion-next' / `completion-previous' theme's *keys* but bind them
+  ;; with nil state instead of routing through `evil-collection-bind' (which
+  ;; would use the theme's :state insert).
+  (when (evil-collection-binding-enabled-p 'completion-next)
+    (dolist (key (evil-collection-binding-keys 'completion-next))
+      (evil-collection-define-key nil 'company-active-map
+        (kbd key) 'company-select-next-or-abort)))
+  (when (evil-collection-binding-enabled-p 'completion-previous)
+    (dolist (key (evil-collection-binding-keys 'completion-previous))
+      (evil-collection-define-key nil 'company-active-map
+        (kbd key) 'company-select-previous-or-abort)))
 
   (when evil-collection-want-company-extended-keybindings 
     (evil-collection-define-key nil 'company-active-map
@@ -131,7 +142,7 @@ C-x C-l."
 
   ;; Make `company-mode' not show popup when not in supported state
   (advice-add 'company-call-backend
-              :before-while 'evil-collection-company-supported-p))
+              :before-while #'evil-collection-company-supported-p))
 
 
 (provide 'evil-collection-company)

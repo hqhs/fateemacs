@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -37,8 +37,8 @@
   "Set up `evil' bindings for `emoji'."
   (evil-collection-set-readonly-bindings 'emoji-list-mode-map)
   (evil-collection-define-key 'normal 'emoji-list-mode-map
-    (kbd "RET") 'emoji-list-select
-    "gh" 'emoji-list-help))
+    "gh" 'emoji-list-help)
+  (evil-collection-bind 'emoji-list-mode-map 'action 'emoji-list-select))
 
 (provide 'evil-collection-emoji)
 ;;; evil-collection-emoji.el ends here

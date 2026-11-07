@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, debug, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -40,40 +40,39 @@
 
   (evil-collection-define-key 'normal 'debugger-mode-map
     ;; motion
-    (kbd "<tab>") 'forward-button
-    (kbd "S-<tab>") 'backward-button
-    (kbd "RET") (if (fboundp 'debug-help-follow)
-                    'debug-help-follow
-                  'backtrace-help-follow-symbol)
     (kbd "SPC") 'next-line
 
     "R" 'debugger-record-expression
-    "c" 'debugger-continue
     "d" 'debugger-step-through
 
     "x" 'debugger-eval-expression
     "E" 'debugger-eval-expression
 
-    "J" 'debugger-jump
-
     "gl" 'debugger-list-functions
     "gb" 'debugger-frame
     "r" 'debugger-return-value
     "u" 'debugger-frame-clear
-    "L" (if (fboundp 'debugger-toggle-locals)
-            'debugger-toggle-locals
-          'backtrace-toggle-locals)
     "p" (if (fboundp 'debugger-toggle-locals)
             'debugger-toggle-locals
           'backtrace-toggle-locals)
-    
+
     "zo" 'backtrace-multi-line
-    "zc" 'backtrace-single-line
-    
-    ;; quit
-    "q" 'top-level
-    "ZQ" 'evil-quit
-    "ZZ" 'top-level))
+    "zc" 'backtrace-single-line)
+  (evil-collection-bind 'debugger-mode-map
+                        'next-button 'forward-button
+                        'previous-button 'backward-button
+                        'action (if (fboundp 'debug-help-follow)
+                                    'debug-help-follow
+                                  'backtrace-help-follow-symbol)
+                        'quit 'top-level
+                        'quit-save 'top-level
+                        'quit-cancel 'evil-quit
+                        'debug-continue 'debugger-continue
+                        'debug-eval 'debugger-eval-expression
+                        'jump 'debugger-jump
+                        'debug-locals (if (fboundp 'debugger-toggle-locals)
+                                          'debugger-toggle-locals
+                                        'backtrace-toggle-locals)))
 
 (provide 'evil-collection-debug)
 ;;; evil-collection-debug.el ends here

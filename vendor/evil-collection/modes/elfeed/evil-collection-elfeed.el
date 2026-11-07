@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, elfeed, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -32,9 +32,11 @@
 
 (defvar elfeed-search-mode-map)
 (defvar elfeed-show-mode-map)
+(defvar elfeed-tree-mode-map)
 
 (defconst evil-collection-elfeed-maps '(elfeed-search-mode-map
-                                        elfeed-show-mode-map))
+                                        elfeed-show-mode-map
+                                        elfeed-tree-mode-map))
 
 ;;;###autoload
 (defun evil-collection-elfeed-setup ()
@@ -43,74 +45,76 @@
   (evil-collection-set-readonly-bindings 'elfeed-search-mode-map)
   (evil-set-initial-state 'elfeed-search-mode 'normal)
   (evil-collection-define-key 'normal 'elfeed-search-mode-map
-    ;; open
-    (kbd "RET") 'elfeed-search-show-entry
-    (kbd "S-<return>") 'elfeed-search-browse-url
-    "go" 'elfeed-search-browse-url
-
     "y" 'elfeed-search-yank
 
-    (kbd "SPC") 'scroll-up-command
-    (kbd "S-SPC") 'scroll-down-command
-
     ;; filter
-    "s" 'elfeed-search-live-filter
     "S" 'elfeed-search-set-filter
-    "c" 'elfeed-search-clear-filter
+    "c" 'elfeed-search-clear-filter)
 
-    ;; refresh
-    "gR" 'elfeed-search-fetch ; TODO: Which update function is more useful?
-    "gr" 'elfeed-search-update--force
+  (evil-collection-bind 'elfeed-search-mode-map
+                        'scroll-down 'scroll-up-command
+                        'scroll-up 'scroll-down-command
+                        'action 'elfeed-search-show-entry
+                        'action-other 'elfeed-search-browse-url
+                        'refresh-all 'elfeed-search-fetch
+                        'refresh 'revert-buffer
+                        'quit-save 'quit-window
+                        'quit-cancel 'quit-window
+                        'search-or-filter 'elfeed-search-live-filter)
 
-    ;; quit
-    "q" 'elfeed-search-quit-window
-    "ZQ" 'elfeed-search-quit-window
-    "ZZ" 'elfeed-search-quit-window)
+  ;; Refresh fallback for elfeed before commit 518e5bd3, where
+  ;; `revert-buffer-function' is not wired up.
+  (unless (fboundp 'elfeed-search--update-force)
+    (evil-collection-bind 'elfeed-search-mode-map 'refresh 'elfeed-search-update--force))
+
+  ;; Quit fallback for elfeed before commit 2ef14c92, where
+  ;; `quit-window-hook' does not run `elfeed-db-save'.
+  (when (and (fboundp 'elfeed-search-quit-window)
+             (not (eq (indirect-function 'elfeed-search-quit-window)
+                      (symbol-function 'quit-window))))
+    (evil-collection-bind 'elfeed-search-mode-map
+                          'quit 'elfeed-search-quit-window
+                          'quit-save 'elfeed-search-quit-window
+                          'quit-cancel 'elfeed-search-quit-window))
 
   (evil-collection-define-key '(normal visual) 'elfeed-search-mode-map
-    "+" 'elfeed-search-tag-all
-    "-" 'elfeed-search-untag-all
-    "U" 'elfeed-search-tag-all-unread
-    "u" 'elfeed-search-untag-all-unread)
+    "+" 'elfeed-search-tag
+    "-" 'elfeed-search-untag
+    "U" 'elfeed-search-tag-unread
+    "u" 'elfeed-search-untag-unread
+    "o" 'elfeed-search-cycle-order)
 
   (evil-collection-set-readonly-bindings 'elfeed-show-mode-map)
   (evil-set-initial-state 'elfeed-show-mode 'normal)
   (evil-collection-define-key 'normal 'elfeed-show-mode-map
-    (kbd "S-<return>") 'elfeed-show-visit
-    "go" 'elfeed-show-visit
-
-    (kbd "SPC") 'scroll-up-command
-    (kbd "S-SPC") 'scroll-down-command
-    (kbd "<tab>") 'elfeed-show-next-link
-
-    ;; filter
-    "s" 'elfeed-show-new-live-search
-
     "+" 'elfeed-show-tag
     "-" 'elfeed-show-untag
 
     "A" 'elfeed-show-add-enclosure-to-playlist
     "P" 'elfeed-show-play-enclosure
-    "d" 'elfeed-show-save-enclosure
-
-    "]]" 'elfeed-show-next
-    "[[" 'elfeed-show-prev
-    "gj" 'elfeed-show-next
-    "gk" 'elfeed-show-prev
-    (kbd "C-j") 'elfeed-show-next
-    (kbd "C-k") 'elfeed-show-prev
-
-    ;; refresh
-    "gr" 'elfeed-show-refresh
-
-    ;; quit
-    "q" 'elfeed-kill-buffer
-    "ZQ" 'elfeed-kill-buffer
-    "ZZ" 'elfeed-kill-buffer)
+    "d" 'elfeed-show-save-enclosure)
+  (evil-collection-bind 'elfeed-show-mode-map
+                        'scroll-down 'scroll-up-command
+                        'scroll-up 'scroll-down-command
+                        'action-other 'elfeed-show-visit
+                        'next-item 'elfeed-show-next
+                        'prev-item 'elfeed-show-prev
+                        'next-section 'elfeed-show-next
+                        'prev-section 'elfeed-show-prev
+                        'quit 'kill-current-buffer
+                        'quit-save 'kill-current-buffer
+                        'quit-cancel 'kill-current-buffer
+                        'refresh 'elfeed-show-refresh
+                        'search-or-filter 'elfeed-show-new-live-search
+                        'cycle-next 'elfeed-show-next-link)
 
   ;; yu, like `eww'
   (evil-collection-define-operator-key 'yank 'elfeed-show-mode-map
-    "u" 'elfeed-show-yank))
+    "u" 'elfeed-show-yank)
+
+  (evil-collection-set-readonly-bindings 'elfeed-tree-mode-map)
+  (evil-set-initial-state 'elfeed-tree-mode 'normal)
+  (evil-collection-bind 'elfeed-tree-mode-map 'action 'elfeed-tree-search))
 
 (provide 'evil-collection-elfeed)
 ;;; evil-collection-elfeed.el ends here

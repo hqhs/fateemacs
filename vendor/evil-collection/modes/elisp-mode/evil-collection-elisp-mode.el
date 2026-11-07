@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, elisp, lisp
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -30,7 +30,8 @@
 (require 'elisp-mode)
 (require 'evil-collection)
 
-(defconst evil-collection-elisp-mode-maps '(emacs-lisp-mode-map))
+(defconst evil-collection-elisp-mode-maps '(emacs-lisp-mode-map
+                                            emacs-lisp-compilation-mode-map))
 
 (defun evil-collection-elisp-mode-last-sexp-setup-props (beg end value alt1 alt2)
   "Set up text properties for the output of `elisp--eval-last-sexp'.
@@ -38,9 +39,9 @@ BEG and END are the start and end of the output in current-buffer.
 VALUE is the Lisp value printed, ALT1 and ALT2 are strings for the
 alternative printed representations that can be displayed."
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-m") 'evil-collection-elisp-mode-return-or-last-sexp-toggle-display)
-    (define-key map [down-mouse-2] 'mouse-set-point)
-    (define-key map [mouse-2] 'elisp-last-sexp-toggle-display)
+    (define-key map (kbd "C-m") #'evil-collection-elisp-mode-return-or-last-sexp-toggle-display)
+    (define-key map [down-mouse-2] #'mouse-set-point)
+    (define-key map [mouse-2] #'elisp-last-sexp-toggle-display)
     (add-text-properties
      beg end
      `(printed-value (,value ,alt1 ,alt2)
@@ -76,18 +77,20 @@ alternative printed representations that can be displayed."
 ;;;###autoload
 (defun evil-collection-elisp-mode-setup ()
   "Set up `evil' bindings for `elisp-mode'."
+  (add-hook 'emacs-lisp-compilation-mode-hook #'evil-normalize-keymaps)
+
   (unless evil-move-beyond-eol
-    (advice-add 'eval-print-last-sexp :around 'evil-collection-elisp-mode-last-sexp))
+    (advice-add 'eval-print-last-sexp :around #'evil-collection-elisp-mode-last-sexp))
   (advice-add 'last-sexp-setup-props
-              :override 'evil-collection-elisp-mode-last-sexp-setup-props)
+              :override #'evil-collection-elisp-mode-last-sexp-setup-props)
 
   (evil-set-initial-state 'emacs-lisp-mode 'normal)
-  (evil-collection-define-key 'normal 'emacs-lisp-mode-map
-    "gz" 'evil-collection-elisp-mode-ielm-repl)
 
-  (when evil-collection-want-find-usages-bindings
-    (evil-collection-define-key 'normal 'emacs-lisp-mode-map
-      "gr" 'xref-find-references)))
+  (evil-collection-bind 'emacs-lisp-compilation-mode-map 'refresh #'emacs-lisp-compilation-recompile)
+
+  (evil-collection-bind 'emacs-lisp-mode-map
+                        'find-usages 'xref-find-references
+                        'goto-repl 'evil-collection-elisp-mode-ielm-repl))
 
 (provide 'evil-collection-elisp-mode)
 ;;; evil-collection-elisp-mode.el ends here

@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, custom themes, help, faces
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -39,27 +39,17 @@
   (evil-set-initial-state 'custom-new-theme-mode 'normal)
   (evil-set-initial-state 'custom-theme-choose-mode 'normal)
 
-  (evil-collection-define-key 'normal 'custom-theme-choose-mode-map
-    "gj" 'widget-forward
-    "gk" 'widget-backward
-    (kbd "]]") 'widget-forward
-    (kbd "[[") 'widget-backward
-    (kbd "C-j") 'widget-forward
-    (kbd "C-k") 'widget-backward
-    "K" 'custom-describe-theme)
+  (evil-collection-bind 'custom-theme-choose-mode-map
+                        'cycle-next 'widget-forward
+                        'cycle-previous 'widget-backward
+                        'lookup-doc 'custom-describe-theme)
 
-  (evil-collection-define-key 'normal 'custom-new-theme-mode-map
-    "gj" 'widget-forward
-    "gk" 'widget-backward
-    (kbd "]]") 'widget-forward
-    (kbd "[[") 'widget-backward
-    (kbd "C-j") 'widget-forward
-    (kbd "C-k") 'widget-backward
-
-    ;; quit
-    "q" 'Custom-buffer-done
-    "ZQ" 'evil-quit
-    "ZZ" 'Custom-buffer-done))
+  (evil-collection-bind 'custom-new-theme-mode-map
+                        'cycle-next 'widget-forward
+                        'cycle-previous 'widget-backward
+                        'quit 'Custom-buffer-done
+                        'quit-save 'Custom-buffer-done
+                        'quit-cancel 'evil-quit))
 
 (provide 'evil-collection-cus-theme)
 ;;; evil-collection-cus-theme.el ends here

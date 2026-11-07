@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, lsp-ui-imenu, convenience
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -30,18 +30,20 @@
 (require 'lsp-ui-imenu nil t)
 (require 'evil-collection)
 
-(defconst evil-collection-lsp-ui-imenu-mode-maps '(lsp-ui-imenu-mode-map))
+(defconst evil-collection-lsp-ui-imenu-maps '(lsp-ui-imenu-mode-map))
 
 ;;;###autoload
 (defun evil-collection-lsp-ui-imenu-setup ()
   "Set up `evil' bindings for `lsp-ui-imenu'."
   (evil-set-initial-state 'lsp-ui-imenu-mode 'normal)
-  (evil-collection-define-key 'normal 'lsp-ui-imenu-mode-map
-    (kbd "C-k") 'lsp-ui-imenu--prev-kind
-    (kbd "C-j") 'lsp-ui-imenu--next-kind
-    (kbd "q") 'lsp-ui-imenu--kill
-    (kbd "RET") 'lsp-ui-imenu--view
-    (kbd "<M-return>") 'lsp-ui-imenu--visit))
+  (evil-collection-bind 'lsp-ui-imenu-mode-map
+                        'quit 'lsp-ui-imenu--kill
+                        'action 'lsp-ui-imenu--view
+                        'action-stay 'lsp-ui-imenu--visit
+                        'next-item 'lsp-ui-imenu--next-kind
+                        'prev-item 'lsp-ui-imenu--prev-kind
+                        'next-section 'lsp-ui-imenu--next-kind
+                        'prev-section 'lsp-ui-imenu--prev-kind))
 
 (provide 'evil-collection-lsp-ui-imenu)
 ;;; evil-collection-lsp-ui-imenu.el ends here

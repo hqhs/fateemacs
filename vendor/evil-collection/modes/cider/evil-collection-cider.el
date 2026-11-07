@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, cider, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -91,11 +91,11 @@ ex. \(cider-debug-mode-send-reply \":next\"\)"
 (defun evil-collection-cider-setup ()
   "Set up `evil' bindings for `cider'."
   (unless evil-move-beyond-eol
-    (advice-add 'cider-eval-last-sexp :around 'evil-collection-cider-last-sexp)
-    (advice-add 'cider-eval-last-sexp-and-replace :around 'evil-collection-cider-last-sexp)
-    (advice-add 'cider-eval-last-sexp-to-repl :around 'evil-collection-cider-last-sexp)
+    (advice-add 'cider-eval-last-sexp :around #'evil-collection-cider-last-sexp)
+    (advice-add 'cider-eval-last-sexp-and-replace :around #'evil-collection-cider-last-sexp)
+    (advice-add 'cider-eval-last-sexp-to-repl :around #'evil-collection-cider-last-sexp)
     (with-eval-after-load 'cider-eval-sexp-fu
-      (advice-add 'cider-esf--bounds-of-last-sexp :around 'evil-collection-cider-last-sexp)))
+      (advice-add 'cider-esf--bounds-of-last-sexp :around #'evil-collection-cider-last-sexp)))
 
   (when evil-collection-setup-debugger-keys
     (add-hook 'cider-mode-hook #'evil-normalize-keymaps)
@@ -105,59 +105,60 @@ ex. \(cider-debug-mode-send-reply \":next\"\)"
       [f9] 'cider-debug-defun-at-point)
 
     (evil-collection-define-key 'normal 'cider--debug-mode-map
-      "b" 'cider-debug-defun-at-point
-      "c" 'evil-collection-cider-debug-continue
       "C" 'evil-collection-cider-debug-continue-all
-      "n" 'evil-collection-cider-debug-next
-      "I" 'evil-collection-cider-debug-in
-      "o" 'evil-collection-cider-debug-out
       "O" 'evil-collection-cider-debug-force-out
       "H" 'cider-debug-move-here
-      "e" 'evil-collection-cider-debug-eval
       "p" 'evil-collection-cider-debug-inspect
       "P" 'evil-collection-cider-debug-inspect-prompt
-      "L" 'evil-collection-cider-debug-locals
       "J" 'evil-collection-cider-debug-inject
-      "s" 'evil-collection-cider-debug-stacktrace
-      "t" 'evil-collection-cider-debug-trace
-      "q" 'evil-collection-cider-debug-quit))
+      "S" 'evil-collection-cider-debug-stacktrace)
+    (evil-collection-bind 'cider--debug-mode-map
+                          'quit 'evil-collection-cider-debug-quit
+                          'toggle 'evil-collection-cider-debug-trace))
 
-  (evil-collection-define-key '(normal visual) 'cider-mode-map
-    "gz" 'cider-switch-to-repl-buffer
-    "gf" 'cider-find-resource
-    "K" 'cider-doc)
-
-  (unless cider-use-xref
-    (evil-collection-define-key '(normal visual) 'cider-mode-map
-      "gd" 'cider-find-var
-      (kbd "C-t") 'cider-pop-back))
-
-  (evil-collection-define-key '(normal visual) 'cider-repl-mode-map
-    ;; FIXME: This seems to get overwritten by `cider-switch-to-repl-buffer'.
-    "gz" 'cider-switch-to-last-clojure-buffer
-    (kbd "RET") 'cider-repl-return
-
-    "gr" 'cider-refresh
-    "gf" 'cider-find-resource
-    "K" 'cider-doc)
+  (evil-collection-bind 'cider--debug-mode-map
+                        'debug-continue 'evil-collection-cider-debug-continue
+                        'debug-step-over 'evil-collection-cider-debug-next
+                        'debug-step-into 'evil-collection-cider-debug-in
+                        'debug-step-out 'evil-collection-cider-debug-out
+                        'debug-breakpoint 'cider-debug-defun-at-point
+                        'debug-eval 'evil-collection-cider-debug-eval
+                        'debug-locals 'evil-collection-cider-debug-locals)
+  (evil-collection-bind 'cider-mode-map
+                        'lookup-doc 'cider-doc
+                        'goto-repl 'cider-switch-to-repl-buffer
+                        'find-file 'cider-find-resource)
 
   (unless cider-use-xref
-    (evil-collection-define-key '(normal visual) 'cider-repl-mode-map
-      "gd" 'cider-find-var
-      (kbd "C-t") 'cider-pop-back))
+    (evil-collection-bind 'cider-mode-map
+                          'find-definition 'cider-find-var
+                          'pop-definition 'cider-pop-back))
+
+  ;; FIXME: goto-repl seems to get overwritten by `cider-switch-to-repl-buffer'.
+  (evil-collection-bind 'cider-repl-mode-map
+                        'refresh 'cider-refresh
+                        'lookup-doc 'cider-doc
+                        'goto-repl 'cider-switch-to-last-clojure-buffer
+                        'find-file 'cider-find-resource
+                        'repl-submit 'cider-repl-return
+                        'repl-newline 'newline
+                        'repl-force-newline 'newline)
+
+  (unless cider-use-xref
+    (evil-collection-bind 'cider-repl-mode-map
+                          'find-definition 'cider-find-var
+                          'pop-definition 'cider-pop-back))
 
   (evil-collection-define-key '(normal visual) 'cider-repl-history-mode-map
-    (kbd "C-k") 'cider-repl-history-previous
-    (kbd "C-j") 'cider-repl-history-forward
-    "gk" 'cider-repl-history-previous
-    "gj" 'cider-repl-history-forward
-    "[[" 'cider-repl-history-previous
-    "]]" 'cider-repl-history-forward
-
-    (kbd "RET") 'cider-repl-history-insert-and-quit
-    "gr" 'cider-repl-history-update
-    "q" 'cider-repl-history-quit
     "u" 'cider-repl-history-undo-other-window)
+  (evil-collection-bind 'cider-repl-history-mode-map
+                        'action 'cider-repl-history-insert-and-quit
+                        'next-item 'cider-repl-history-forward
+                        'prev-item 'cider-repl-history-previous
+                        'next-section 'cider-repl-history-forward
+                        'prev-section 'cider-repl-history-previous
+                        'quit 'cider-repl-history-quit
+                        'refresh 'cider-repl-history-update)
 
   (evil-collection-define-key 'normal 'cider-test-report-mode-map
     (kbd "C-c ,") 'cider-test-commands-map
@@ -165,52 +166,44 @@ ex. \(cider-debug-mode-send-reply \":next\"\)"
     (kbd "M-p") 'cider-test-previous-result
     (kbd "M-n") 'cider-test-next-result
 
-    ;; goto
-    "gd" 'cider-test-jump
-
-    (kbd "<backtab>") 'cider-test-previous-result
-    (kbd "<tab>") 'cider-test-next-result
-    (kbd "RET") 'cider-test-jump
     "t" 'cider-test-jump
     "d" 'cider-test-ediff
     "e" 'cider-test-stacktrace
     "f" 'cider-test-rerun-failed-tests
     "n" 'cider-test-run-ns-tests
     "L" 'cider-test-run-loaded-tests
-    "p" 'cider-test-run-project-tests
-    "gr" 'cider-test-run-test
-    "q" 'cider-popup-buffer-quit-function)
+    "p" 'cider-test-run-project-tests)
+  (evil-collection-bind 'cider-test-report-mode-map
+                        'action 'cider-test-jump
+                        'quit 'cider-popup-buffer-quit-function
+                        'refresh 'cider-test-run-test
+                        'cycle-next 'cider-test-next-result
+                        'cycle-previous 'cider-test-previous-result
+                        'find-definition 'cider-test-jump)
+
+  (evil-collection-bind 'cider-macroexpansion-mode-map 'lookup-doc 'cider-doc)
 
   (evil-collection-define-key 'normal 'cider-macroexpansion-mode-map
-    ;; quit
-    "q" 'cider-popup-buffer-quit-function
-
     "r" 'cider-macroexpand-again
-    "K" 'cider-doc ; Evil has `evil-lookup'.
     "J" 'cider-javadoc
     "." (if cider-use-xref 'xref-find-definitions 'cider-find-var)
     "m" 'cider-macroexpand-1-inplace
     "a" 'cider-macroexpand-all-inplace
     "u" 'cider-macroexpand-undo
     [remap undo] 'cider-macroexpand-undo)
+  (evil-collection-bind 'cider-macroexpansion-mode-map 'quit 'cider-popup-buffer-quit-function)
 
   (evil-collection-define-key 'normal 'cider-connections-buffer-mode-map
     "d" 'cider-connections-make-default
     "c" 'cider-connection-browser
-    "x" 'cider-connections-close-connection
-    (kbd "RET") 'cider-connections-goto-connection
-    "g?" 'describe-mode)
+    "x" 'cider-connections-close-connection)
+  (evil-collection-bind 'cider-connections-buffer-mode-map
+                        'action 'cider-connections-goto-connection
+                        'describe-mode 'describe-mode)
 
   (evil-set-initial-state 'cider-stacktrace-mode 'normal)
+  (evil-collection-bind 'cider-stacktrace-mode-map 'find-definition 'cider-stacktrace-jump)
   (evil-collection-define-key 'normal 'cider-stacktrace-mode-map
-    (kbd "C-k") 'cider-stacktrace-previous-cause
-    (kbd "C-j") 'cider-stacktrace-next-cause
-    (kbd "gk") 'cider-stacktrace-previous-cause
-    (kbd "gj") 'cider-stacktrace-next-cause
-    (kbd "[[") 'cider-stacktrace-previous-cause
-    (kbd "]]") 'cider-stacktrace-next-cause
-    "gd" 'cider-stacktrace-jump
-    "q" 'cider-popup-buffer-quit-function
     "J" 'cider-stacktrace-toggle-java
     "C" 'cider-stacktrace-toggle-clj
     "R" 'cider-stacktrace-toggle-repl
@@ -224,25 +217,32 @@ ex. \(cider-debug-mode-send-reply \":next\"\)"
     "4" 'cider-stacktrace-cycle-cause-4
     "5" 'cider-stacktrace-cycle-cause-5
     "0" 'cider-stacktrace-cycle-all-causes
-    (kbd "TAB") 'cider-stacktrace-cycle-current-cause
     [backtab] 'cider-stacktrace-cycle-all-causes)
+  (evil-collection-bind 'cider-stacktrace-mode-map
+                        'next-item 'cider-stacktrace-next-cause
+                        'prev-item 'cider-stacktrace-previous-cause
+                        'next-section 'cider-stacktrace-next-cause
+                        'prev-section 'cider-stacktrace-previous-cause
+                        'quit 'cider-popup-buffer-quit-function
+                        'cycle-next 'cider-stacktrace-cycle-current-cause)
 
   (add-hook 'cider-inspector-mode-hook #'evil-normalize-keymaps)
+  (evil-collection-bind 'cider-inspector-mode-map
+                        'next-item 'cider-inspector-next-inspectable-object
+                        'prev-item 'cider-inspector-previous-inspectable-object
+                        'next-section 'cider-inspector-next-inspectable-object
+                        'prev-section 'cider-inspector-previous-inspectable-object
+                        'next-section-2 'cider-inspector-next-page
+                        'prev-section-2 'cider-inspector-prev-page)
   (evil-collection-define-key 'normal 'cider-inspector-mode-map
-    "q" 'quit-window
-    (kbd "RET") 'cider-inspector-operate-on-point
     [mouse-1] 'cider-inspector-operate-on-click
     "L" 'cider-inspector-pop
-    "gr" 'cider-inspector-refresh
-    ;; Page-up/down
-    (kbd "C-j") 'cider-inspector-next-page
-    (kbd "C-k") 'cider-inspector-prev-page
     " " 'cider-inspector-next-page
-    "s" 'cider-inspector-set-page-size
-    (kbd "]]") 'cider-inspector-next-inspectable-object
-    (kbd "[[") 'cider-inspector-previous-inspectable-object
-    "gj" 'cider-inspector-next-inspectable-object
-    "gk" 'cider-inspector-previous-inspectable-object))
+    "s" 'cider-inspector-set-page-size)
+  (evil-collection-bind 'cider-inspector-mode-map
+                        'action 'cider-inspector-operate-on-point
+                        'quit 'quit-window
+                        'refresh 'cider-inspector-refresh))
 
 (provide 'evil-collection-cider)
 ;;; evil-collection-cider.el ends here

@@ -6,7 +6,7 @@
 ;; Maintainer: James Nguyen <james@jojojames.com>, Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, calc, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -55,14 +55,11 @@
     "9" 'calcDigit-start
 
     (kbd "<tab>") 'calc-roll-down
-    (kbd "S-<return>") 'calc-over
-    (kbd "RET") 'calc-enter
     (kbd "SPC") 'calc-enter
 
     (kbd "C-x C-t") 'calc-transpose-lines
     (kbd "C-M-d") 'calc-pop-above
     (kbd "C-M-i") 'calc-roll-up
-    (kbd "M-RET") 'calc-last-args
     (kbd "C-M-w") 'kill-ring-save
     (kbd "M-%") 'calc-percent
     (kbd "M-k") 'calc-copy-as-kill
@@ -160,10 +157,12 @@
     "t" (lookup-key calc-mode-map (kbd "t"))
     "U" (lookup-key calc-mode-map (kbd "u"))
     "v" (lookup-key calc-mode-map (kbd "v"))
-    "zz" (lookup-key calc-mode-map (kbd "z"))
-
-    ;; quit
-    "q" 'calc-quit)
+    "zz" (lookup-key calc-mode-map (kbd "z")))
+  (evil-collection-bind 'calc-mode-map
+                        'action 'calc-enter
+                        'action-other 'calc-over
+                        'action-stay 'calc-last-args
+                        'quit 'calc-quit)
 
   (evil-collection-define-key 'visual 'calc-mode-map
     "d" 'calc-kill-region))

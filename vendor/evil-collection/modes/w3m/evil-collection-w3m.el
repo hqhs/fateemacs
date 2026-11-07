@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, w3m, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -37,21 +37,13 @@
   "Set up `evil' bindings for `w3m'."
   (evil-set-initial-state 'w3m-mode 'normal)
   (evil-collection-define-key 'normal 'w3m-mode-map
-    (kbd "S-SPC") 'w3m-scroll-down-or-previous-url
-    (kbd "SPC") 'w3m-scroll-up-or-next-url
-
-    (kbd "RET") 'w3m-view-this-url
     "o" 'w3m-goto-url
     "O" 'w3m-goto-url-new-session
-
-    "]]" 'w3m-next-form
-    "[[" 'w3m-previous-form
 
     "H" 'w3m-view-previous-page
     "L" 'w3m-view-next-page
     "^" 'w3m-view-parent-page
 
-    "gf" 'w3m-view-source
     "gh" 'w3m-view-header
 
     "d" 'w3m-download-this-url
@@ -66,22 +58,28 @@
     ;; bookmarks
     "gb" 'w3m-bookmark-view
     "gB" 'w3m-bookmark-view-new-session
-    "a" 'w3m-bookmark-add-current-url
-
-    ;; refresh
-    "gr" 'w3m-reload-this-page
-    "gR" 'w3m-reload-all-pages
-
-    ;; quit
-    "q" 'w3m-close-window
-    "ZQ" 'w3m-quit
-    "ZZ" 'quit-window)
+    "a" 'w3m-bookmark-add-current-url)
+  (evil-collection-bind 'w3m-mode-map
+                        'scroll-down 'w3m-scroll-up-or-next-url
+                        'scroll-up 'w3m-scroll-down-or-previous-url
+                        'action 'w3m-view-this-url
+                        'next-item 'w3m-next-form
+                        'prev-item 'w3m-previous-form
+                        'next-section 'w3m-next-form
+                        'prev-section 'w3m-previous-form
+                        'quit 'w3m-close-window
+                        'quit-save 'quit-window
+                        'quit-cancel 'w3m-quit
+                        'refresh 'w3m-reload-this-page
+                        'refresh-all 'w3m-reload-all-pages)
 
   (evil-collection-define-operator-key 'yank 'w3m-mode-map
     ;; yt
     "t" 'w3m-print-this-url
     ;; yu
-    "u" 'w3m-print-current-url))
+    "u" 'w3m-print-current-url)
+
+  (evil-collection-bind 'w3m-mode-map 'find-file 'w3m-view-source))
 
 (provide 'evil-collection-w3m)
 ;;; evil-collection-w3m.el ends here

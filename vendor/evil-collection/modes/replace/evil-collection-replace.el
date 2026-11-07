@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, occur, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -46,19 +46,17 @@
     [mouse-2] 'occur-mode-mouse-goto
     (kbd "C-c C-c") 'occur-mode-goto-occurrence
 
-    ;; open
-    (kbd "RET") 'occur-mode-goto-occurrence
-    (kbd "S-<return>") 'occur-mode-goto-occurrence-other-window
-    (kbd "M-<return>") 'occur-mode-display-occurrence
-    "go" 'occur-mode-goto-occurrence-other-window
-
-    "gj" 'next-error-no-select
-    "gk" 'previous-error-no-select
-    (kbd "C-j") 'next-error-no-select
-    (kbd "C-k") 'previous-error-no-select
     "r" 'occur-rename-buffer
     "c" 'clone-buffer
     (kbd "C-c C-f") 'next-error-follow-minor-mode)
+  (evil-collection-bind 'occur-mode-map
+                        'action 'occur-mode-goto-occurrence
+                        'action-other 'occur-mode-goto-occurrence-other-window
+                        'action-stay 'occur-mode-display-occurrence
+                        'next-item 'next-error-no-select
+                        'prev-item 'previous-error-no-select
+                        'next-section 'next-error-no-select
+                        'prev-section 'previous-error-no-select)
 
   (evil-collection-define-key 'normal 'occur-edit-mode-map
     ;; Like `wdired-mode'.
@@ -67,13 +65,14 @@
     ;; Sadly, `occur-edit-mode' has no abort commands supported. ZZ, ZQ and
     ;; <escape> are same.
     (kbd "<escape>") 'occur-cease-edit
-    "ZZ" 'occur-cease-edit
-    "ZQ" 'occur-cease-edit
 
     [mouse-2] 'occur-mode-mouse-goto
     (kbd "C-c C-c") 'occur-cease-edit
     (kbd "C-o") 'occur-mode-display-occurrence
-    (kbd "C-c C-f") 'next-error-follow-minor-mode))
+    (kbd "C-c C-f") 'next-error-follow-minor-mode)
+  (evil-collection-bind 'occur-edit-mode-map
+                        'quit-save 'occur-cease-edit
+                        'quit-cancel 'occur-cease-edit))
 
 (provide 'evil-collection-replace)
 ;;; evil-collection-replace.el ends here

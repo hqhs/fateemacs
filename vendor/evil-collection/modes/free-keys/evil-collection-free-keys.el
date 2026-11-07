@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -46,8 +46,8 @@
   (evil-set-initial-state 'free-keys-mode 'normal)
   (evil-collection-define-key 'normal 'free-keys-mode-map
     "c" 'free-keys-change-buffer
-    "p" 'free-keys-set-prefix
-    "q" 'quit-window))
+    "p" 'free-keys-set-prefix)
+  (evil-collection-bind 'free-keys-mode-map 'quit 'quit-window))
 
 (provide 'evil-collection-free-keys)
 ;;; evil-collection-free-keys.el ends here

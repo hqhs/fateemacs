@@ -1,9 +1,9 @@
 ;;; magit-core.el --- Core functionality  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2024 The Magit Project Contributors
+;; Copyright (C) 2008-2026 The Magit Project Contributors
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
+;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -36,15 +36,6 @@
 (require 'magit-process)
 (require 'magit-transient)
 (require 'magit-autorevert)
-
-(when (and (not magit-inhibit-libgit)
-           (magit--libgit-available-p))
-  (condition-case err
-      (require 'magit-libgit)
-    (error
-     (setq magit-inhibit-libgit 'error)
-     (message "Error while loading `magit-libgit': %S" err)
-     (message "That is not fatal.  The `libegit2' module just won't be used."))))
 
 ;;; Options
 
@@ -129,4 +120,20 @@ Each of these options falls into one or more of these categories:
 
 ;;; _
 (provide 'magit-core)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
+;;   ("while-let"    . "cond-let--while-let")
+;;   ("match-string" . "match-string")
+;;   ("match-str"    . "match-string-no-properties"))
+;; End:
 ;;; magit-core.el ends here

@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, prodigy, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -36,51 +36,49 @@
 ;;;###autoload
 (defun evil-collection-prodigy-setup ()
   "Set up `evil' bindings for `prodigy'."
+  (evil-collection-bind 'prodigy-mode-map 'quit 'quit-window)
   (evil-collection-define-key 'normal 'prodigy-mode-map
-    ;; quit
-    "q" 'quit-window
-
     "j" 'prodigy-next
     "k" 'prodigy-prev
     "gg" 'prodigy-first
     "G" 'prodigy-last
 
     ;; mark
-    "m" 'prodigy-mark
     "*t" 'prodigy-mark-tag
-    "M" 'prodigy-mark-all
-    "u" 'prodigy-unmark
     "*T" 'prodigy-unmark-tag
-    "U" 'prodigy-unmark-all
 
     "s" 'prodigy-start
     "S" 'prodigy-stop
 
-    ;; refresh
-    "gr" 'prodigy-restart
-
     "`" 'prodigy-display-process
-    (kbd "RET") 'prodigy-browse
     "it" 'prodigy-add-tag-filter
     "in" 'prodigy-add-name-filter
     "I" 'prodigy-clear-filters
     "Jm" 'prodigy-jump-magit
     "Jd" 'prodigy-jump-file-manager
 
-    "gj" 'prodigy-next-with-status
-    "gk" 'prodigy-prev-with-status
-    (kbd "C-j") 'prodigy-next-with-status
-    (kbd "C-k") 'prodigy-prev-with-status
     (kbd "Y") 'prodigy-copy-cmd)
+  (evil-collection-bind 'prodigy-mode-map
+                        'mark 'prodigy-mark
+                        'mark-all 'prodigy-mark-all
+                        'unmark 'prodigy-unmark
+                        'unmark-all 'prodigy-unmark-all
+                        'action 'prodigy-browse
+                        'next-item 'prodigy-next-with-status
+                        'prev-item 'prodigy-prev-with-status
+                        'next-section 'prodigy-next-with-status
+                        'prev-section 'prodigy-prev-with-status)
 
   (evil-collection-define-key 'normal 'prodigy-view-mode-map
     "s" 'prodigy-start
     "S" 'prodigy-stop
-    "gr" 'prodigy-restart
     "r" 'prodigy-restart
     "c" 'prodigy-view-clear-buffer
     (kbd "C-l") 'prodigy-view-clear-buffer
-    "x" 'prodigy-view-clear-buffer))
+    "x" 'prodigy-view-clear-buffer)
+
+  (evil-collection-bind 'prodigy-mode-map 'refresh      'prodigy-restart)
+  (evil-collection-bind 'prodigy-view-mode-map 'refresh 'prodigy-restart))
 
 (provide 'evil-collection-prodigy)
 ;;; evil-collection-prodigy.el ends here

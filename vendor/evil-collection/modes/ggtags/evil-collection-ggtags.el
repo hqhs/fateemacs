@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, ggtags, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -53,52 +53,47 @@
   (when (boundp 'ggtags-enable-navigation-keys)
     (setq ggtags-enable-navigation-keys nil))
 
-  (evil-collection-define-key 'normal 'ggtags-mode-map
-    "gd" 'ggtags-find-tag-dwim
-    (kbd "C-t") 'ggtags-prev-mark
-    "gf" 'ggtags-find-file)
-
-  (when evil-collection-want-find-usages-bindings
-    (evil-collection-define-key 'normal 'ggtags-mode-map
-      "gr" 'ggtags-find-reference))
+  (evil-collection-bind 'ggtags-mode-map
+                        'find-usages 'ggtags-find-reference
+                        'find-definition 'ggtags-find-tag-dwim
+                        'pop-definition 'ggtags-prev-mark
+                        'find-file 'ggtags-find-file)
 
   (evil-collection-define-key 'normal 'ggtags-view-search-history-mode-map
-    "gj" 'ggtags-view-search-history-next
-    "gk" 'ggtags-view-search-history-prev
-    (kbd "C-j") 'ggtags-view-search-history-next
-    (kbd "C-k") 'ggtags-view-search-history-prev
-    "]]" 'ggtags-view-search-history-next
-    "[[" 'ggtags-view-search-history-prev
-    "x" 'ggtags-view-search-history-kill
-    "gr" 'ggtags-view-search-history-update
     "r" 'ggtags-save-to-register
-    "R" 'ggtags-view-search-history-action
-    "q" 'ggtags-kill-window)
+    "R" 'ggtags-view-search-history-action)
+  (evil-collection-bind 'ggtags-view-search-history-mode-map
+                        'next-item 'ggtags-view-search-history-next
+                        'prev-item 'ggtags-view-search-history-prev
+                        'next-section 'ggtags-view-search-history-next
+                        'prev-section 'ggtags-view-search-history-prev
+                        'quit 'ggtags-kill-window
+                        'refresh 'ggtags-view-search-history-update
+                        'delete 'ggtags-view-search-history-kill
+                        'delete-2 'ggtags-view-search-history-kill)
 
-  (evil-collection-define-key 'normal 'ggtags-view-tag-history-mode-map
-    "gj" 'next-error-no-select
-    (kbd "C-j") 'next-error-no-select
-    "]]" 'next-error-no-select
-    "gk" 'previous-error-no-select
-    (kbd "C-k") 'previous-error-no-select
-    (kbd "[[") 'previous-error-no-select
-    "q" 'ggtags-kill-window)
+  (evil-collection-bind 'ggtags-view-tag-history-mode-map
+                        'next-item 'next-error-no-select
+                        'prev-item 'previous-error-no-select
+                        'next-section 'next-error-no-select
+                        'prev-section 'previous-error-no-select
+                        'quit 'ggtags-kill-window)
 
   (evil-collection-define-key 'normal 'ggtags-navigation-map
-    ;; navigation
-    "gj" 'next-error
-    "gk" 'previous-error
-    (kbd "C-j") 'next-error
-    (kbd "C-k") 'previous-error
-    "]]" 'ggtags-navigation-next-file
-    "[[" 'ggtags-navigation-previous-file
-
     ;; search
-    "s" 'ggtags-navigation-isearch-forward
     "S" 'ggtags-navigation-isearch-forward
 
     "go" 'ggtags-navigation-visible-mode ;; FIXME: This can be anything.
-    (kbd "RET") 'ggtags-navigation-mode-done))
+    )
+  (evil-collection-bind 'ggtags-navigation-map
+                        'action 'ggtags-navigation-mode-done
+                        'next-item 'next-error
+                        'prev-item 'previous-error
+                        'next-section 'ggtags-navigation-next-file
+                        'prev-section 'ggtags-navigation-previous-file
+                        'next-section-2 'next-error
+                        'prev-section-2 'previous-error
+                        'search-or-filter 'ggtags-navigation-isearch-forward))
 
 (provide 'evil-collection-ggtags)
 ;;; evil-collection-ggtags.el ends here

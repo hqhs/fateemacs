@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, emacs, tools, quickrun
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -35,8 +35,7 @@
 ;;;###autoload
 (defun evil-collection-quickrun-setup ()
   "Set up `evil' bindings for `quickrun'.."
-  (evil-collection-define-key 'normal 'quickrun--mode-map
-    "q" 'quit-window))
+  (evil-collection-bind 'quickrun--mode-map 'quit 'quit-window))
 
 (provide 'evil-collection-quickrun)
 ;;; evil-collection-quickrun.el ends here

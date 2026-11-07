@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, term, tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -96,7 +96,7 @@ it is not appropriate in some cases like terminals."
   "Sync `term-char-mode' and `term-line-mode' with insert and normal state."
   (add-hook 'evil-insert-state-entry-hook
             evil-collection-term-sync-state-function nil t)
-  (add-hook 'evil-insert-state-exit-hook 'term-line-mode nil t))
+  (add-hook 'evil-insert-state-exit-hook #'term-line-mode nil t))
 
 (defun evil-collection-term-send-tab ()
   "Send tab in term mode."
@@ -108,10 +108,10 @@ it is not appropriate in some cases like terminals."
   "Set up `evil' bindings for `term'."
   (evil-set-initial-state 'term-mode 'insert)
   (if evil-collection-term-sync-state-and-mode-p
-      (add-hook 'term-mode-hook 'evil-collection-term-sync-state-and-mode)
-    (remove-hook 'term-mode-hook 'evil-collection-term-sync-state-and-mode))
+      (add-hook 'term-mode-hook #'evil-collection-term-sync-state-and-mode)
+    (remove-hook 'term-mode-hook #'evil-collection-term-sync-state-and-mode))
 
-  (add-hook 'term-mode-hook 'evil-collection-term-escape-stay)
+  (add-hook 'term-mode-hook #'evil-collection-term-escape-stay)
 
   ;; Evil has some "C-" bindings in insert state that shadow regular terminal
   ;; bindings. Don't raw-send "C-c" (prefix key) nor "C-h" (help prefix).
@@ -139,22 +139,22 @@ it is not appropriate in some cases like terminals."
     (kbd "C-c C-d") 'term-send-eof
     (kbd "C-c C-z") 'term-stop-subjob)
 
+  (evil-collection-bind 'term-mode-map 'repl-submit 'term-send-input)
+
   (evil-collection-define-key 'normal 'term-mode-map
     (kbd "C-c C-k") 'evil-collection-term-char-mode-insert
-    (kbd "RET") 'term-send-input
 
     (kbd "p") 'term-paste
 
     ;; motion
-    "[[" 'term-previous-prompt
-    "]]" 'term-next-prompt
-    (kbd "C-k") 'term-previous-prompt
-    (kbd "C-j") 'term-next-prompt
-    "gk" 'term-previous-prompt
-    "gj" 'term-next-prompt
     ;; "0" 'term-bol ; "0" is meant to really go at the beginning of line.
     "^" 'term-bol
     "$" 'term-show-maximum-output)
+  (evil-collection-bind 'term-mode-map
+                        'next-item 'term-next-prompt
+                        'prev-item 'term-previous-prompt
+                        'next-section 'term-next-prompt
+                        'prev-section 'term-previous-prompt)
 
   ;; https://github.com/emacs-evil/evil-collection/issues/235
   (with-eval-after-load 'multi-term

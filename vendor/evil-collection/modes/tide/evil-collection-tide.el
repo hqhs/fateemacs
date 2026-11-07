@@ -7,7 +7,7 @@
 ;; Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-evil/evil-collection
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: evil, tide, typescript, languages
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -37,28 +37,26 @@
 ;;;###autoload
 (defun evil-collection-tide-setup ()
   "Set up `evil' bindings for `tide'."
-  (evil-collection-define-key 'normal 'tide-mode-map
-    "gd" 'tide-jump-to-definition
-    (kbd "C-t") 'tide-jump-back
-    "K" 'tide-documentation-at-point)
+  (evil-collection-bind 'tide-mode-map
+                        'find-definition 'tide-jump-to-definition
+                        'pop-definition 'tide-jump-back
+                        'lookup-doc 'tide-documentation-at-point)
 
-  (evil-collection-define-key 'normal 'tide-references-mode-map
-    "gj" 'tide-find-next-reference
-    "gk" 'tide-find-previous-reference
-    (kbd "C-j") 'tide-find-next-reference
-    (kbd "C-k") 'tide-find-previous-reference
-    (kbd "RET") 'tide-goto-line-reference
-    ;; quit
-    "q" 'quit-window)
+  (evil-collection-bind 'tide-references-mode-map
+                        'action 'tide-goto-line-reference
+                        'next-item 'tide-find-next-reference
+                        'prev-item 'tide-find-previous-reference
+                        'next-section 'tide-find-next-reference
+                        'prev-section 'tide-find-previous-reference
+                        'quit 'quit-window)
 
-  (evil-collection-define-key 'normal 'tide-project-errors-mode-map
-    "gj" 'tide-find-next-error
-    "gk" 'tide-find-previous-error
-    (kbd "C-j") 'tide-find-next-error
-    (kbd "C-k") 'tide-find-previous-error
-    (kbd "RET") 'tide-goto-error
-    ;; quit
-    (kbd "q") 'quit-window))
+  (evil-collection-bind 'tide-project-errors-mode-map
+                        'action 'tide-goto-error
+                        'next-item 'tide-find-next-error
+                        'prev-item 'tide-find-previous-error
+                        'next-section 'tide-find-next-error
+                        'prev-section 'tide-find-previous-error
+                        'quit 'quit-window))
 
 (provide 'evil-collection-tide)
 ;;; evil-collection-tide.el ends here
