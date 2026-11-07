@@ -15,6 +15,15 @@
 (evil-define-key 'normal 'global
   (kbd "K") #'eldoc)
 
+;; Animated scrolling (defined in ui.el, which loads after this file -- the
+;; symbols only need to resolve at keypress time).
+(evil-define-key '(normal visual) 'global
+  (kbd "C-d") #'+fate/scroll-down-half
+  (kbd "C-u") #'+fate/scroll-up-half
+  (kbd "zz") #'+fate/scroll-line-to-center
+  (kbd "zt") #'+fate/scroll-line-to-top
+  (kbd "zb") #'+fate/scroll-line-to-bottom)
+
 (evil-define-key '(normal visual operator) 'global
   (kbd "#") #'+fate/search-symbol-backward
   (kbd "*") #'+fate/search-symbol-forward

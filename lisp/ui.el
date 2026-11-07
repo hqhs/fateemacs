@@ -36,5 +36,96 @@
                     :weight 'normal
                     :width  'normal)
 
-;; Theme: checked-in monokai (no external dep)
+;; A little air between lines
+(setq-default line-spacing 0.1)
+
+;; Themes: checked-in monokai (lisp/monokai-theme.el) plus vendored solarized,
+;; registered so `load-theme' can reach it. The active one matches nvimrc's
+;; `colorscheme monokai'.
+(add-to-list 'custom-theme-load-path
+             (expand-file-name "solarized-theme/" fate-vendor-dir))
 (load-theme 'monokai t)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Smooth scrolling
+;;
+;; Keyboard scrolling animates instead of teleporting, the way neoscroll.nvim
+;; does. `pixel-scroll-precision-mode' remaps `scroll-up-command' /
+;; `scroll-down-command' (C-v / M-v) on its own once
+;; `pixel-scroll-precision-interpolate-page' is set; the commands below reuse
+;; the same interpolation for evil's half-page and `z'-prefixed motions, which
+;; the mode does not touch. Bound in keybindings.el.
+
+(use-package pixel-scroll
+  :init
+  (setq pixel-scroll-precision-interpolate-page t
+        ;; Long enough to read as motion, short enough not to feel like a wait.
+        pixel-scroll-precision-interpolation-total-time 0.12)
+  :config
+  (pixel-scroll-precision-mode 1))
+
+(defun +fate--window-row ()
+  "Return point's screen row in the selected window, 0 being the top row.
+Counts display lines, so it stays right when lines wrap."
+  ;; `window-start' is nil until the window has been displayed once.
+  (save-excursion
+    (let ((start (or (window-start) (point-min)))
+          (row 0))
+      (while (> (point) start)
+        (vertical-motion -1)
+        (setq row (1+ row)))
+      row)))
+
+(defun +fate--scroll-animate (lines)
+  "Animate scrolling the selected window by LINES display lines.
+Positive LINES moves the view down the buffer, negative up.
+`pixel-scroll-precision-interpolate' takes pixels and uses the opposite
+sign; FACTOR of 1 means \"exactly this far\", as the built-in page
+commands pass."
+  (pixel-scroll-precision-interpolate
+   (* (- lines) (default-line-height)) nil 1))
+
+(defun +fate--scroll-half (direction)
+  "Scroll half a window, animated. DIRECTION is 1 for down, -1 for up.
+Point keeps the screen row it was on, as Vim's C-d / C-u do. The
+interpolation clamps point into the window as it animates, so point is
+recomputed from the final `window-start' rather than moved up front."
+  (if (not (bound-and-true-p pixel-scroll-precision-mode))
+      (if (> direction 0) (evil-scroll-down nil) (evil-scroll-up nil))
+    (let ((row (+fate--window-row))
+          (lines (max 1 (/ (window-body-height) 2))))
+      (+fate--scroll-animate (* direction lines))
+      (goto-char (or (window-start) (point)))
+      (vertical-motion row))))
+
+(defun +fate/scroll-down-half ()
+  "Scroll down half a window, animated."
+  (interactive)
+  (+fate--scroll-half 1))
+
+(defun +fate/scroll-up-half ()
+  "Scroll up half a window, animated."
+  (interactive)
+  (+fate--scroll-half -1))
+
+(defun +fate--scroll-point-to-row (target)
+  "Animate scrolling until point sits on window row TARGET."
+  (if (not (bound-and-true-p pixel-scroll-precision-mode))
+      (recenter target)
+    (+fate--scroll-animate (- (+fate--window-row) target))))
+
+(defun +fate/scroll-line-to-center ()
+  "Animated `zz': centre the line point is on."
+  (interactive)
+  (+fate--scroll-point-to-row (/ (window-body-height) 2)))
+
+(defun +fate/scroll-line-to-top ()
+  "Animated `zt': bring the line point is on to the top, honouring `scroll-margin'."
+  (interactive)
+  (+fate--scroll-point-to-row scroll-margin))
+
+(defun +fate/scroll-line-to-bottom ()
+  "Animated `zb': bring the line point is on to the bottom, honouring `scroll-margin'."
+  (interactive)
+  (+fate--scroll-point-to-row (- (window-body-height) scroll-margin 1)))
