@@ -8,4 +8,10 @@ tree-sitter/*
 eln-cache/*
 .local/*
 
+# Build outputs of scripts/build-term.sh. The module is a 2MB
+# platform-specific binary -- rebuild it, don't commit it.
+vendor/ghostel/ghostel-module.*
+vendor/ghostel/.zig-cache/
+vendor/ghostel/zig-pkg/
+
 projects

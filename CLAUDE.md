@@ -69,14 +69,23 @@ per-change.
 ### Current vendored packages
 
 annalist, avy, cmake-mode, compat, cond-let, corfu, diff-hl, evil,
-evil-collection, evil-easymotion, evil-snipe, evil-surround, glsl-mode,
-goto-chg, indent-bars, llama, magit, solarized-theme, transient,
-with-editor, yaml-mode, yasnippet.
+evil-collection, evil-easymotion, evil-snipe, evil-surround, ghostel,
+glsl-mode, goto-chg, indent-bars, llama, magit, solarized-theme,
+transient, with-editor, yaml-mode, yasnippet.
 
 All of them are pinned in `scripts/vendor.sh`, one hash per package, and
 recorded in `vendor/<name>/.pin`. Bumping a dependency is a one-line
 hash edit plus `./scripts/vendor.sh`; the script re-fetches only the
 packages whose pin changed. Never hand-edit anything under `vendor/`.
+
+ghostel is the one exception to "vendor/ is pure elisp": it is half Zig
+and needs `./scripts/build-term.sh` to compile `ghostel-module.dylib`
+against libghostty-vt. The module is gitignored, not committed, and
+re-vendoring ghostel deletes it -- rebuild after a bump. Everything
+about it must stay optional: `lisp/term.el` never `require`s ghostel at
+startup (ghostel.el loads the module as a top-level form), so a clone
+with no module compiled starts normally. `test/test-term.el` guards
+that; do not break it.
 
 Completion UI is Corfu. No LSP client installed yet; use built-in eglot
 when one is needed.

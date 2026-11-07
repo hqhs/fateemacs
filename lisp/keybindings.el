@@ -67,6 +67,9 @@
   (kbd "<leader>mc") #'+fate/mark-clear
 
   ;; outline!
+  ;; Terminal (ghostel). See lisp/term.el.
+  (kbd "<leader>'")  #'+fate/term
+
   (kbd "<leader>oa") #'outline-show-all
   (kbd "<leader>oh") #'outline-hide-sublevels
 

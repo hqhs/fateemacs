@@ -1,0 +1,408 @@
+# Ghostel shell integration for zsh
+# Source this from your .zshrc.
+#
+# The `${var-}' fallback inside the trim is for users with `setopt
+# nounset' — zsh errors on `${unset%%pat}' without it (bash doesn't).
+#
+# Local `~/.zshrc' (prefix match — TRAMP appends `,tramp:VER'):
+#   [[ "${${INSIDE_EMACS-}%%,*}" = 'ghostel' ]] && source /path/to/ghostel/etc/shell/ghostel.zsh
+#
+# Remote `~/.zshrc' (also gates on TERM, since ssh propagates it
+# natively and INSIDE_EMACS does not without server-side AcceptEnv):
+#   if [[ "${${INSIDE_EMACS-}%%,*}" = 'ghostel' || "$TERM" = 'xterm-ghostty' ]]; then
+#       source ~/.local/share/ghostel/etc/shell/ghostel.zsh
+#   fi
+# See the README "Manual setup" section for the full rationale.
+
+# Idempotency guard — skip if already loaded (e.g. auto-injected).
+(( $+functions[__ghostel_osc7] )) && return
+
+# Capture gethostname(2) once for OSC 7, matching Emacs `(system-name)'.
+# zsh canonicalizes $HOST to the FQDN under a DNS search domain, which
+# would make the local shell look remote and wrongly switch on TRAMP.
+# `hostname' reports gethostname(2) verbatim (as the bash and fish
+# integrations do); fall back to $HOST if it is missing or empty.  The
+# `|| ...' form keeps that fallback errexit-safe.
+__ghostel_host=$(command hostname 2>/dev/null) || __ghostel_host=$HOST
+[[ -n $__ghostel_host ]] || __ghostel_host=$HOST
+
+# Report working directory via OSC 7.  kitty's kitty-shell-cwd://
+# scheme carries the path verbatim; ghostty and kitty parse it too
+# when this script runs under them.
+__ghostel_osc7() {
+    builtin emulate -L zsh -o no_warn_create_global -o no_aliases
+    builtin printf '\e]7;kitty-shell-cwd://%s%s\a' "$__ghostel_host" "$PWD"
+}
+
+# --- Semantic prompt markers (OSC 133) ---
+#
+# Marker layout mirrors ghostty's zsh integration:
+#   - mark1 = `%{\e]133;A;cl=line\a%}'  — primary prompt start
+#   - mark2 = `%{\e]133;P;k=s\a%}'      — continuation (multi-line, PS2)
+#   - markB = `%{\e]133;B\a%}'          — input boundary
+# `%{...%}' marks the OSC sequence as zero-width to zsh's prompt
+# expansion.  BEL terminates the OSC.
+
+__ghostel_save_status() {
+    builtin local cmd_status=$?
+    builtin emulate -L zsh -o no_warn_create_global -o no_aliases
+    __ghostel_last_status=$cmd_status
+}
+
+# Emit "command finished" (D) for the previous command.  Marks A/B/P
+# are embedded in PROMPT itself by `__ghostel_ensure_prompt_wrap' so
+# they fire in lockstep with prompt rendering (including
+# `zle reset-prompt', SIGWINCH, etc).
+__ghostel_prompt_start() {
+    builtin emulate -L zsh -o no_warn_create_global -o no_aliases
+    if [[ -n "$__ghostel_prompt_shown" ]]; then
+        builtin printf '\e]133;D;%s\a' "$__ghostel_last_status"
+    fi
+    __ghostel_prompt_shown=1
+}
+
+# Restore the unmarked PROMPT/PROMPT2 if nothing else has modified them
+# since our precmd added marks.  This ensures other preexec hooks see
+# a clean PROMPT without our marks; if PROMPT was modified (e.g. by an
+# async theme update), leave it alone.  Then emit "command output
+# start" (C).
+__ghostel_preexec() {
+    builtin emulate -L zsh -o no_warn_create_global -o no_aliases
+    if [[ -n ${__ghostel_marked_prompt+x} && "$PROMPT" == "$__ghostel_marked_prompt" ]]; then
+        PROMPT=$__ghostel_saved_prompt
+        PROMPT2=$__ghostel_saved_prompt2
+    fi
+    builtin printf '\e]133;C\a'
+}
+
+# Wrap PROMPT/PROMPT2 with semantic prompt markers.  Mirrors ghostty's
+# `_ghostty_precmd' wrap logic: only wrap when we're already last in
+# `precmd_functions' (so our marks aren't immediately overwritten by a
+# later hook).  Otherwise self-reorder for next cycle and emit mark1
+# directly via printf as a one-shot fallback.
+__ghostel_ensure_prompt_wrap() {
+    builtin emulate -L zsh -o no_warn_create_global -o no_aliases
+
+    builtin local mark1=$'%{\e]133;A;cl=line\a%}'
+    if [[ -o prompt_percent ]]; then
+        builtin typeset -g precmd_functions
+        if [[ ${precmd_functions[-1]} == __ghostel_ensure_prompt_wrap ]]; then
+            # Restore PROMPT/PROMPT2 to their pre-mark state if nothing
+            # else has modified them since we last added marks.  Avoids
+            # exposing PROMPT with our marks to other hooks (themes
+            # like Pure pattern-match $PROMPT to strip/rebuild and
+            # break if they see our markers).  If PROMPT was modified
+            # (theme, async update), keep the modified version.
+            builtin local ps1_changed=0
+            if [[ -n ${__ghostel_saved_prompt+x} ]]; then
+                if [[ $PROMPT == $__ghostel_marked_prompt ]]; then
+                    PROMPT=$__ghostel_saved_prompt
+                    PROMPT2=$__ghostel_saved_prompt2
+                elif [[ $PROMPT != $__ghostel_saved_prompt ]]; then
+                    ps1_changed=1
+                fi
+            fi
+
+            # Save the clean PROMPT/PROMPT2 before adding marks.
+            __ghostel_saved_prompt=$PROMPT
+            __ghostel_saved_prompt2=$PROMPT2
+
+            builtin local mark2=$'%{\e]133;P;k=s\a%}'
+            builtin local markB=$'%{\e]133;B\a%}'
+
+            # Trailing bare `%' would combine with `{' in markB to form
+            # a `%{' prompt escape and swallow the marker.  Double it.
+            [[ $PROMPT == *[^%]% || $PROMPT == % ]] && PROMPT=$PROMPT%
+            PROMPT=${mark1}${PROMPT}${markB}
+
+            # Multiline prompt: inject mark2 (k=s) after each newline so
+            # libghostty distinguishes primary vs continuation rows.
+            # Skip if PROMPT changed in this cycle — injecting marks
+            # into newlines breaks pattern matching in themes that
+            # strip/rebuild the prompt (e.g. Pure).
+            if (( ! ps1_changed )) && [[ $PROMPT == *$'\n'* ]]; then
+                PROMPT=${PROMPT//$'\n'/$'\n'${mark2}}
+            fi
+
+            [[ $PROMPT2 == *[^%]% || $PROMPT2 == % ]] && PROMPT2=$PROMPT2%
+            PROMPT2=${mark2}${PROMPT2}${markB}
+
+            __ghostel_marked_prompt=$PROMPT
+        else
+            # Not last in precmd_functions — a later hook will overwrite
+            # PROMPT after we wrap it.  Move ourselves to the end for
+            # next cycle, and emit mark1 once via printf so the upcoming
+            # prompt is still tagged.  `$mark1[3,-3]' strips the leading
+            # `%{' and trailing `%}' to print just the OSC bytes.
+            precmd_functions=(${precmd_functions:#__ghostel_ensure_prompt_wrap} __ghostel_ensure_prompt_wrap)
+            if ! builtin zle; then
+                builtin printf '%s' $mark1[3,-3]
+            fi
+        fi
+    elif ! builtin zle; then
+        # Without prompt_percent we cannot patch PROMPT.  Emit mark1
+        # directly when not invoked from zle.
+        builtin printf '%s' $mark1[3,-3]
+    fi
+}
+
+# ZLE line-init fallback: emit prompt markers directly if PROMPT lost
+# them between precmd and this redraw (e.g. another plugin regenerated
+# PROMPT after our precmd ran).  Use 133;P, NOT 133;A: the fallback
+# fires from `zle-line-init' AFTER the prompt has been drawn, so the
+# cursor is past column 0 — libghostty CR+LFs on 133;A when cursor !=
+# col 0, pushing the input cursor onto a blank line below the prompt
+# char.  133;P is the side-effect-free prompt-start marker.  Also
+# emit 133;B to mark the input area.
+__ghostel_zle_line_init_hook() {
+    builtin emulate -L zsh -o no_warn_create_global -o no_aliases
+    [[ "$PROMPT" != *$'%{\e]133;A'* ]] && \
+        builtin printf '\e]133;P;k=i\a\e]133;B\a'
+}
+
+# One-shot installer: registered as a precmd, runs once on the first
+# prompt fire (after `.zshrc' has finished and any user/theme
+# `zle-line-init' widget is in place).  Chains our hook to whatever
+# existing widget is registered, then removes itself from precmd_functions.
+#
+# Mirrors ghostty's zsh integration:
+#   - If the widget is already managed by `add-zle-hook-widget'
+#     (oh-my-zsh, prezto and others wrap zle-line-init this way),
+#     register through that framework instead of overwriting — blindly
+#     rebinding the widget detaches the framework's dispatcher chain.
+#   - Otherwise, save any existing widget under a leading-dot name (works
+#     around zsh-syntax-highlighting bugs) and append a tail invocation
+#     of the original to our hook function's body so it still runs after
+#     us.  `flag' picks `-N' vs. `-Nw' — the former preserves $WIDGET
+#     for user-defined widgets, the latter is needed for builtins.
+__ghostel_install_zle_hook() {
+    builtin emulate -L zsh -o no_warn_create_global -o no_aliases
+    builtin local hook=line-init
+    builtin local func=__ghostel_zle_line_init_hook
+    builtin local widget=zle-$hook
+    builtin local orig_widget flag
+    if [[ ${widgets[$widget]} == user:azhw:* ]] && \
+           (( $+functions[add-zle-hook-widget] )); then
+        add-zle-hook-widget $hook $func
+    else
+        if (( $+widgets[$widget] )); then
+            orig_widget=._ghostel_orig_$widget
+            builtin zle -A $widget $orig_widget
+            if [[ ${widgets[$widget]} == user:* ]]; then
+                flag=
+            else
+                flag=w
+            fi
+            functions[$func]+="
+                builtin zle $orig_widget -N$flag -- \"\$@\""
+        fi
+        builtin zle -N $widget $func
+    fi
+    precmd_functions=(${precmd_functions:#__ghostel_install_zle_hook})
+}
+
+# `__ghostel_save_status' must run first so $? still reflects the last
+# command.  `__ghostel_prompt_start' emits the OSC 133;D boundary marker
+# for the previous command and is also order-sensitive.
+#
+# `__ghostel_osc7' is APPENDED (not prepended) so we win the race
+# against competing OSC 7 emitters in user/system precmds.  Same
+# rationale as the bash side: libghostty stores whichever OSC 7 fires
+# last per cycle, so a precmd like Fedora's __vte_prompt_command -
+# which emits OSC 7 using $HOSTNAME, possibly polluted by container
+# runtimes - would otherwise overwrite our value.
+precmd_functions=(__ghostel_save_status __ghostel_prompt_start "${precmd_functions[@]}")
+precmd_functions+=(__ghostel_osc7 __ghostel_ensure_prompt_wrap __ghostel_install_zle_hook)
+preexec_functions=(__ghostel_preexec "${preexec_functions[@]}")
+
+# Outbound `ssh' with ghostel's shell integration and xterm-ghostty
+# terminfo on the remote, for this session only.
+# Usage: ghostel_ssh [SSH-ARGS...]  (also `ghostel ssh').
+#
+# On first contact with a host one setup connection pushes etc/shell
+# and etc/terminfo to ~/.local/share/ghostel on the remote (mirroring
+# the repo layout) and copies the terminfo into ~/.terminfo; the
+# outcome is cached under $XDG_CACHE_HOME/ghostel/ssh-terminfo-cache,
+# keyed by target and a hash of the pushed files so a ghostel update
+# re-pushes.  The real connection then starts the remote login shell
+# through etc/shell/remote/login.sh, which injects the integration the
+# way a local spawn does.  No rc file on the remote is touched; see
+# ghostel_ssh_install for that.  A failed push caches a skip marker
+# and falls back to plain ssh with TERM=xterm-256color.  INSIDE_EMACS
+# is offered via SendEnv so a remote whose sshd accepts it can gate on
+# that instead of TERM.
+#
+# Pass-through (plain ssh, nothing pushed): no host (`ssh -V'), a
+# remote command (`ssh HOST cmd'; the cached TERM still applies), and
+# the -G/-N/-O/-s/-W modes.  Prefix with GHOSTEL_SSH_KEEP_TERM=1 to
+# bypass the wrapper entirely.
+#
+# When the elisp side sets `ghostel-ssh-install-terminfo' (exported as
+# GHOSTEL_SSH_INSTALL_TERMINFO) plain `ssh' is shadowed by this function.
+
+# __ghostel_ssh_push INSTALL-ARGS SSH-ARGS...: tar etc/shell and
+# etc/terminfo into ~/.local/share/ghostel on the remote and run
+# etc/shell/remote/install.sh INSTALL-ARGS there.  Stdin is the tar
+# stream, so this is never the interactive connection.
+function __ghostel_ssh_push {
+    local _install_args=$1
+    shift
+    COPYFILE_DISABLE=1 command tar c --format ustar -f - \
+            -C "$EMACS_GHOSTEL_PATH" etc/shell etc/terminfo \
+        | command ssh -o SendEnv=INSIDE_EMACS "$@" "sh -c 'mkdir -p ~/.local/share/ghostel && tar xf - -C ~/.local/share/ghostel && sh ~/.local/share/ghostel/etc/shell/remote/install.sh $_install_args'"
+}
+
+# Hash of everything __ghostel_ssh_push ships.
+function __ghostel_ssh_hash {
+    command find "$EMACS_GHOSTEL_PATH/etc/shell" "$EMACS_GHOSTEL_PATH/etc/terminfo" -type f -exec cksum {} + \
+        | LC_ALL=C command sort | command cksum | command awk '{print $1}'
+}
+
+function ghostel_ssh {
+    if [[ -n "${GHOSTEL_SSH_KEEP_TERM:-}" ]] || [[ ! -t 0 ]] || \
+           [[ ! -r "${EMACS_GHOSTEL_PATH:-}/etc/shell/remote/login.sh" ]]; then
+        command ssh "$@"
+        return
+    fi
+
+    # Resolve the canonical target (normalises ssh_config aliases).
+    local _user="" _host="" _port="" _k _v
+    while IFS=' ' read -r _k _v; do
+        case "$_k" in
+            user)     _user=$_v ;;
+            hostname) _host=$_v ;;
+            port)     _port=$_v ;;
+        esac
+        [[ -n $_user && -n $_host && -n $_port ]] && break
+    done < <(command ssh -G "$@" 2>/dev/null)
+
+    # No host (e.g. `ssh -V`, `ssh -h`): pass through.
+    if [[ -z $_host ]]; then
+        command ssh "$@"
+        return
+    fi
+
+    # Count positionals (host + remote command) and spot modes that
+    # open no login session.  Valued flags skip their argument.
+    local _positional=0 _skip=0 _plain=0 _arg
+    for _arg in "$@"; do
+        if (( _skip )); then _skip=0; continue; fi
+        case "$_arg" in
+            -G|-N|-s|-W*|-O*) _plain=1 ;;
+            -[bBcDEeFIiJLlmoPpQRSw]) _skip=1 ;;
+            -*) ;;
+            *) ((_positional++)) ;;
+        esac
+    done
+    if (( _plain )); then
+        command ssh "$@"
+        return
+    fi
+
+    local _target="$_user@$_host:$_port"
+    local _hash
+    _hash=$(__ghostel_ssh_hash)
+    local _cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/ghostel"
+    local _cache="$_cache_dir/ssh-terminfo-cache"
+    local _key="$_target:$_hash"
+    local _state=""
+    if [[ -r $_cache ]]; then
+        if command grep -Fxq "$_key ok" "$_cache" 2>/dev/null; then
+            _state=ok
+        elif command grep -Fxq "$_key skip" "$_cache" 2>/dev/null; then
+            _state=skip
+        fi
+    fi
+
+    # A remote command runs plainly with the cached TERM: pushing files
+    # first would delay it on every new host.
+    if (( _positional > 1 )); then
+        if [[ $_state == ok ]]; then
+            TERM=xterm-ghostty command ssh -o SendEnv=INSIDE_EMACS "$@"
+        else
+            TERM=xterm-256color command ssh -o SendEnv=INSIDE_EMACS "$@"
+        fi
+        return
+    fi
+
+    if [[ -z $_state ]]; then
+        command mkdir -p "$_cache_dir" 2>/dev/null
+        if __ghostel_ssh_push "" "$@" >/dev/null 2>&1; then
+            _state=ok
+        else
+            print -r -- "ghostel: could not push shell integration to $_host \
+(no tar on the remote, or home not writable?), using plain ssh with xterm-256color." >&2
+            _state=skip
+        fi
+        print -r -- "$_key $_state" >> "$_cache"
+    fi
+
+    if [[ $_state == ok ]]; then
+        # Falls back to a plain login shell when the pushed files are
+        # gone (rebuilt host) so a stale ok entry never locks you out.
+        local _login='f=~/.local/share/ghostel/etc/shell/remote/login.sh; [ -r "$f" ] && exec sh "$f"; echo "ghostel: $f missing on this host, run M-x ghostel-ssh-clear-terminfo-cache to push again" >&2; exec "${SHELL:-sh}" -l'
+        TERM=xterm-ghostty command ssh -t -o SendEnv=INSIDE_EMACS "$@" "sh -c '$_login'"
+    else
+        TERM=xterm-256color command ssh -o SendEnv=INSIDE_EMACS "$@"
+    fi
+}
+
+# `function NAME { … }' rather than `NAME() { … }' so a user alias
+# on `ssh' (aliases expand at parse time in zsh, and bash when the
+# alias is already active while sourcing this file) can't turn the
+# definition into a parse error.
+if [[ -n "${GHOSTEL_SSH_INSTALL_TERMINFO:-}" ]]; then
+    function ssh { ghostel_ssh "$@" }
+fi
+
+# Install ghostel's shell integration and xterm-ghostty terminfo on a
+# remote host, permanently: the same push as ghostel_ssh, plus a hook
+# in the login shell's startup (see etc/shell/remote/install.sh) so a
+# plain `ssh HOST' loads the integration.
+# Usage: ghostel_ssh_install [SSH-OPTIONS] HOST  (also `ghostel ssh-install').
+function ghostel_ssh_install {
+    if [[ ! -r "${EMACS_GHOSTEL_PATH:-}/etc/shell/remote/install.sh" ]]; then
+        print -r -- "ghostel: EMACS_GHOSTEL_PATH does not point at a ghostel install" >&2
+        return 1
+    fi
+    __ghostel_ssh_push --hook "$@" || return
+    # Drop the ghostel_ssh cache: a remembered `skip' for this host would
+    # otherwise keep hiding the files just installed.
+    command rm -f "${XDG_CACHE_HOME:-$HOME/.cache}/ghostel/ssh-terminfo-cache"
+}
+
+# Subcommand front end: `ghostel cmd|ssh|ssh-install|help ...'.
+function ghostel {
+    local _sub=${1-help}
+    (( $# )) && shift
+    case "$_sub" in
+        cmd) ghostel_cmd "$@" ;;
+        ssh) ghostel_ssh "$@" ;;
+        ssh-install) ghostel_ssh_install "$@" ;;
+        help|-h|--help)
+            print -rl -- \
+                'Usage: ghostel cmd FUNCTION [ARGS...]       call an Emacs function (see ghostel-eval-cmds)' \
+                '       ghostel ssh [SSH-ARGS...]            ssh with xterm-ghostty terminfo on the remote' \
+                '       ghostel ssh-install [SSH-OPTS] HOST  install shell integration + terminfo on HOST'
+            ;;
+        *)
+            print -r -- "ghostel: unknown subcommand '$_sub'" >&2
+            ghostel help >&2
+            return 2
+            ;;
+    esac
+}
+
+# Call an Emacs Elisp function from the shell.
+# Usage: ghostel_cmd FUNCTION [ARGS...]
+# The function must be in `ghostel-eval-cmds'.
+ghostel_cmd() {
+    local payload="" arg
+    while (( $# )); do
+        arg="${1//\\/\\\\}"
+        arg="${arg//\"/\\\"}"
+        payload="$payload\"$arg\" "
+        shift
+    done
+    printf '\e]52;e;%s\e\\' "$payload"
+}

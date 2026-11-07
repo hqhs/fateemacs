@@ -53,6 +53,10 @@ YAML_MODE_HASH="93dba98c050e9abfc623ec66aa499dbbb46b2fe1"
 # cmake-mode ships inside the CMake tree, so it is pinned to a CMake release
 # and pulled as a single file rather than cloned.
 CMAKE_TAG="v4.4.5"
+# Terminal. Unlike everything else here, ghostel is half Zig: the elisp drives
+# a native module built from src/ against libghostty-vt. Needs the build
+# inputs vendored too, and `./scripts/build-term.sh' to produce the module.
+GHOSTEL_HASH="3f3631e83f4a35243dfd25e1a8e6a542c4097691"
 
 # ── vendor function ──────────────────────────────────────────────────
 #
@@ -100,6 +104,40 @@ vendor() {
   cd - > /dev/null
   rm -rf "$tmp"
   echo "$hash" > "$pin"
+}
+
+# vendor_ghostel -- the one dependency that is not pure elisp. Takes the elisp
+# plus the Zig build inputs and the bundled xterm-ghostty terminfo, flattening
+# lisp/ to the package root like the other magit-style layouts. The module
+# binary itself is built locally and gitignored, not vendored.
+vendor_ghostel() {
+  local dest="$(pwd)/$VENDOR_DIR/ghostel"
+  local pin="$dest/.pin"
+
+  if [ -f "$pin" ] && [ "$(cat "$pin")" = "$GHOSTEL_HASH" ]; then
+    echo "  skip ghostel (pinned at ${GHOSTEL_HASH:0:10})"
+    return
+  fi
+
+  echo "  pull ghostel @ ${GHOSTEL_HASH:0:10}"
+  tmp=$(mktemp -d)
+  git -C "$tmp" init --quiet
+  git -C "$tmp" remote add origin "https://github.com/dakra/ghostel.git"
+  git -C "$tmp" fetch --quiet --depth 1 origin "$GHOSTEL_HASH"
+  git -C "$tmp" checkout --quiet FETCH_HEAD
+
+  rm -rf "$dest"
+  mkdir -p "$dest"
+  cp "$tmp"/lisp/*.el "$dest/"
+  cp -R "$tmp"/src "$tmp"/vendor "$tmp"/etc "$dest/"
+  cp "$tmp"/build.zig "$tmp"/build.zig.zon "$tmp"/symbols.map "$dest/"
+  # evil-ghostel is a separate package in the same repo; straight.el already
+  # puts vendor/*/extensions/*/ on the load-path. consult-ghostel is skipped --
+  # no consult here.
+  mkdir -p "$dest/extensions"
+  cp -R "$tmp"/extensions/evil-ghostel "$dest/extensions/"
+  rm -rf "$tmp"
+  echo "$GHOSTEL_HASH" > "$pin"
 }
 
 # vendor_file <name> <url> <pin> -- single .el file, no repository to clone.
@@ -160,5 +198,12 @@ vendor_file cmake-mode \
   "https://raw.githubusercontent.com/Kitware/CMake/$CMAKE_TAG/Auxiliary/cmake-mode.el" \
   "$CMAKE_TAG"
 
+echo "Terminal:"
+vendor_ghostel
+
 echo
 echo "Done. Now: git add vendor/ && git commit"
+if [ ! -f "$VENDOR_DIR/ghostel/ghostel-module.dylib" ] \
+   && [ ! -f "$VENDOR_DIR/ghostel/ghostel-module.so" ]; then
+  echo "Note: no terminal module built. ./scripts/build-term.sh (optional)."
+fi

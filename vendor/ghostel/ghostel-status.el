@@ -1,0 +1,572 @@
+;;; ghostel-status.el --- Program status, bell and notifications for ghostel -*- lexical-binding: t; -*-
+
+;; Author: Daniel Kraus <daniel@kraus.my>
+;; SPDX-License-Identifier: GPL-3.0-or-later
+
+;;; Commentary:
+
+;; What a program running in the terminal reports about itself outside
+;; the grid: the bell (BEL), desktop notifications (OSC 9, OSC 777) and
+;; program status (OSC 7501, with ConEmu OSC 9;4 progress mapped onto
+;; it).  The native module calls `ghostel--bell',
+;; `ghostel--handle-notification', `ghostel--osc-program-status',
+;; `ghostel--osc-progress' and `ghostel--program-status-reset'.
+;;
+;; Across terminals, `ghostel-status-buffers' lists those needing
+;; attention most urgent first, `ghostel-status-next' switches to them
+;; in turn and `ghostel-status-indicator-mode' counts terminals by
+;; state in every mode line.
+
+;;; Code:
+
+(require 'cl-lib)
+(require 'compat)
+(require 'subr-x)
+
+(declare-function alert "alert")
+(declare-function spinner-start "spinner")
+(declare-function spinner-stop "spinner")
+(declare-function ghostel--buffer-focused-p "ghostel")
+(declare-function ghostel--cycle "ghostel")
+(declare-function ghostel-buffer-list "ghostel")
+(declare-function ghostel--defer "ghostel")
+(declare-function ghostel--mode-line-refresh "ghostel")
+(declare-function ghostel--run-hook-safely "ghostel")
+(declare-function ghostel--update-title "ghostel")
+
+
+;;; Customization
+
+(defcustom ghostel-bell-functions '(ghostel-ding)
+  "Hook run when the terminal receives BEL.
+Each function is called with no arguments and the terminal buffer
+current.  Remove `ghostel-ding' to silence the bell."
+  :type 'hook
+  :group 'ghostel)
+
+(define-obsolete-variable-alias 'ghostel-notification-function
+  'ghostel-notification-functions "0.58.0")
+
+(defcustom ghostel-notification-functions '(ghostel-default-notify)
+  "Hook run for desktop notifications.
+Each function is called with TITLE and BODY, strings, the originating
+terminal buffer current.  Runs for OSC 9 / OSC 777, TITLE empty for
+OSC 9, and through `ghostel-status-notify' for program status changes.
+OSC 9 / OSC 777 are skipped from a program's first OSC 7501 report until
+its root `clear', the next shell-integration prompt or process exit.
+Runs via `run-at-time', so handlers may block without stalling the terminal."
+  :type 'hook
+  :group 'ghostel)
+
+(defcustom ghostel-program-status-functions
+  '(ghostel-status-mode-line ghostel-status-notify)
+  "Hook run after a program status record changes.
+Each function is called with ID, OLD and NEW, the terminal buffer
+current.  ID is the record's id string, \"\" for the program itself.
+OLD and NEW are the record plists before and after the change: OLD
+is nil for a new record, NEW for a removed one.  A record has
+`:state' (`idle', `working', `done', `blocked' or `error') and the
+keys the program sent: `:kind' (`permission', `question' or `auth'),
+`:progress' (0-100), `:app', `:title' and `:msg'.
+Runs on the terminal output path, so keep handlers cheap."
+  :type 'hook
+  :group 'ghostel)
+
+(defcustom ghostel-status-notify-states '(blocked done error)
+  "States that need your attention.
+A record entering one notifies unless its buffer is the one you are
+looking at; a terminal holding one counts in `ghostel-status-buffers'
+and `ghostel-status-next'."
+  :type '(set (const blocked) (const done) (const error)
+              (const working) (const idle))
+  :group 'ghostel)
+
+(defcustom ghostel-status-indicator-states '(blocked done error working)
+  "States `ghostel-status-indicator-mode' counts terminals in."
+  :type '(set (const blocked) (const done) (const error)
+              (const working) (const idle))
+  :group 'ghostel)
+
+(defcustom ghostel-status-auto-acknowledge 'input
+  "When a terminal's `done' and `error' records are dropped.
+`input' when you send input to the terminal, `seen' as soon as it is
+the buffer you are looking at, nil only by the command
+`ghostel-status-acknowledge' or the program itself."
+  :type '(choice (const :tag "On input" input)
+                 (const :tag "When seen" seen)
+                 (const :tag "Never" nil))
+  :group 'ghostel)
+
+(defconst ghostel-status-word-labels
+  '((working . "[working%x]") (progress . "[%p%%%x]")
+    (blocked . "[blocked%x]") (permission . "[blocked: permission%x]")
+    (question . "[blocked: question%x]") (auth . "[blocked: auth%x]")
+    (done . "[done%x]") (error . "[error%x]"))
+  "Word labels for `ghostel-status-mode-line-labels'.")
+
+(defconst ghostel-status-emoji-labels
+  '((working . "⏳%c") (progress . "%p%%%c") (blocked . "✋%c")
+    (permission . "🔒%c") (question . "❓%c") (auth . "🔑%c")
+    (done . "✅%c") (error . "❌%c"))
+  "Emoji labels for `ghostel-status-mode-line-labels'.")
+
+(defcustom ghostel-status-mode-line-labels 'emoji
+  "Labels per program status, in mode lines and picker annotations.
+`emoji' (`ghostel-status-emoji-labels', `words' when the selected frame
+cannot display them), `words' (`ghostel-status-word-labels'), or an alist keyed
+by state, by the `blocked' kinds `permission', `question' and `auth',
+and by `progress' for `working' with a percentage.  Values are
+`format-spec' strings: %p the percentage, %k the kind, %n the number of
+records or terminals the label stands for, %c that number only when
+there are several, %x \" ×N\" only then.  A kind or `progress' without
+an entry uses the state's; a state without one shows nothing.  Each
+label is preceded by a space."
+  :type '(choice (const :tag "Emoji, words where they cannot show" emoji)
+                 (const :tag "Words" words)
+                 (alist :key-type symbol :value-type string))
+  :group 'ghostel)
+
+(defcustom ghostel-spinner-type 'progress-bar
+  "Spinner shown while a program works without a percentage.
+A key of `spinner-types' from spinner.el, or nil for the plain
+`working' label.  Ignored when spinner.el is not installed."
+  :type '(choice (const :tag "Plain text" nil) symbol)
+  :group 'ghostel)
+
+
+;;; Bell
+
+(defun ghostel-ding ()
+  "Beep without terminating a running keyboard macro."
+  (ding t))
+
+(defun ghostel--bell ()
+  "Run `ghostel-bell-functions' for a BEL from the native VT parser."
+  (ghostel--run-hook-safely 'ghostel-bell-functions))
+
+
+;;; Notifications
+
+(defvar-local ghostel-status--osc7501-seen nil
+  "Non-nil while the program reports its status with OSC 7501.
+Set by a report, cleared by a root `clear', a new prompt, process exit or RIS.")
+
+(defun ghostel-default-notify (title body)
+  "Show TITLE and BODY with `alert', else `message'.
+The alert package (https://github.com/jwiegley/alert) picks a backend
+per platform: osascript on macOS, libnotify on Linux, etc.  An empty
+TITLE, as in iTerm2-style OSC 9, shows the buffer name instead."
+  (let ((summary (if (or (null title) (string-empty-p title))
+                     (buffer-name)
+                   title)))
+    (if (and (require 'alert nil t) (fboundp 'alert))
+        (alert body :title summary)
+      (message "%s: %s" summary body))))
+
+(defun ghostel-tty-forward-notify (title body)
+  "Forward notifications to the outer terminal.
+On a tty frame, re-emit TITLE and BODY as OSC 9 (empty TITLE) or
+OSC 777 to the frame showing this buffer, else the selected frame.
+On a GUI frame, fall back to `ghostel-default-notify'.
+Use in place of `ghostel-default-notify' in
+`ghostel-notification-functions'."
+  (let ((frame (window-frame (get-buffer-window nil t))))
+    (if (tty-type frame)
+        (send-string-to-terminal
+         (if (string-empty-p title)
+             (format "\e]9;%s\e\\" body)
+           (format "\e]777;notify;%s;%s\e\\" title body))
+         frame)
+      (ghostel-default-notify title body))))
+
+(defun ghostel--handle-notification (title body)
+  "Run `ghostel-notification-functions' with TITLE and BODY.
+Deferred via `ghostel--defer' so a slow backend (DBus, osascript)
+does not block terminal output."
+  (unless ghostel-status--osc7501-seen
+    (ghostel--defer #'ghostel--run-hook-safely
+                    'ghostel-notification-functions title body)))
+
+
+;;; Program status records
+
+(defconst ghostel-status--max-records 256
+  "Records kept per terminal; past this the least recently updated goes.")
+
+(defvar-local ghostel-program-status nil
+  "Program status records, most recently updated first.
+Each element is (ID . RECORD); see `ghostel-program-status-functions'.")
+
+(defvar-local ghostel-status--title nil
+  "Title of the root program status record, or nil.")
+
+(defun ghostel-status--change (id old new)
+  "Run the hook for record ID changing from OLD to NEW."
+  (when (string-empty-p id)
+    (let ((title (plist-get new :title)))
+      (unless (equal title ghostel-status--title)
+        (setq ghostel-status--title title)
+        (ghostel--update-title))))
+  (ghostel--run-hook-safely 'ghostel-program-status-functions id old new))
+
+(defun ghostel-status--set (id record)
+  "Replace record ID with RECORD, evicting the oldest past the cap."
+  (let ((old (cdr (assoc id ghostel-program-status))))
+    (setq ghostel-program-status
+          (cons (cons id record)
+                (assoc-delete-all id ghostel-program-status)))
+    (when (> (length ghostel-program-status) ghostel-status--max-records)
+      (let ((evicted (car (last ghostel-program-status))))
+        (setq ghostel-program-status (butlast ghostel-program-status))
+        (ghostel-status--change (car evicted) (cdr evicted) nil)))
+    (ghostel-status--change id old record)
+    (when (memq (plist-get record :state) '(done error))
+      (ghostel-status--acknowledge-seen))))
+
+(defun ghostel-status--remove-if (pred)
+  "Remove every (ID . RECORD) entry satisfying PRED."
+  (let ((removed (cl-remove-if-not pred ghostel-program-status)))
+    (when removed
+      (setq ghostel-program-status
+            (cl-remove-if pred ghostel-program-status))
+      (dolist (entry removed)
+        (ghostel-status--change (car entry) (cdr entry) nil)))))
+
+(defun ghostel-status--clear (id)
+  "Remove record ID and its children; \"\" removes every record."
+  (let ((prefix (concat id "/")))
+    (when (string-empty-p id)
+      (setq ghostel-status--osc7501-seen nil))
+    (ghostel-status--remove-if
+     (lambda (entry)
+       (or (string-empty-p id)
+           (equal (car entry) id)
+           (string-prefix-p prefix (car entry)))))))
+
+(defun ghostel-status--drop-running ()
+  "Remove `working' and `blocked' records, at a new prompt or process exit."
+  (setq ghostel-status--osc7501-seen nil)
+  (ghostel-status--remove-if
+   (lambda (entry) (memq (plist-get (cdr entry) :state) '(working blocked)))))
+
+(defun ghostel-status-acknowledge ()
+  "Drop the `done' and `error' records of the current terminal."
+  (interactive)
+  (ghostel-status--remove-if
+   (lambda (entry) (memq (plist-get (cdr entry) :state) '(done error)))))
+
+(defun ghostel-status--acknowledge-seen ()
+  "Acknowledge when `ghostel-status-auto-acknowledge' is `seen' and looked at."
+  (when (and (eq ghostel-status-auto-acknowledge 'seen)
+             ghostel-program-status
+             (ghostel--buffer-focused-p (current-buffer)))
+    (ghostel-status-acknowledge)))
+
+(defun ghostel-status--kill-buffer ()
+  "Drop every record of the terminal being killed, so nothing counts it."
+  (ghostel-status--clear ""))
+
+
+;;; Terminals needing attention
+
+(defconst ghostel-status--urgency '(blocked error done working idle)
+  "States most urgent first.")
+
+(defun ghostel-status-buffer-state (buffer &optional states)
+  "Return BUFFER's most urgent record state among STATES, or nil.
+STATES defaults to `ghostel-status-notify-states'."
+  (let ((wanted (or states ghostel-status-notify-states))
+        (held (mapcar (lambda (entry) (plist-get (cdr entry) :state))
+                      (buffer-local-value 'ghostel-program-status buffer))))
+    (seq-find (lambda (state) (and (memq state wanted) (memq state held)))
+              ghostel-status--urgency)))
+
+(defun ghostel-status-buffers (&optional states)
+  "Return the terminals holding a state in STATES, most urgent first.
+Ordered by `ghostel-status-buffer-state', which also gives the default STATES;
+equal states keep `ghostel-buffer-list' order."
+  (let (ranked)
+    (dolist (buf (ghostel-buffer-list))
+      (when-let* ((state (ghostel-status-buffer-state buf states)))
+        (push (cons (cl-position state ghostel-status--urgency) buf) ranked)))
+    (mapcar #'cdr (sort (nreverse ranked) (lambda (a b) (< (car a) (car b)))))))
+
+(defun ghostel-status-next ()
+  "Switch to the next terminal needing attention, most urgent first.
+Repeating walks the terminals in that order and wraps; a terminal
+dropped by `ghostel-status-acknowledge' leaves the walk."
+  (interactive)
+  (ghostel--cycle (ghostel-status-buffers) +1
+                  "No terminal needs attention"
+                  "Only this terminal needs attention"))
+
+(defun ghostel-status-app (id)
+  "Return the app of record ID, inherited from the nearest ancestor that has one."
+  (or (plist-get (cdr (assoc id ghostel-program-status)) :app)
+      (and (not (string-empty-p id))
+           (ghostel-status-app (string-trim-right id "/?[^/]*")))))
+
+(defun ghostel-status--record (state &rest props)
+  "Return a record plist with STATE and the non-nil values in PROPS."
+  `(:state ,state ,@(cl-loop for (key value) on props by #'cddr
+                             when value append (list key value))))
+
+(defconst ghostel-status--states '(idle working done blocked error clear)
+  "OSC 7501 states accepted from the native module.")
+
+(defconst ghostel-status--kinds '(permission question auth)
+  "OSC 7501 kinds accepted from the native module.")
+
+(defun ghostel--osc-program-status (state id kind progress app title msg)
+  "Apply an OSC 7501 report from the native module.
+STATE is the state name.  ID, KIND, APP, TITLE and MSG are strings or nil;
+PROGRESS is an integer or nil."
+  (when-let* ((state (car (memq (intern-soft state) ghostel-status--states)))
+              (id (or id "")))
+    (if (eq state 'clear)
+        (ghostel-status--clear id)
+      (setq ghostel-status--osc7501-seen t)
+      (ghostel-status--set
+         id (ghostel-status--record state
+                                    :kind (car (memq (intern-soft kind)
+                                                     ghostel-status--kinds))
+                                    :progress progress :app app
+                                    :title title :msg msg)))))
+
+(defun ghostel--osc-progress (state progress)
+  "Apply a ConEmu OSC 9;4 report from the native module to the root record.
+STATE is the ConEmu state name, PROGRESS an integer 0-100 or nil.
+Ignored while the program reports its status with OSC 7501."
+  (unless ghostel-status--osc7501-seen
+    (pcase state
+      ("remove" (ghostel-status--clear ""))
+      ("set" (ghostel-status--set
+              "" (ghostel-status--record 'working :progress (or progress 0))))
+      ("indeterminate" (ghostel-status--set "" (ghostel-status--record 'working)))
+      ("error" (ghostel-status--set "" (ghostel-status--record 'error)))
+      ("pause" (ghostel-status--set
+                "" (ghostel-status--record 'blocked :progress progress))))))
+
+(defun ghostel--program-status-reset ()
+  "Accept OSC 9;4 and OSC 9 / OSC 777 again after a full reset (RIS).
+libghostty reports `clear' for every record on RIS by itself."
+  (setq ghostel-status--osc7501-seen nil))
+
+
+;;; Mode line
+
+(defvar-local ghostel--mode-line-status nil
+  "Mode-line text for the program status, or nil.")
+
+(defvar-local ghostel--spinner-active nil
+  "Non-nil while spinner.el animates `mode-line-process' in this buffer.")
+
+(defvar ghostel-status--spinner-available (locate-library "spinner")
+  "Non-nil when spinner.el was on `load-path' at load time.")
+
+(defun ghostel-status--describe (entry)
+  "Return the message, title or app of the (ID . RECORD) ENTRY, or nil."
+  (or (plist-get (cdr entry) :msg)
+      (plist-get (cdr entry) :title)
+      (ghostel-status-app (car entry))))
+
+(defun ghostel-status--labels-alist ()
+  "Return the label alist `ghostel-status-mode-line-labels' selects."
+  (pcase ghostel-status-mode-line-labels
+    ('words ghostel-status-word-labels)
+    ('emoji (if (seq-every-p #'char-displayable-p
+                             (mapconcat #'cdr ghostel-status-emoji-labels ""))
+                ghostel-status-emoji-labels
+              ghostel-status-word-labels))
+    (alist alist)))
+
+(defun ghostel-status--label (entries &optional tip)
+  "Return the mode-line text for the (ID . RECORD) list ENTRIES, or nil.
+The first entry's record gives the state; the others only add to the count.
+TIP is the list of help-echo lines, by default what
+`ghostel-status--describe' says of each entry."
+  (let* ((record (cdar entries))
+         (tip (or tip (delq nil (mapcar #'ghostel-status--describe entries))))
+         (state (plist-get record :state))
+         (progress (plist-get record :progress))
+         (kind (plist-get record :kind))
+         (labels (ghostel-status--labels-alist))
+         (spec (or (and (eq state 'blocked) kind (alist-get kind labels))
+                   (and (eq state 'working) progress (alist-get 'progress labels))
+                   (alist-get state labels)))
+         (count (length entries))
+         (several (> count 1)))
+    (when spec
+      ;; The mode line reads "%]" as a construct; a bare percent is lost.
+      (propertize (concat
+                   " "
+                   (string-replace
+                    "%" "%%"
+                    (format-spec spec `((?p . ,(or progress 0))
+                                        (?k . ,(if kind (symbol-name kind) ""))
+                                        (?n . ,count)
+                                        (?c . ,(if several count ""))
+                                        (?x . ,(if several (format " ×%d" count) ""))))))
+                  'face (pcase state
+                          ('blocked 'warning)
+                          ('error 'error)
+                          ('done 'success))
+                  'help-echo (and tip (string-join tip "\n"))))))
+
+(defun ghostel-status--labels (items)
+  "Return one label per distinct label among ITEMS, counted, or nil.
+ITEMS are (ENTRY . TIP) most urgent first, ENTRY an (ID . RECORD) and
+TIP its help-echo line, nil for what `ghostel-status--describe' says."
+  (let ((parts (delq nil (mapcar
+                          (lambda (group)
+                            (ghostel-status--label
+                             (mapcar #'car (cdr group))
+                             (delq nil (mapcar #'cdr (cdr group)))))
+                          (seq-group-by
+                           (lambda (item)
+                             (ghostel-status--label (list (car item)) '("")))
+                           items)))))
+    (and parts (apply #'concat parts))))
+
+(defun ghostel-status--text ()
+  "Return the mode-line text for the records of the current terminal, or nil.
+One label per distinct label, most urgent first, counted when several
+records read the same."
+  (ghostel-status--labels
+   (mapcar #'list (seq-sort-by
+                   (lambda (entry)
+                     (cl-position (plist-get (cdr entry) :state)
+                                  ghostel-status--urgency))
+                   #'< ghostel-program-status))))
+
+(defun ghostel-status-mode-line (_id _old _new)
+  "Show the program status in `mode-line-process'.
+Every record shows, one label per distinct label most urgent first.  A
+lone root record working without a percentage runs a spinner when
+`ghostel-spinner-type' names one and spinner.el is installed."
+  (let ((record (cdr (assoc "" ghostel-program-status))))
+    (if (and (eq (plist-get record :state) 'working)
+             (null (plist-get record :progress))
+             (null (cdr ghostel-program-status))
+             ghostel-spinner-type
+             ghostel-status--spinner-available
+             (require 'spinner nil t))
+        (unless ghostel--spinner-active
+          (setq ghostel--mode-line-status nil
+                ghostel--spinner-active t)
+          (spinner-start ghostel-spinner-type))
+      (when ghostel--spinner-active
+        (ignore-errors (spinner-stop))
+        (setq ghostel--spinner-active nil))
+      (setq ghostel--mode-line-status (ghostel-status--text)))
+    (ghostel--mode-line-refresh)))
+
+
+;;; Notifications for status changes
+
+(defun ghostel-status-attention-p (old new)
+  "Non-nil when a record changing from OLD to NEW needs your attention.
+That is, NEW enters a `ghostel-status-notify-states' state OLD did not
+have, and the current buffer is not the one being looked at."
+  (let ((state (plist-get new :state)))
+    (and (memq state ghostel-status-notify-states)
+         (not (eq state (plist-get old :state)))
+         (not (ghostel--buffer-focused-p (current-buffer))))))
+
+(defun ghostel-status-notify (id old new)
+  "Notify when record ID changing from OLD to NEW needs attention.
+Runs `ghostel-notification-functions' with the record's title, else
+its app, and its message, else its state, deferred;
+`ghostel-status-attention-p' is the condition."
+  (when (ghostel-status-attention-p old new)
+    (let ((state (plist-get new :state)))
+      (ghostel--defer
+       #'ghostel--run-hook-safely 'ghostel-notification-functions
+       (or (plist-get new :title) (ghostel-status-app id) "")
+       (or (plist-get new :msg)
+           (if-let* ((kind (plist-get new :kind)))
+               (format "%s: %s" state kind)
+             (symbol-name state)))))))
+
+
+;;; Indicator across terminals
+
+(defvar ghostel-status--indicator nil
+  "Mode-line text of `ghostel-status-indicator-mode', or nil.")
+(put 'ghostel-status--indicator 'risky-local-variable t)
+
+(defun ghostel-status--indicator-click (event)
+  "Run `ghostel-status-next' in the window whose mode line got EVENT."
+  (interactive "e")
+  (with-selected-window (posn-window (event-start event))
+    (ghostel-status-next)))
+
+(defvar ghostel-status--indicator-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line mouse-1] #'ghostel-status--indicator-click)
+    map)
+  "Keymap of the indicator; a click runs `ghostel-status-next'.")
+
+(defun ghostel-status--indicator-item (buffer states)
+  "Return the (ENTRY . TIP) item of `ghostel-status--labels' for BUFFER.
+ENTRY is the root when it holds BUFFER's most urgent state among STATES,
+else the newest record that does; TIP names BUFFER and the record."
+  (with-current-buffer buffer
+    (let* ((state (ghostel-status-buffer-state buffer states))
+           (root (assoc "" ghostel-program-status))
+           (entry (if (eq state (plist-get (cdr root) :state))
+                      root
+                    (cl-find state ghostel-program-status
+                             :key (lambda (entry)
+                                    (plist-get (cdr entry) :state))))))
+      (cons entry (format "%s: %s" (buffer-name)
+                          (or (ghostel-status--describe entry) state))))))
+
+(defun ghostel-status--indicator-text ()
+  "Return one label per distinct terminal label, with its count, or nil.
+Each terminal in a `ghostel-status-indicator-states' state contributes
+its `ghostel-status--indicator-item'."
+  (let ((states ghostel-status-indicator-states))
+    (when-let* ((text (and states
+                           (ghostel-status--labels
+                            (mapcar (lambda (buf)
+                                      (ghostel-status--indicator-item buf states))
+                                    (ghostel-status-buffers states))))))
+      (propertize text
+                  'mouse-face 'mode-line-highlight
+                  'local-map ghostel-status--indicator-map))))
+
+(defun ghostel-status--update-indicator (&rest _)
+  "Recompute the indicator; a member of `ghostel-program-status-functions'."
+  (let ((text (ghostel-status--indicator-text)))
+    (unless (equal-including-properties text ghostel-status--indicator)
+      (setq ghostel-status--indicator text)
+      (force-mode-line-update t))))
+
+;;;###autoload
+(define-minor-mode ghostel-status-indicator-mode
+  "Count terminals by program status in every mode line.
+One label per distinct terminal label among the states in
+`ghostel-status-indicator-states', as in the terminal's own mode
+line, with the number of terminals showing it; hovering names them.
+A click runs `ghostel-status-next'.  Hidden while nothing counts."
+  :global t
+  :group 'ghostel
+  (if ghostel-status-indicator-mode
+      (progn
+        (require 'ghostel)  ; Mode is autoloaded, ghostel may not be loaded yet.
+        (add-hook 'ghostel-program-status-functions
+                  #'ghostel-status--update-indicator)
+        (or global-mode-string (setq global-mode-string '("")))
+        (unless (memq 'ghostel-status--indicator global-mode-string)
+          (setq global-mode-string
+                (append global-mode-string '(ghostel-status--indicator))))
+        (ghostel-status--update-indicator))
+    (remove-hook 'ghostel-program-status-functions
+                 #'ghostel-status--update-indicator)
+    (setq global-mode-string
+          (delq 'ghostel-status--indicator global-mode-string))
+    (force-mode-line-update t)))
+
+(provide 'ghostel-status)
+;;; ghostel-status.el ends here

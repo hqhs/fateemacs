@@ -31,6 +31,22 @@ sudo pacman -S ctags ripgrep
 brew install universal-ctags ripgrep
 ```
 
+Optional, for the in-Emacs terminal only:
+```
+brew install zig          # macOS
+sudo pacman -S zig        # Arch
+```
+`lisp/term.el` drives Ghostty's terminal engine (libghostty-vt) through a
+native module, which has to be compiled:
+```bash
+./scripts/build-term.sh   # then SPC ' for a terminal
+```
+Skip it and nothing else changes -- the config starts normally and `SPC '`
+tells you to run the script. The script pins the exact Zig version
+`vendor/ghostel/build.zig.zon` asks for, fetching it into `cache/zig/` when
+the system `zig` is a different release, so it does not matter which one brew
+gave you.
+
 ### Fate emacs
 
 This is my attempt to provide sane default config there I try to disable as much as possible and still provide enought features for muscle memory to work.
