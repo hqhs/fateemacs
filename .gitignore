@@ -5,6 +5,7 @@ cache/*
 url/*
 elpa/*
 tree-sitter/*
+eln-cache/*
 .local/*
 
 projects
