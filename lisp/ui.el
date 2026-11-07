@@ -50,20 +50,31 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Smooth scrolling
 ;;
-;; Keyboard scrolling animates instead of teleporting, the way neoscroll.nvim
-;; does. `pixel-scroll-precision-mode' remaps `scroll-up-command' /
-;; `scroll-down-command' (C-v / M-v) on its own once
-;; `pixel-scroll-precision-interpolate-page' is set; the commands below reuse
-;; the same interpolation for evil's half-page and `z'-prefixed motions, which
-;; the mode does not touch. Bound in keybindings.el.
+;; Two halves that share one engine:
+;;
+;; - Trackpad/wheel: ultra-scroll replaces `pixel-scroll-precision-mode's wheel
+;;   handler (it remaps `pixel-scroll-precision' in that mode's own keymap) and
+;;   scrolls past images and tall lines without the stutter the built-in has.
+;;   It enables `pixel-scroll-precision-mode' itself, so nothing here does.
+;;
+;; - Keyboard: animates instead of teleporting, the way neoscroll.nvim does.
+;;   `pixel-scroll-precision-interpolate-page' covers C-v / M-v; the commands
+;;   below reuse the same interpolation for evil's half-page and `z'-prefixed
+;;   motions, which neither mode touches. Bound in keybindings.el.
+;;
+;; `scroll-margin' 3 and `scroll-conservatively' 101 (prog-conf.el) are left
+;; alone despite ultra-scroll's README asking for 0: it saves both, forces
+;; them for the duration of a scroll gesture, and restores them on an idle
+;; timer, so a nonzero margin costs nothing -- and `zt'/`zb' below need it.
 
-(use-package pixel-scroll
+(use-package ultra-scroll
   :init
+  ;; Governs the keyboard commands only. ultra-scroll pulls in pixel-scroll.
   (setq pixel-scroll-precision-interpolate-page t
         ;; Long enough to read as motion, short enough not to feel like a wait.
         pixel-scroll-precision-interpolation-total-time 0.12)
   :config
-  (pixel-scroll-precision-mode 1))
+  (ultra-scroll-mode 1))
 
 (defun +fate--window-row ()
   "Return point's screen row in the selected window, 0 being the top row.

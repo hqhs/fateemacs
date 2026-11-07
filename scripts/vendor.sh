@@ -47,6 +47,7 @@ CORFU_HASH="51e1ca1215b494c9d8e2c9a383ee75fd102c9473"        # 2.16
 DIFF_HL_HASH="8dfb5c27ea43b8c7ac1c008bb97090ad4f059285"
 INDENT_BARS_HASH="7ef4c38cb1f54cac8f5b43661aee6795b530966c"
 SOLARIZED_HASH="50a13dfdde6ccf998a03095c3ddfcfedf6efcacc"
+ULTRA_SCROLL_HASH="af8dd38480f251a2a99b10b765ce8fd5eeab22ca"     # v0.7.1
 # Language modes:
 GLSL_MODE_HASH="854e6e5c9a971634c9d40501b4ef3ca71881739b"
 YAML_MODE_HASH="93dba98c050e9abfc623ec66aa499dbbb46b2fe1"
@@ -193,6 +194,7 @@ echo "Editing/UI:"
 vendor diff-hl         https://github.com/dgutov/diff-hl.git             "$DIFF_HL_HASH"
 vendor indent-bars     https://github.com/jdtsmith/indent-bars.git       "$INDENT_BARS_HASH"
 vendor solarized-theme https://github.com/bbatsov/solarized-emacs.git    "$SOLARIZED_HASH"
+vendor ultra-scroll    https://github.com/jdtsmith/ultra-scroll.git       "$ULTRA_SCROLL_HASH"
 
 echo "Language modes:"
 vendor glsl-mode       https://github.com/jimhourihan/glsl-mode.git      "$GLSL_MODE_HASH"
