@@ -135,6 +135,7 @@ If HOOK-OR-FUNCTION is a hook symbol, adds to hook. If a function symbol, advise
 (+fate-load-lang "yaml.el")
 (+fate-load-lang "docker.el")
 (+fate-load-lang "cmake.el")
+(+fate-load-lang "mlir.el")
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.

@@ -70,8 +70,8 @@ per-change.
 
 annalist, avy, cmake-mode, compat, cond-let, corfu, diff-hl, evil,
 evil-collection, evil-easymotion, evil-snipe, evil-surround, ghostel,
-glsl-mode, goto-chg, indent-bars, llama, magit, solarized-theme,
-transient, with-editor, yaml-mode, yasnippet.
+glsl-mode, goto-chg, indent-bars, llama, magit, mlir-mode,
+solarized-theme, transient, with-editor, yaml-mode, yasnippet.
 
 All of them are pinned in `scripts/vendor.sh`, one hash per package, and
 recorded in `vendor/<name>/.pin`. Bumping a dependency is a one-line

@@ -53,6 +53,9 @@ YAML_MODE_HASH="93dba98c050e9abfc623ec66aa499dbbb46b2fe1"
 # cmake-mode ships inside the CMake tree, so it is pinned to a CMake release
 # and pulled as a single file rather than cloned.
 CMAKE_TAG="v4.4.5"
+# Likewise mlir-mode, which lives in the LLVM monorepo under
+# mlir/utils/emacs/. Cloning llvm-project for one 97-line file is absurd.
+LLVM_TAG="llvmorg-23.1.5"
 # Terminal. Unlike everything else here, ghostel is half Zig: the elisp drives
 # a native module built from src/ against libghostty-vt. Needs the build
 # inputs vendored too, and `./scripts/build-term.sh' to produce the module.
@@ -197,6 +200,9 @@ vendor yaml-mode       https://github.com/yoshiki/yaml-mode.git          "$YAML_
 vendor_file cmake-mode \
   "https://raw.githubusercontent.com/Kitware/CMake/$CMAKE_TAG/Auxiliary/cmake-mode.el" \
   "$CMAKE_TAG"
+vendor_file mlir-mode \
+  "https://raw.githubusercontent.com/llvm/llvm-project/$LLVM_TAG/mlir/utils/emacs/mlir-mode.el" \
+  "$LLVM_TAG"
 
 echo "Terminal:"
 vendor_ghostel
