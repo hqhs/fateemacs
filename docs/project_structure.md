@@ -47,6 +47,9 @@
   docs/                      project documentation
     project_values.md        philosophy and core principles
     project_structure.md     this file
+    project_security.md      threat model and hardening
+    learning.md              notes while learning emacs
+    terminal.md              ghostel keybindings, mostly how to get out
 
   cache/                     runtime data (gitignored)
     autosave/
