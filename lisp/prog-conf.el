@@ -70,7 +70,7 @@
       show-paren-highlight-openparen t
       show-paren-when-point-inside-paren t
       show-paren-when-point-in-periphery t)
-(show-paren-mode 1)
+(add-hook '+fate-first-file-hook #'show-paren-mode)
 
 ;; Column indicator and line numbers setup
 (add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
@@ -114,7 +114,7 @@
              (treesit-available-p))
     (require 'indent-bars-ts)))
 
-(electric-pair-mode 1)
+(add-hook '+fate-first-file-hook #'electric-pair-mode)
 
 ;; Highlight TODO/FIXME/NOTE/HACK keywords
 (defface +prog-todo-face
@@ -284,12 +284,34 @@ Prefers the defun name; falls back to the node's first source line."
   (compilation-skip-threshold 2); Skip less important messages
   (compilation-max-output-line-length nil)
   :config
-  (require 'ansi-color)
-  (add-hook 'compilation-filter-hook
-            (lambda () (ansi-color-apply-on-region (point-min) (point-max))))
+  ;; `compilation-filter-hook' fires once per chunk of process output.
+  ;; Colourising (point-min)..(point-max) there is O(n^2) over the course of a
+  ;; build; the built-in filter is the same operation scoped to
+  ;; `compilation-filter-start'..point.
+  (add-hook 'compilation-filter-hook #'ansi-color-compilation-filter)
   ;; Enable visual-line-mode in compilation buffers
   (add-hook 'compilation-mode-hook #'visual-line-mode)
-  )
+
+  ;; Nothing bounds a compilation buffer's total size, so a verbose build grows
+  ;; until it grinds GC.
+  (autoload 'comint-truncate-buffer "comint" nil t)
+
+  (defvar +fate--compilation-truncate-time 0
+    "`float-time' of the last compilation-buffer truncation.")
+
+  (defun +fate--compilation-truncate-h ()
+    "Truncate the compilation buffer, at most once a second.
+`comint-truncate-buffer' counts lines, which is far too expensive to run on
+every chunk of process output -- approximate the line count from the buffer
+size instead (~80 columns per line) and rate-limit the real check."
+    (let ((now (float-time)))
+      (when (and (> (buffer-size) (* 80 comint-buffer-maximum-size))
+                 (> (- now +fate--compilation-truncate-time) 1))
+        (setq +fate--compilation-truncate-time now)
+        (+fate/with-delayed-gc!
+          (comint-truncate-buffer)))))
+
+  (add-hook 'compilation-filter-hook #'+fate--compilation-truncate-h))
 
 ;; Trailing whitespace handling
 (setq-default show-trailing-whitespace nil)  ; Disable globally
@@ -303,8 +325,7 @@ Prefers the defun name; falls back to the node's first source line."
   (+setup-todo-highlighting)      ; Highlight TODO keywords
   (+setup-code-folding)          ; Setup code folding
   ;; Enable useful minor modes
-  (subword-mode 1)               ; Treat camelCase as separate words
-  (show-paren-mode 1))           ; Show matching parentheses
+  (subword-mode 1))              ; Treat camelCase as separate words
 
 ;; Add our setup to prog-mode-hook
 (add-hook 'prog-mode-hook #'+setup-prog-mode)
@@ -320,8 +341,42 @@ Prefers the defun name; falls back to the node's first source line."
 ;; TODO: write custom editorconfig parser (~60 lines)
 ;; TODO: write custom indent detection heuristic (~40 lines)
 
-;; Built-in whitespace cleanup on save (replaces ws-butler)
-(add-hook 'before-save-hook #'delete-trailing-whitespace)
+;; Whitespace cleanup on save, scoped to lines we actually edited (ws-butler
+;; semantics, no dependency). A global `delete-trailing-whitespace' produces a
+;; diff full of whitespace hunks on lines nobody looked at, which is
+;; unacceptable in a repo we don't own. Markers track edits for free, so
+;; recording changed regions costs nothing and `before-save-hook' cleans only
+;; those.
+
+(defvar-local +fate--ws-regions nil
+  "Marker pairs spanning text changed since the last save.")
+
+(defun +fate--ws-record (beg end &optional _len)
+  "Record BEG..END as edited, for `+fate--ws-cleanup'."
+  (push (cons (copy-marker beg) (copy-marker end t)) +fate--ws-regions))
+
+(defun +fate--ws-cleanup ()
+  "Delete trailing whitespace on lines edited since the last save."
+  (save-excursion
+    (save-restriction
+      (widen)
+      (dolist (region +fate--ws-regions)
+        (let ((beg (car region))
+              (end (cdr region)))
+          (when (and (marker-position beg) (marker-position end))
+            ;; Expand to whole lines: an edit mid-line still owns its tail.
+            (delete-trailing-whitespace
+             (save-excursion (goto-char beg) (line-beginning-position))
+             (save-excursion (goto-char end) (line-end-position))))
+          (set-marker beg nil)
+          (set-marker end nil)))))
+  (setq +fate--ws-regions nil))
+
+(defun +fate--ws-setup ()
+  (add-hook 'after-change-functions #'+fate--ws-record nil t)
+  (add-hook 'before-save-hook #'+fate--ws-cleanup nil t))
+
+(add-hook 'prog-mode-hook #'+fate--ws-setup)
 
 ;; Async format-on-save (apheleia-style, no external dep)
 ;; Runs formatter asynchronously after save, then silently re-saves.
@@ -350,7 +405,9 @@ The formatter should read stdin and write to stdout.")
       (if (not (equal saved-hash (+fate--buffer-hash)))
           (message "Fate fmt: buffer changed during format, skipping")
         (let ((orig-point (point)))
-          (replace-buffer-contents output-buf)
+          ;; `replace-buffer-contents' allocates heavily for a whole-file diff.
+          (+fate/with-delayed-gc!
+            (replace-buffer-contents output-buf))
           (goto-char (min orig-point (point-max)))
           ;; Re-save silently with loop guard
           (when buffer-file-name
@@ -401,6 +458,43 @@ The formatter should read stdin and write to stdout.")
       (process-send-eof proc))))
 
 (add-hook 'after-save-hook #'+fate/format-after-save)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Keep `tab-width' in step with the mode's own indent offset
+;;
+;; The offsets above are set per mode, but `tab-width' stays 4 globally -- so a
+;; literal tab in a C file displays at 4 columns while the mode indents at 2.
+;; Doom derives the mapping with a name-based heuristic plus a registry of
+;; exceptions; we know our modes, so a plain alist does the whole job.
+
+(defvar +fate-indent-var-alist
+  '((c-mode              . c-basic-offset)
+    (c++-mode            . c-basic-offset)
+    (c-ts-mode           . c-ts-mode-indent-offset)
+    (c++-ts-mode         . c-ts-mode-indent-offset)
+    (python-ts-mode      . python-ts-mode-indent-offset)
+    (python-mode         . python-indent-offset)
+    (js-ts-mode          . js-ts-mode-indent-offset)
+    (typescript-ts-mode  . typescript-ts-mode-indent-offset)
+    (rust-ts-mode        . rust-ts-mode-indent-offset)
+    (go-ts-mode          . go-ts-mode-indent-offset)
+    (yaml-mode           . yaml-indent-offset)
+    (cmake-mode          . cmake-tab-width)
+    (emacs-lisp-mode     . lisp-indent-offset))
+  "Major mode -> the variable that mode indents by.")
+
+(defun +fate-set-indent ()
+  "Sync `tab-width' and `standard-indent' to the major mode's indent offset."
+  (when-let* ((var (cdr (assq major-mode +fate-indent-var-alist)))
+              ((boundp var))
+              (width (symbol-value var))
+              ((integerp width)))
+    (setq-local tab-width width
+                standard-indent width)))
+
+;; `change-major-mode-after-body-hook' runs after the mode body has set its own
+;; variables but before mode hooks, so a hook can still override this.
+(add-hook 'change-major-mode-after-body-hook #'+fate-set-indent)
 
 ;; TODO: multiple cursors support
 

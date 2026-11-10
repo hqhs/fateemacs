@@ -24,9 +24,90 @@
 ;; Mode-line is configured in lisp/modeline.el
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Window / frame
+
+;; The native frame border eats a pixel of the fringe on right-most splits;
+;; `window-divider' draws outside it. diff-hl and indent-bars are already
+;; competing for that fringe.
+(setq window-divider-default-places t
+      window-divider-default-bottom-width 1
+      window-divider-default-right-width 1)
+(window-divider-mode 1)
+
+;; Prefer vertical splits; only go horizontal on a genuinely wide frame.
+(setq split-width-threshold 160
+      split-height-threshold nil)
+
+;; Avoid fights with tiling window managers, and the 100-1000ms rounding spins
+;; that implied frame resizes can cost. Pixelwise *window* resize is a
+;; different matter: it can crash Emacs on a mass resize.
+(setq frame-resize-pixelwise t
+      window-resize-pixelwise nil)
+
+(setq frame-title-format '("%b - Emacs")
+      icon-title-format frame-title-format)
+
+(setq-default indicate-buffer-boundaries nil
+              indicate-empty-lines nil)
+
+;; GUI popups are inconsistent per system and carry their own shortcut keys.
+(setq use-dialog-box nil)
+(tooltip-mode -1)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Current-line highlight
+;;
+;; `global-hl-line-mode' unconditionally puts hl-line in magit, dired,
+;; ibuffer, help and ghostel, and it obscures the region in visual state.
+;; Emacs 31 has the two variables needed to fix that properly, so there is no
+;; need for Doom's pre-31 `define-globalized-minor-mode' reimplementation.
+
 (use-package hl-line
+  :ensure nil ;; built-in
+  :defer t
+  :init
+  (defvar +fate-hl-line-modes
+    '(prog-mode text-mode conf-mode special-mode dired-mode)
+    "Major modes to highlight the current line in.")
+  (add-hook '+fate-first-input-hook #'global-hl-line-mode)
   :config
-  (global-hl-line-mode 1))
+  (setq global-hl-line-buffers
+        (lambda (buf)
+          (with-current-buffer buf
+            (not (or hl-line-mode             ; already on, buffer-locally
+                     (not (derived-mode-p +fate-hl-line-modes))
+                     (region-active-p)
+                     (minibufferp)
+                     (string-prefix-p " " (buffer-name buf))))))
+        ;; Per-window overlays via `pre-redisplay-functions' rather than
+        ;; per-buffer overlays via `post-command-hook'. Strictly cheaper.
+        global-hl-line-sticky-flag 'window)
+
+  ;; The predicate above is re-consulted on every redisplay, so it covers the
+  ;; selection case for the *global* mode. It cannot cover a buffer where
+  ;; `hl-line-mode' was enabled by hand (`<leader>th'): that is a separate
+  ;; buffer-local overlay the global mode does not own. Suspend it around a
+  ;; selection too.
+  (defvar-local +fate--hl-line-was-on nil)
+
+  (add-hook 'activate-mark-hook
+            (lambda ()
+              (when hl-line-mode
+                (hl-line-mode -1)
+                (setq-local +fate--hl-line-was-on t))))
+
+  (add-hook 'deactivate-mark-hook
+            (lambda ()
+              (when +fate--hl-line-was-on
+                (hl-line-mode +1)
+                (kill-local-variable '+fate--hl-line-was-on))))
+
+  ;; Don't resurrect it if it was turned off by hand while a selection was up.
+  (add-hook 'hl-line-mode-hook
+            (lambda ()
+              (unless hl-line-mode
+                (kill-local-variable '+fate--hl-line-was-on)))))
 
 
 ;; Font

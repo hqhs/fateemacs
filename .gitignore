@@ -1,6 +1,7 @@
 straight/*
-transient/*
 auto-save-list/*
+# Covers everything relocated into fate-cache-dir: tramp, bookmarks,
+# custom.el, transient/, comp/, server/, saveplace, recentf, savehist.
 cache/*
 url/*
 elpa/*

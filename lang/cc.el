@@ -28,15 +28,16 @@
                 c-tab-always-indent t
                 )
 
-  ;; Hooks for both regular and treesit modes
-  (dolist (hook '(c-mode-hook c++-mode-hook))
-    (add-hook hook #'eglot-ensure)
-)
+  ;; `-local-vars-hook' rather than `-mode-hook': mode hooks run before
+  ;; directory-local variables are applied, and a project's .dir-locals.el may
+  ;; set `eglot-server-programs' or `eglot-connect-timeout'. See
+  ;; `+fate-run-local-var-hooks-h' in lisp/defaults.el.
+  (dolist (hook '(c-mode-local-vars-hook c++-mode-local-vars-hook))
+    (add-hook hook #'eglot-ensure))
 
   (when (version< "30" emacs-version)
-    (dolist (hook '(c-ts-mode-hook c++-ts-mode-hook))
-      (add-hook hook #'eglot-ensure)
-  ))
+    (dolist (hook '(c-ts-mode-local-vars-hook c++-ts-mode-local-vars-hook))
+      (add-hook hook #'eglot-ensure)))
 
   ;; Custom indentation rules
   (c-add-style "custom-style"

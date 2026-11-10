@@ -76,6 +76,32 @@ With no previous search, search backward for the symbol at point."
   ;; (evil-set-initial-state 'occur-mode 'normal)
   )
 
+;;; Do-what-I-mean escape
+;;
+;; Bound via `[remap keyboard-quit]' rather than to `C-g' literally, so it also
+;; covers evil's ESC and anything else that reaches `keyboard-quit'.
+
+(defvar +fate-escape-hook nil
+  "Hook run by `+fate/escape'.
+Each function quits one piece of state and returns non-nil if it did; the first
+non-nil return wins and nothing further runs.")
+
+(defun +fate/escape (&optional interactive)
+  "Quit whatever state is active, one step at a time, then `keyboard-quit'."
+  (interactive (list 'interactive))
+  (let ((inhibit-quit t))
+    (cond ((minibuffer-window-active-p (minibuffer-window))
+           (when interactive (setq this-command 'abort-recursive-edit))
+           (abort-recursive-edit))
+          ((run-hook-with-args-until-success '+fate-escape-hook))
+          ;; Don't abort macros.
+          ((or defining-kbd-macro executing-kbd-macro) nil)
+          ((unwind-protect (keyboard-quit)
+             (when interactive (setq this-command 'keyboard-quit)))))))
+
+(global-set-key [remap keyboard-quit] #'+fate/escape)
+(with-eval-after-load 'eldoc (eldoc-add-command '+fate/escape))
+
 ;; Custom evil-escape replacement (no external dep)
 ;; "jk" in insert mode → normal mode, with configurable timeout
 (defvar +fate-escape-key-sequence "jk")
@@ -107,19 +133,14 @@ With no previous search, search backward for the symbol at point."
     (kbd (string (aref +fate-escape-key-sequence 0))) #'+fate--escape-insert-first-key
     (kbd (string (aref +fate-escape-key-sequence 1))) #'+fate--escape-insert-second-key)
 
-  ;; C-g → escape from evil states, keyboard-quit otherwise
-  (global-unset-key (kbd "C-g"))
-  (global-set-key (kbd "C-g")
-                  (lambda ()
-                    (interactive)
-                    (cond
-                     ((or (evil-insert-state-p)
-                          (evil-replace-state-p)
-                          (evil-visual-state-p)
-                          (evil-operator-state-p))
-                      (evil-normal-state))
-                     (t
-                      (keyboard-quit))))))
+  ;; Register the evil-state exit as one step of `+fate-escape-hook' rather
+  ;; than hard-coding it in the handler.
+  (add-hook '+fate-escape-hook
+            (lambda ()
+              (when (or (evil-insert-state-p) (evil-replace-state-p)
+                        (evil-visual-state-p) (evil-operator-state-p))
+                (evil-normal-state)
+                t))))
 
 (use-package evil-easymotion
   :after evil

@@ -116,6 +116,10 @@
   (kbd "<leader>tv") #'visual-line-mode
   (kbd "<leader>tV") #'global-visual-line-mode
 
+  ;; window layout undo/redo (winner-mode, see lisp/defaults.el)
+  (kbd "<leader>wu") #'winner-undo
+  (kbd "<leader>wr") #'winner-redo
+
   ;; magit
   (kbd "<leader>gg") #'magit-status
   (kbd "<leader>gb") #'magit-blame

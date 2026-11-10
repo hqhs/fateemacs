@@ -1,5 +1,14 @@
 ;; -*- lexical-binding: t -*-
 
+;; transient loads with magit and otherwise creates ~/.emacs.d/transient/ for
+;; its three state files. It writes the files but will not create their parent,
+;; hence the `make-directory'. Must be set before transient loads.
+(let ((dir (expand-file-name "transient/" fate-cache-dir)))
+  (make-directory dir t)
+  (setq transient-levels-file  (expand-file-name "levels.el" dir)
+        transient-values-file  (expand-file-name "values.el" dir)
+        transient-history-file (expand-file-name "history.el" dir)))
+
 (use-package magit
   :defer t
   :commands magit-status

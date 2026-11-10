@@ -31,7 +31,9 @@
 ;; New version using go-ts-mode
 (use-package go-ts-mode
   :mode (("\\.go\\'" . go-ts-mode))
-  :hook ((go-ts-mode . eglot-ensure))
+  ;; `-local-vars-hook' so a project's .dir-locals.el is already applied; see
+  ;; `+fate-run-local-var-hooks-h' in lisp/defaults.el.
+  :hook ((go-ts-mode-local-vars . eglot-ensure))
   :config
   ;; Your existing go-specific functions can stay
   (add-hook 'go-ts-mode-hook '+fate/go-after-save-hook))

@@ -14,6 +14,20 @@
   (dolist (dir (directory-files vendor-dir t "^[^.]"))
     (when (file-directory-p dir)
       (add-to-list 'load-path dir)))
+  ;; prog-conf.el also uses macros defined in init.el, which is far too much to
+  ;; load here. Lift them out rather than stubbing them, so the test cannot
+  ;; drift from the real definition.
+  (with-temp-buffer
+    (insert-file-contents (expand-file-name "init.el" root-dir))
+    (goto-char (point-min))
+    (condition-case nil
+        (while t
+          (let ((form (read (current-buffer))))
+            (when (and (consp form)
+                       (eq (car form) 'defmacro)
+                       (memq (cadr form) '(+fate/with-delayed-gc!)))
+              (eval form t))))
+      (end-of-file nil)))
   (load (expand-file-name "prog-conf.el" lisp-dir) nil t))
 
 ;;; Helper

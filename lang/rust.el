@@ -2,7 +2,9 @@
 
 (use-package rust-ts-mode
   :mode "\\.rs\\'"
-  :hook ((rust-ts-mode . +fate--rust-maybe-eglot))
+  ;; `-local-vars-hook' so a project's .dir-locals.el is already applied; see
+  ;; `+fate-run-local-var-hooks-h' in lisp/defaults.el.
+  :hook ((rust-ts-mode-local-vars . +fate--rust-maybe-eglot))
   :config
 
   (defun +fate--rust-maybe-eglot ()

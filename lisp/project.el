@@ -55,7 +55,8 @@
 ;;     when >=16 chars surround point -- see `bookmark-search-size' -- so
 ;;     near the very top/bottom of a tiny file the reopen path falls back
 ;;     to the saved position. The live-marker path has no such limit.)
-(require 'bookmark)
+;; `bookmark-make-record' and `bookmark-jump' are both autoloaded, so bookmark
+;; stays unloaded until a mark is actually set.
 
 (defvar +fate--project-marks (make-hash-table :test 'equal)
   "Map of project root -> list of session marks (newest first).

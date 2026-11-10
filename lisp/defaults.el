@@ -1,7 +1,17 @@
 ;; -*- lexical-binding: t -*-
 ;; better values for emacs out-of-the-box configuration options
 
-(setq confirm-kill-emacs 'y-or-n-p)
+;; `save-buffers-kill-emacs' offers to save modified buffers before consulting
+;; this, so anything still modified by the time we are asked is work the user
+;; declined to save. A session with nothing outstanding has nothing to confirm.
+(defun +fate-quit-p (&optional prompt)
+  "Confirm quitting Emacs, but only when there is unsaved work."
+  (if (cl-find-if (lambda (buf)
+                    (and (buffer-file-name buf) (buffer-modified-p buf)))
+                  (buffer-list))
+      (y-or-n-p (or prompt "Quit Emacs without saving? "))
+    t))
+(setq confirm-kill-emacs #'+fate-quit-p)
 
 ;; set PATH from shell
 (setq-default exec-path
@@ -19,14 +29,54 @@
 (setq vc-follow-symlinks nil)
 ;; Confirm before visiting symbolic links to files
 (setq find-file-visit-truename t)
-;; Disable enriched text mode (historical code execution vector via .rtf/.enriched)
-(setq enriched-mode nil)
+
+;; Enriched text is a historical code-execution vector via .rtf/.enriched. The
+;; two forms below are the whole mitigation: neutering the display-property
+;; decoder, and taking .rtf out of `auto-mode-alist'. Flag variables like
+;; `enriched-mode' or `auto-image-file-mode' do nothing here -- they are
+;; buffer-local minor-mode flags that are already nil, and setting them does
+;; not call the mode function. (`inhibit-images' does not exist in any Emacs.)
+;; Don't re-add them; they read as protection and provide none.
 (with-eval-after-load 'enriched
   (defun enriched-decode-display-prop (_start _end &optional _param) nil))
 (setq auto-mode-alist (assoc-delete-all "\\.rtf\\'" auto-mode-alist #'string=))
-;; Disable inline image rendering (attack surface via libpng/libjpeg/etc.)
-(setq auto-image-file-mode nil)
-(setq inhibit-images t)
+
+;; Emacs 30+. `trusted-content' keeps our own elisp out of the untrusted bucket
+;; (which otherwise disables things like flymake's byte-compile backend).
+;; `safe-local-variable-directories' is the targeted alternative to relaxing
+;; `enable-local-variables' globally: listed roots are trusted outright, so
+;; per-project `eglot-server-programs' work without `:all' everywhere.
+;; `enable-local-eval' nil still blocks `eval:' forms in those directories --
+;; that combination is the intent.
+(let ((dir (abbreviate-file-name (file-truename fate-emacs-dir))))
+  (when (boundp 'trusted-content)
+    (add-to-list 'trusted-content dir))
+  (when (boundp 'safe-local-variable-directories)
+    (add-to-list 'safe-local-variable-directories dir)))
+
+;; These are the entries that Customize accumulated in init.el before
+;; `custom-file' was set (see below). Hand-written here because cache/ is
+;; gitignored and a fresh clone must still carry them.
+(setq safe-local-variable-values
+      '((eglot-connect-timeout . 120)
+        (eglot-ignored-server-capabilities . t)
+        (apheleia-inhibit . t)
+        (projectile-project-compilation-cmd
+         . "scons --gpu=wgpu-native --editor pizza && ./build/pizza")
+        (projectile-project-compilation-cmd
+         . "scons --gpu=wgpu-native --editor thegame && ./build/thegame")
+        (eglot-server-programs
+         (c-mode "clangd" "--background-index" "--clang-tidy"
+                 "--header-insertion=never" "--completion-style=detailed"
+                 "--function-arg-placeholders" "--fallback-style=llvm")
+         (c++-mode "clangd" "--background-index" "--clang-tidy"
+                   "--header-insertion=never" "--completion-style=detailed"
+                   "--function-arg-placeholders" "--fallback-style=llvm"))))
+
+;; Anything calling `customize-save-variable' writes to `user-init-file' while
+;; this is nil -- that is how a `custom-set-variables' block grew in init.el.
+;; Give it a gitignored scratch file instead; init.el loads it last.
+(setq custom-file (expand-file-name "custom.el" fate-cache-dir))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; performance
@@ -110,6 +160,14 @@
             (with-file-modes #o700
               (make-directory auto-save-list-file-prefix t))))
 
+;;; State files
+;; Everything below defaults to somewhere in `fate-emacs-dir', i.e. into the
+;; working tree. `tramp' was actually tracked in git, so every TRAMP connection
+;; dirtied the checkout. Both packages are lazy, so setting these here is early
+;; enough.
+(setq tramp-persistency-file-name (expand-file-name "tramp" fate-cache-dir)
+      bookmark-default-file (expand-file-name "bookmarks" fate-cache-dir))
+
 ;;; Runtime optimizations
 
 ;; PERF: A second, case-insensitive pass over `auto-mode-alist' is time wasted.
@@ -174,9 +232,11 @@
 ;; receiving input, which should help a little with scrolling performance.
 (setq redisplay-skip-fontification-on-input t)
 
-;; Menu/tool/scroll bars are already disabled in early-init.el via
-;; default-frame-alist. Set mode vars to nil so toggling works correctly.
-(setq menu-bar-mode nil
+;; Menu/tool/scroll bars are already configured in early-init.el via
+;; default-frame-alist. Set mode vars to match so toggling works correctly.
+;; The menu bar is deliberately left on for graphical frames on macOS -- see
+;; the HACK comment in early-init.el.
+(setq menu-bar-mode (and (eq system-type 'darwin) (display-graphic-p))
       tool-bar-mode nil
       scroll-bar-mode nil)
 
@@ -242,14 +302,31 @@
 ;; instead: only buffers that are actually on screen, and only at the moments
 ;; something could have changed underneath them. Doom needs custom switch-buffer
 ;; hooks for this; Emacs 27+ gives us the same signals for free.
+;;
+;; NOTE(hqhs): `:init (setq ...)' rather than `:custom' in every deferred block
+;; below. `:custom' expands to `custom-theme-set-variables', which calls
+;; `custom-load-symbol' for any variable whose `defcustom' has not run yet --
+;; i.e. it loads the package to set the option, defeating the deferral.
 (use-package autorevert
   :ensure nil ;; built-in
-  :demand t
-  :custom
-  (auto-revert-verbose t)             ; let us know when it happens
-  (auto-revert-use-notify nil)
-  (auto-revert-stop-on-user-input nil)
-  (revert-without-query (list "."))   ; only prompt when the buffer is unsaved
+  :defer t
+  :init
+  (setq auto-revert-verbose t             ; let us know when it happens
+        auto-revert-use-notify nil
+        auto-revert-stop-on-user-input nil
+        revert-without-query (list "."))  ; only prompt when the buffer is unsaved
+
+  (defun +fate--auto-revert-wire-h ()
+    "Wire up lazy autorevert. Runs once, on the first file visited."
+    (require 'autorevert)
+    ;; Buffer shown in a window / window selected / anything saved / frame
+    ;; refocused after using another app.
+    (add-hook 'window-buffer-change-functions #'+fate--auto-revert-visible-buffers-h)
+    (add-hook 'window-selection-change-functions #'+fate--auto-revert-visible-buffers-h)
+    (add-hook 'after-save-hook #'+fate--auto-revert-visible-buffers-h)
+    (add-function :after after-focus-change-function
+                  #'+fate--auto-revert-visible-buffers-h))
+  (add-hook '+fate-first-file-hook #'+fate--auto-revert-wire-h)
   :config
   (defun +fate--auto-revert-buffer-h ()
     "Revert the current buffer if the file changed underneath it."
@@ -265,23 +342,15 @@
     "Revert every buffer currently displayed in a window."
     (dolist (win (window-list nil 'no-minibuffer))
       (with-current-buffer (window-buffer win)
-        (+fate--auto-revert-buffer-h))))
-
-  ;; Buffer shown in a window / window selected / anything saved / frame
-  ;; refocused after using another app.
-  (add-hook 'window-buffer-change-functions #'+fate--auto-revert-visible-buffers-h)
-  (add-hook 'window-selection-change-functions #'+fate--auto-revert-visible-buffers-h)
-  (add-hook 'after-save-hook #'+fate--auto-revert-visible-buffers-h)
-  (add-function :after after-focus-change-function
-                #'+fate--auto-revert-visible-buffers-h))
+        (+fate--auto-revert-buffer-h)))))
 
 (use-package saveplace
   :ensure nil ;; built-in
-  :custom
-  (save-place-file (expand-file-name "saveplace" fate-cache-dir))
+  :defer t
+  :init
+  (setq save-place-file (expand-file-name "saveplace" fate-cache-dir))
+  (add-hook '+fate-first-input-hook #'save-place-mode)
   :config
-  (save-place-mode 1)
-
   ;; Restoring point near the bottom of a file leaves it pinned to the last
   ;; screen line otherwise.
   (advice-add 'save-place-find-file-hook :after-while
@@ -302,18 +371,18 @@
 
 (use-package which-key
   :ensure nil ;; built-in as of Emacs 30
-  :custom
-  (which-key-idle-delay 1.0)
-  (which-key-idle-secondary-delay 0.1)
-  (which-key-sort-order #'which-key-key-order-alpha)
-  (which-key-sort-uppercase-first nil) ; jarring to separate keys by case
-  (which-key-add-column-padding 1)     ; less packed UI
-  (which-key-min-display-lines 7)      ; prevent a short+wide which-key pane
-  (which-key-side-window-slot -10)     ; don't replace popups
-  (which-key-compute-remaps t)         ; show remapped commands
-  (which-key-ellipsis "…")
-  :config
-  (which-key-mode 1))
+  :defer t
+  :init
+  (add-hook '+fate-first-input-hook #'which-key-mode)
+  (setq which-key-idle-delay 1.0
+        which-key-idle-secondary-delay 0.1
+        which-key-sort-order #'which-key-key-order-alpha
+        which-key-sort-uppercase-first nil ; jarring to separate keys by case
+        which-key-add-column-padding 1     ; less packed UI
+        which-key-min-display-lines 7      ; prevent a short+wide which-key pane
+        which-key-side-window-slot -10     ; don't replace popups
+        which-key-compute-remaps t         ; show remapped commands
+        which-key-ellipsis "…"))
 
 (use-package uniquify
   :ensure nil ;; built-in
@@ -322,34 +391,37 @@
 
 (use-package recentf
   :ensure nil ;; built-in
-  :custom
-  (recentf-max-saved-items 200)
-  (recentf-save-file (expand-file-name "recentf" fate-cache-dir))
-  ;; Cleaning up on a timer stats every remembered file while you are working.
-  ;; Quitting is the one moment when that latency costs nothing.
-  (recentf-auto-cleanup 'never)
+  :defer t
+  :init
+  (add-hook '+fate-first-file-hook #'recentf-mode)
+  (setq recentf-max-saved-items 200
+        recentf-save-file (expand-file-name "recentf" fate-cache-dir)
+        ;; Cleaning up on a timer stats every remembered file while you are
+        ;; working. Quitting is the one moment when that latency costs nothing.
+        recentf-auto-cleanup 'never)
   :config
   ;; Text properties inflate the save file for no benefit. Must come first in
   ;; `recentf-filename-handlers' -- `add-to-list' prepends.
   (add-to-list 'recentf-filename-handlers #'substring-no-properties)
   ;; Negative depth so the cleanup runs before `recentf-save-list', which
   ;; `recentf-mode' puts on `kill-emacs-hook' at the default depth.
-  (add-hook 'kill-emacs-hook #'recentf-cleanup -50)
-  (recentf-mode 1))
+  (add-hook 'kill-emacs-hook #'recentf-cleanup -50))
 
 (use-package savehist
   :ensure nil ;; built-in
-  :custom
-  (savehist-file (expand-file-name "savehist" fate-cache-dir))
-  (history-length 1000)
-  (history-delete-duplicates t)
-  (savehist-save-minibuffer-history t)
-  (savehist-autosave-interval nil) ; save on kill only
-  (savehist-additional-variables
-   '(kill-ring                       ; persist clipboard
-     register-alist                  ; persist macros
-     mark-ring global-mark-ring      ; persist marks
-     search-ring regexp-search-ring)); persist searches
+  :defer t
+  :init
+  (add-hook '+fate-first-input-hook #'savehist-mode)
+  (setq savehist-file (expand-file-name "savehist" fate-cache-dir)
+        history-length 1000
+        history-delete-duplicates t
+        savehist-save-minibuffer-history t
+        savehist-autosave-interval nil ; save on kill only
+        savehist-additional-variables
+        '(kill-ring                     ; persist clipboard
+          register-alist                ; persist macros
+          mark-ring global-mark-ring    ; persist marks
+          search-ring regexp-search-ring)) ; persist searches
   :config
   (add-hook 'savehist-save-hook
             (lambda ()
@@ -370,8 +442,7 @@ way back in."
 savehist discards `register-alist' wholesale otherwise. Set buffer-locally: this
 hook runs in savehist's temp buffer, so the live session keeps its registers."
               (setq-local register-alist
-                          (cl-remove-if-not #'savehist-printable register-alist))))
-  (savehist-mode 1))
+                          (cl-remove-if-not #'savehist-printable register-alist)))))
 
 (use-package repeat
   :ensure nil ;; built-in
@@ -379,6 +450,233 @@ hook runs in savehist's temp buffer, so the live session keeps its registers."
   (repeat-mode 1)
   (repeat-exit-key (kbd "RET"))
   (repeat-exit-timeout 2))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; so-long: two different problems, two different answers
+;;
+;; `global-so-long-mode' is enabled in init.el (eagerly, see the comment
+;; there). Stock behaviour makes a triggering buffer read-only with font-lock
+;; and line numbers off, which is right for a minified blob and a wall for a
+;; 30k-line generated source file. Split the two cases.
+
+(defvar +fate-file-lines-threshold 20000
+  "Line count above which a buffer gets `so-long-minor-mode'.
+Flat value: this is a native-comp build, so Doom's scaling branches don't
+apply.")
+
+(defvar-local +fate--so-long-kind nil
+  "What `+fate--so-long-p' last decided for this buffer.")
+(put '+fate--so-long-kind 'permanent-local t)
+
+(defun +fate--so-long-p ()
+  "Decide whether and how the current buffer needs so-long handling.
+Returns `so-long-mode' for excessively long lines, `so-long-minor-mode' for a
+buffer that is merely very long, and nil otherwise. Stock `so-long' fires
+inside magit status and other special or temporary buffers; those are excluded
+here."
+  (setq +fate--so-long-kind
+        (and buffer-file-name
+             (not (string-prefix-p " " (buffer-name)))
+             (not (derived-mode-p 'special-mode))
+             (let ((stats (buffer-line-statistics)))
+               ;; (LINES LONGEST-LINE-BYTES MEAN)
+               (cond ((> (nth 1 stats) so-long-threshold) 'so-long-mode)
+                     ((> (nth 0 stats) +fate-file-lines-threshold)
+                      'so-long-minor-mode))))))
+
+(defun +fate--so-long-activate ()
+  "Dispatch on `+fate--so-long-p': major mode for long lines, minor for long files."
+  (if (eq (or +fate--so-long-kind (+fate--so-long-p)) 'so-long-mode)
+      ;; Minified. Nothing about this file is meant to be read, so the stock
+      ;; action -- read-only, no font-lock, no line numbers -- is correct.
+      (so-long-mode)
+    ;; A big but otherwise normal source file. Keep highlighting, line numbers
+    ;; and editing; only drop the per-line machinery that does not scale.
+    ;;
+    ;; `so-long-override-variables' reads the *remembered* lists rather than
+    ;; the live ones, and `so-long-remember-all' already ran before this
+    ;; function was called -- hence re-remembering after the buffer-local
+    ;; tweaks below.
+    (setq-local so-long-minor-modes
+                (seq-difference so-long-minor-modes
+                                '(font-lock-mode display-line-numbers-mode))
+                so-long-variable-overrides
+                (append '(;; Cheaper highlighting instead of none.
+                          (font-lock-maximum-decoration . 1)
+                          ;; Stop saveplace thrashing on a file this size.
+                          (save-place-alist . nil))
+                        (assq-delete-all
+                         'buffer-read-only
+                         (copy-alist so-long-variable-overrides))))
+    (so-long-remember-all :reset)
+    (turn-on-so-long-minor-mode)))
+
+(defun +fate--so-long-revert ()
+  "Undo whichever action `+fate--so-long-activate' took."
+  (if (eq +fate--so-long-kind 'so-long-mode)
+      (so-long-mode-revert)
+    (turn-off-so-long-minor-mode)))
+
+(use-package so-long
+  :ensure nil ;; built-in
+  :defer t
+  :config
+  (add-to-list 'so-long-action-alist
+               '(+fate-so-long
+                 "Fate: minor mode for long files, major mode for long lines"
+                 +fate--so-long-activate
+                 +fate--so-long-revert))
+  (setq so-long-action '+fate-so-long
+        so-long-predicate #'+fate--so-long-p)
+  ;; Config files and prose get just as slow as code does.
+  (dolist (mode '(conf-mode text-mode))
+    (add-to-list 'so-long-target-modes mode)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Minibuffer
+
+;; Without this you cannot invoke a command from inside a prompt.
+(setq enable-recursive-minibuffers t
+      ;; Hide commands irrelevant to the current mode from `M-x'.
+      read-extended-command-predicate #'command-completion-default-include-p
+      ;; vim's `showcmd'. With `SPC' as the leader and which-key on a 1.0s
+      ;; delay, a partial `SPC g ...' otherwise gives no feedback at all for a
+      ;; full second.
+      echo-keystrokes 0.02
+      resize-mini-windows 'grow-only
+      ;; Keep point out of the read-only prompt -- relevant given the C-a/C-e
+      ;; bindings in insert state.
+      minibuffer-prompt-properties
+      '(read-only t intangible t cursor-intangible t face minibuffer-prompt))
+(add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; macOS
+
+(when (eq system-type 'darwin)
+  (setq ns-command-modifier 'super
+        ns-option-modifier 'meta
+        ;; Free the right option key for character composition.
+        ns-right-option-modifier 'none))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Misc
+
+;; `kill-ring' is persisted through savehist, so duplicates bloat the save file.
+(setq kill-do-not-save-duplicates t
+      find-file-suppress-same-file-warnings t
+      confirm-nonexistent-file-or-buffer nil
+      mouse-yank-at-point t
+      ;; Keep `untabify'/`tabify' out of the middle of a line.
+      tabify-regexp "^\t* [ \t]+"
+      ;; `truncate-lines' is already t (prog-conf.el), so honouring this is
+      ;; work Emacs does for nothing.
+      truncate-partial-width-windows nil
+      ;; Absolute numbers inside a narrowed region, so it is visible that the
+      ;; buffer *is* narrowed.
+      display-line-numbers-widen t
+      ;; The companion to our 1MB `read-process-output-max', and the knob that
+      ;; actually reduces eglot latency: without it Emacs throttles reads from
+      ;; a chatty process regardless of how big the buffer is.
+      process-adaptive-read-buffering nil)
+
+;; Offer to create the parent directory rather than erroring out.
+(defun +fate--create-missing-directories-h ()
+  "Create a new file's parent directory, with confirmation."
+  (unless (file-remote-p buffer-file-name)
+    (let ((parent (file-name-directory buffer-file-name)))
+      (and (not (file-directory-p parent))
+           (y-or-n-p (format "Directory `%s' does not exist. Create it? " parent))
+           (progn (make-directory parent 'parents) t)))))
+(add-hook 'find-file-not-found-functions #'+fate--create-missing-directories-h)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; MODE-local-vars-hook
+;;
+;; Mode hooks run *before* directory-local variables are applied, so anything
+;; wired to a plain mode hook that reads one sees the global value. Directly
+;; relevant here: `safe-local-variable-values' above carries per-project
+;; `eglot-server-programs' and `eglot-connect-timeout', which an `eglot-ensure'
+;; on `c-ts-mode-hook' would never see. These synthesise a
+;; `MAJOR-MODE-local-vars-hook' that runs after `hack-local-variables'.
+
+(defvar-local +fate--local-var-hooks-ran nil)
+
+(defun +fate-run-local-var-hooks-h ()
+  "Run MODE-local-vars-hook for the current major mode."
+  (unless (or +fate--local-var-hooks-ran delay-mode-hooks)
+    (setq-local +fate--local-var-hooks-ran t)
+    (when-let* ((hook (intern-soft (format "%s-local-vars-hook" major-mode))))
+      (run-hooks hook))))
+
+(defun +fate-run-local-var-hooks-maybe-h ()
+  "Trigger `+fate-run-local-var-hooks-h' when dir-locals are disabled.
+`hack-local-variables-hook' never fires in that case."
+  (unless enable-local-variables
+    (+fate-run-local-var-hooks-h)))
+
+(add-hook 'hack-local-variables-hook #'+fate-run-local-var-hooks-h)
+(add-hook 'after-change-major-mode-hook #'+fate-run-local-var-hooks-maybe-h 100)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; comint (project-shell, <leader>ps)
+
+;; Past output is still editable; this just stops the prompt itself from being
+;; mangled. `comint-buffer-maximum-size' is doubled from the default and is
+;; also what bounds compilation buffers (see lisp/prog-conf.el).
+(setq comint-prompt-read-only t
+      comint-buffer-maximum-size 2048)
+
+(defun +fate--comint-move-to-prompt-h ()
+  "Move point to the prompt before a command that would insert text.
+Typing with point in past output otherwise just raises a read-only error."
+  (when (and (memq this-command '(self-insert-command
+                                  evil-paste-after evil-paste-before
+                                  yank yank-pop))
+             (< (point) (comint-line-beginning-position)))
+    (goto-char (point-max))))
+
+(add-hook 'comint-mode-hook
+          (lambda ()
+            (add-hook 'pre-command-hook #'+fate--comint-move-to-prompt-h nil t)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Window layout undo
+
+(use-package winner
+  :ensure nil ;; built-in
+  :defer t
+  ;; winner.el only autoloads `winner-mode'; the two commands we bind in
+  ;; lisp/keybindings.el need their own.
+  :commands (winner-undo winner-redo)
+  :init
+  ;; We bind our own (lisp/keybindings.el); winner's C-c <left>/<right> would
+  ;; shadow nothing useful but are not where we look for them.
+  (setq winner-dont-bind-my-keys t
+        winner-boring-buffers
+        '("*Completions*" "*Compile-Log*" "*inferior-lisp*" "*Apropos*"
+          "*Help*" "*Buffer List*" "*Ibuffer*" "*esh command on file*"
+          "*cvs*" "*Warnings*"))
+  (add-hook '+fate-first-file-hook #'winner-mode))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Server, for emacsclient / $EDITOR / git commit
+
+(use-package server
+  :ensure nil ;; built-in
+  :defer t
+  :init
+  ;; `server-auth-dir' reads `user-emacs-directory', i.e. this repo.
+  (setq server-auth-dir (expand-file-name "server/" fate-cache-dir))
+  (defun +fate--start-server-h ()
+    "Start the edit server, but only for a real GUI session."
+    (when (display-graphic-p)
+      (require 'server)
+      (when-let* ((name (getenv "EMACS_SERVER_NAME")))
+        (setq server-name name))
+      (unless (server-running-p)
+        (server-start nil t))))
+  (add-hook 'emacs-startup-hook #'+fate--start-server-h))
 
 (use-package dired
   :ensure nil

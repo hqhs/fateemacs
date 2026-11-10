@@ -1,7 +1,9 @@
 ;; -*- lexical-binding: t -*-
 
-;; Minibuffer completion: fido-vertical-mode (built-in)
-(fido-vertical-mode 1)
+;; Minibuffer completion: fido-vertical-mode (built-in). Deferred to the first
+;; command -- `pre-command-hook' fires before the command that opens a
+;; minibuffer gets there.
+(add-hook '+fate-first-input-hook #'fido-vertical-mode)
 (setq icomplete-prospects-height 15)
 
 ;; C-j/C-k to navigate candidates in minibuffer
