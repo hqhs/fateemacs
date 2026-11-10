@@ -157,6 +157,28 @@
 ;; (evil-define-key* '(insert replace visual operator) 'global
 ;;   (kbd "<escape>") #'evil-escape)
 
+;; Name the leader prefixes. Without this every nested group under SPC shows
+;; as an anonymous "+prefix", which is the least useful thing a discovery popup
+;; could say. `evil-define-key' builds the sub-keymaps anonymously, so there is
+;; no keymap variable to name -- which-key matches on the key sequence instead.
+;; Inside `with-eval-after-load' because this function is autoloaded, and
+;; calling it eagerly would load which-key at startup (see lisp/defaults.el).
+(with-eval-after-load 'which-key
+  (which-key-add-key-based-replacements
+    "SPC b" "bookmarks"
+    "SPC c" "code"
+    "SPC f" "buffer"
+    "SPC g" "git"
+    "SPC j" "tags"
+    "SPC m" "marks"
+    "SPC o" "outline"
+    "SPC p" "project"
+    "SPC s" "search"
+    "SPC t" "toggle"
+    "SPC u" "ui"
+    "SPC w" "window"
+    "SPC x" "xref"))
+
 (define-key minibuffer-mode-map (kbd "C-j") 'next-line)
 (define-key minibuffer-mode-map (kbd "C-k") 'previous-line)
 (define-key minibuffer-mode-map (kbd "C-w") 'backward-kill-word)
