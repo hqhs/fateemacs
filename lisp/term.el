@@ -34,6 +34,7 @@
   (setq ghostel-module-auto-install nil
         ghostel-module-directory +fate-ghostel-dir)
   :config
+  (+fate--term-setup-tramp-guards)
   ;; No autoloads are generated for vendored packages, so require by hand.
   (with-eval-after-load 'evil
     (require 'evil-ghostel)
@@ -62,6 +63,112 @@ loading the terminal stack."
   (evil-define-key* 'insert evil-ghostel-mode-map
                     (kbd "j") #'self-insert-command
                     (kbd "k") #'self-insert-command))
+
+;;; Keeping a local terminal local
+;;
+;; Ghostel turns every OSC 7 directory report whose hostname it doesn't
+;; recognise into a TRAMP `default-directory' -- deliberately without
+;; verifying it, so `cd' stays fast. `ghostel--local-host-p' recognises only
+;; `localhost' and Emacs' `(system-name)', which is frozen at startup, while
+;; the macOS kernel hostname flips between the DHCP-supplied name and
+;; `<LocalHostName>.local' as network state changes. Start Emacs on one
+;; network, move to another, and a purely local terminal claims to live on
+;; `/ssh:<this-very-mac>:'.
+;;
+;; That alone would be cosmetic, except `process-attributes' is a
+;; file-name-handler operation dispatched off `default-directory'. So the pid
+;; lookups in `ghostel--shell-pgid' and `ghostel--notify-foreground-change'
+;; get handed to TRAMP, which opens an ssh connection to run `ps' on "the
+;; remote" -- synchronously, on `kill-buffer', via
+;; `ghostel--kill-buffer-query' -> `ghostel-command-running-p'. Killing a
+;; terminal then hangs for the ssh timeout.
+;;
+;; Two fixes, because either alone leaves a hole: widen the set of names
+;; treated as local, and stop the pid lookups from going through TRAMP at all
+;; (they read the *local* pty's process group even when the shell inside it
+;; really has ssh'd somewhere -- see `ghostel-foreground-pid').
+
+(defvar +fate--term-local-hostnames nil
+  "Cache for `+fate--term-local-hostnames'.")
+
+(defvar +fate--term-local-hostnames-time nil
+  "`float-time' when `+fate--term-local-hostnames' was last filled.")
+
+(defconst +fate--term-local-hostnames-ttl 60
+  "Seconds a cached hostname set stays fresh.
+Long enough that a real ssh session's every `cd' doesn't shell out
+twice, short enough that a network change is noticed promptly.")
+
+(defun +fate--term-strip-dot-local (host)
+  "Return HOST downcased, with a trailing \".local\" (mDNS) removed."
+  (let ((host (downcase host)))
+    (if (string-suffix-p ".local" host)
+        (substring host 0 (- (length host) (length ".local")))
+      host)))
+
+(defun +fate--term-local-command-output (program &rest args)
+  "Return the first line PROGRAM prints with ARGS, or nil.
+`default-directory' is forced local: the caller runs inside a ghostel
+buffer, whose directory is exactly the bogus TRAMP path at issue here."
+  (let ((default-directory temporary-file-directory))
+    (when (executable-find program)
+      (with-temp-buffer
+        (when (eq 0 (ignore-errors
+                      (apply #'call-process program nil '(t nil) nil args)))
+          (goto-char (point-min))
+          (let ((line (string-trim (buffer-substring-no-properties
+                                    (point) (line-end-position)))))
+            (unless (string-empty-p line) line)))))))
+
+(defun +fate--term-local-hostnames ()
+  "Return the names this machine answers to right now.
+Downcased with \".local\" stripped, to match `ghostel--local-host-p'."
+  (let ((now (float-time)))
+    (when (or (null +fate--term-local-hostnames-time)
+              (> (- now +fate--term-local-hostnames-time)
+                 +fate--term-local-hostnames-ttl))
+      (setq +fate--term-local-hostnames-time now
+            +fate--term-local-hostnames
+            (delete-dups
+             (mapcar
+              #'+fate--term-strip-dot-local
+              (delq nil
+                    (list (system-name)
+                          ;; The live kernel hostname, which `(system-name)'
+                          ;; stopped tracking when Emacs started.
+                          (+fate--term-local-command-output "hostname")
+                          ;; The mDNS name, which is what the kernel hostname
+                          ;; falls back to once the DHCP-supplied one is gone.
+                          (and (eq system-type 'darwin)
+                               (+fate--term-local-command-output
+                                "scutil" "--get" "LocalHostName")))))))))
+  +fate--term-local-hostnames)
+
+(defun +fate--term-local-host-p-a (host)
+  "Return non-nil when HOST is another name for this machine.
+`:after-until' advice on `ghostel--local-host-p', so ghostel's own cheap
+string comparison runs first and the subprocesses here are only paid for
+on the path that would otherwise declare HOST remote."
+  (and (stringp host)
+       (not (string-empty-p host))
+       (member (+fate--term-strip-dot-local host)
+               (+fate--term-local-hostnames))
+       t))
+
+(defun +fate--term-local-default-directory-a (fn &rest args)
+  "Apply FN to ARGS with `default-directory' forced local.
+Keeps the `process-attributes' calls inside out of TRAMP's hands."
+  (let ((default-directory temporary-file-directory))
+    (apply fn args)))
+
+(defun +fate--term-setup-tramp-guards ()
+  "Stop ghostel from mistaking this machine for a remote one.
+Split out of the `ghostel' :config block so it can be tested without
+loading the terminal stack."
+  (advice-add 'ghostel--local-host-p :after-until
+              #'+fate--term-local-host-p-a)
+  (dolist (fn '(ghostel--shell-pgid ghostel--notify-foreground-change))
+    (advice-add fn :around #'+fate--term-local-default-directory-a)))
 
 (defun +fate/term ()
   "Open a ghostel terminal buffer.
