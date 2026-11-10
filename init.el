@@ -3,16 +3,16 @@
 ;; startup window size
 
 (setq initial-frame-alist
-      '((width . 120)
-        (height . 45)))
+      '((width . 153)
+        (height . 54)))
 
 ;; NOTE(hqhs): `append', not a bare `setq'. A plain assignment here discarded
 ;; everything early-init.el pushes onto this alist -- the menu-bar, tool-bar
 ;; and scroll-bar suppression included -- which is why those pushes had no
 ;; effect. The macOS menu-bar hack in early-init.el depends on this.
 (setq default-frame-alist
-      (append '((width . 120)
-                (height . 45)
+      (append '((width . 153)
+                (height . 54)
                 (left . 100)   ; pixels from left
                 (top . 50))    ; pixels from top
               default-frame-alist))
