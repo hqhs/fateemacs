@@ -104,6 +104,7 @@ If HOOK-OR-FUNCTION is a hook symbol, adds to hook. If a function symbol, advise
 (+fate-load-lisp "modeline.el")
 (+fate-load-lisp "ui.el")
 (+fate-load-lisp "snippets.el")
+(+fate-load-lisp "tabs.el")  ;; tab-bar; term.el puts the terminal in a tab
 (+fate-load-lisp "term.el")  ;; ghostel; no-op until scripts/build-term.sh runs
 
 ;; After loading treesit config

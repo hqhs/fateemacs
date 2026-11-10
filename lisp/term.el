@@ -170,13 +170,40 @@ loading the terminal stack."
   (dolist (fn '(ghostel--shell-pgid ghostel--notify-foreground-change))
     (advice-add fn :around #'+fate--term-local-default-directory-a)))
 
+(defvar +fate-term-tab-name "term"
+  "Name of the tab-bar tab that holds the terminal.")
+
+(defun +fate--term-tab-p ()
+  "Return non-nil when the selected tab is the terminal tab.
+The selected tab is the one `tab-bar-tabs-function' returns with a
+`current-tab' car; its `name' is what `tab-bar-switch-to-tab' matches on."
+  (let ((current (seq-find (lambda (tab) (eq (car-safe tab) 'current-tab))
+                           (funcall tab-bar-tabs-function))))
+    (equal (alist-get 'name current) +fate-term-tab-name)))
+
 (defun +fate/term ()
-  "Open a ghostel terminal buffer.
+  "Flip between the terminal tab and the tab you came from.
+The terminal gets a tab of its own, `+fate-term-tab-name', created on
+first use; from inside it this goes back to the most recent other tab,
+so one key is the whole editor <-> terminal round trip. `gt'/`gT' still
+walk every tab, terminal included.
+
 Reports what to build when the native module is missing, instead of
 failing inside `module-load'."
   (interactive)
   (unless (+fate/term-available-p)
     (user-error
      "No terminal module: run ./scripts/build-term.sh (needs zig)"))
-  (require 'ghostel)
-  (call-interactively #'ghostel))
+  (if (+fate--term-tab-p)
+      ;; Messages "No more recent tabs" when the terminal is the only tab,
+      ;; which is the right answer: there is no editor to go back to.
+      (tab-bar-switch-to-recent-tab)
+    (require 'ghostel)
+    ;; Creates the tab and names it when it is not there yet. A new tab starts
+    ;; with one window (`tab-bar-new-tab-to' deletes the others), so the
+    ;; terminal has it to itself.
+    (tab-bar-switch-to-tab +fate-term-tab-name)
+    ;; Idempotent -- `ghostel' switches to `ghostel-buffer-name' when it is
+    ;; live and starts one otherwise, so this also repairs a terminal tab
+    ;; whose buffer was killed out from under it.
+    (ghostel)))

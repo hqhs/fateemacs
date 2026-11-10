@@ -109,4 +109,66 @@ like every other printable key."
       (should (eq (test-fate--plist-get-equal bindings (kbd "k"))
                   'self-insert-command)))))
 
+;;; The terminal tab. `+fate/term' is a toggle, not an opener: the terminal
+;;; owns one tab-bar tab and the key flips in and out of it. Both halves are
+;;; checked with `ghostel' and the tab-bar commands stubbed, so none of this
+;;; needs a compiled module or a real frame.
+
+(defun test-fate--tabs (&rest names)
+  "Return a `tab-bar-tabs-function' value naming NAMES, first one selected."
+  (let ((i 0))
+    (mapcar (lambda (name)
+              (setq i (1+ i))
+              `(,(if (= i 1) 'current-tab 'tab) (name . ,name)))
+            names)))
+
+(defmacro test-fate--with-term-module (&rest body)
+  "Run BODY with the module reported present and `ghostel' stubbed.
+Collects every stubbed call into `calls', newest last."
+  `(let ((calls nil))
+     (cl-letf (((symbol-function '+fate/term-available-p) (lambda () t))
+               ;; Nothing is on the load-path under `emacs -Q', so the real
+               ;; `require' would fail. A let-bound `features' does not fool
+               ;; it, hence the stub; recording the call keeps "loads ghostel
+               ;; before calling into it" an assertion rather than a hope.
+               ((symbol-function 'require)
+                (lambda (feature &rest _)
+                  (setq calls (append calls `((require ,feature))))))
+               ((symbol-function 'ghostel)
+                (lambda (&rest _) (setq calls (append calls '((ghostel))))))
+               ((symbol-function 'tab-bar-switch-to-tab)
+                (lambda (name) (setq calls (append calls `((switch ,name))))))
+               ((symbol-function 'tab-bar-switch-to-recent-tab)
+                (lambda (&rest _) (setq calls (append calls '((recent)))))))
+       ,@body
+       calls)))
+
+(ert-deftest test-fate/term-tab-p-reads-the-selected-tab ()
+  "The terminal tab is the selected one iff its name matches."
+  (let ((tab-bar-tabs-function
+         (lambda () (test-fate--tabs +fate-term-tab-name "editor"))))
+    (should (+fate--term-tab-p)))
+  (let ((tab-bar-tabs-function
+         (lambda () (test-fate--tabs "editor" +fate-term-tab-name))))
+    (should-not (+fate--term-tab-p))))
+
+(ert-deftest test-fate/term-switches-to-the-term-tab ()
+  "From anywhere else, go to the terminal tab and (re)attach the buffer.
+`tab-bar-switch-to-tab' creates the tab when missing, so one call covers
+both first use and coming back; `ghostel' then reuses or respawns the
+buffer, which is what repairs a tab whose terminal was killed."
+  (let ((tab-bar-tabs-function (lambda () (test-fate--tabs "editor"))))
+    (should (equal (test-fate--with-term-module (+fate/term))
+                   `((require ghostel)
+                     (switch ,+fate-term-tab-name)
+                     (ghostel))))))
+
+(ert-deftest test-fate/term-toggles-back-out-of-the-term-tab ()
+  "From inside the terminal tab, the same key returns to the previous tab.
+It must not start another terminal on the way out."
+  (let ((tab-bar-tabs-function
+         (lambda () (test-fate--tabs +fate-term-tab-name "editor"))))
+    (should (equal (test-fate--with-term-module (+fate/term))
+                   '((recent))))))
+
 ;;; test-term.el ends here

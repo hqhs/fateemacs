@@ -632,6 +632,39 @@ Also affects 'linum-mode' background."
                                                      :line-width 1
                                                      :style nil)))))
 
+   ;; tab-bar
+   ;;
+   ;; The stock faces are a light grey `variable-pitch' bar, which is a bright
+   ;; stripe across the top of a dark theme. Specifying them here replaces that
+   ;; spec outright, inherited `variable-pitch' included. The selected tab is
+   ;; lifted the way `mode-line' is -- `highlight' background, yellow overline --
+   ;; and the bar itself sinks into the frame background so only the tabs read.
+   `(tab-bar
+     ((,monokai-class (:foreground ,monokai-comments
+                                   :background ,monokai-background
+                                   :weight normal))
+      (,monokai-256-class (:foreground ,monokai-256-comments
+                                       :background ,monokai-256-background
+                                       :weight normal))))
+   `(tab-bar-tab
+     ((,monokai-class (:inherit tab-bar
+                                :foreground ,monokai-emphasis
+                                :background ,monokai-highlight
+                                :overline ,monokai-yellow
+                                :weight bold))
+      (,monokai-256-class (:inherit tab-bar
+                                    :foreground ,monokai-256-emphasis
+                                    :background ,monokai-256-highlight
+                                    :overline ,monokai-256-yellow
+                                    :weight bold))))
+   `(tab-bar-tab-inactive
+     ((,monokai-class (:inherit tab-bar
+                                :foreground ,monokai-comments
+                                :background ,monokai-background))
+      (,monokai-256-class (:inherit tab-bar
+                                    :foreground ,monokai-256-comments
+                                    :background ,monokai-256-background))))
+
    ;; tab-line
    `(tab-line
      ((,monokai-class (:height 1.5))
