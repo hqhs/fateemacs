@@ -22,20 +22,53 @@
 (setq project-list-file (concat fate-cache-dir "projects"))
 
 ;; Bind keys in the project map (accessed via C-x p by default)
+;;; Per-project build / test / run commands
+;; Three independent slots, each remembering its own command per project root,
+;; so `SPC p c', `SPC p t' and `SPC p r' don't overwrite one another. All three
+;; go through `compile', so they share one *compilation* buffer, `next-error'
+;; and the error regexps.
+
 (defvar +fate--project-compile-commands (make-hash-table :test 'equal)
   "Hash table mapping project roots to their compile commands.")
+
+(defvar +fate--project-test-commands (make-hash-table :test 'equal)
+  "Hash table mapping project roots to their test commands.")
+
+(defvar +fate--project-run-commands (make-hash-table :test 'equal)
+  "Hash table mapping project roots to their run commands.")
+
+(defun +fate--project-compile-with (table &optional default)
+  "Run `compile' from the project root, remembering the command in TABLE.
+DEFAULT seeds the prompt the first time a project is seen; with no DEFAULT the
+prompt starts empty and \\[previous-history-element] reaches `compile-history'."
+  (let* ((root (project-root (project-current t)))
+         (default-directory root)
+         ;; `compile' assigns whatever the user typed back to `compile-command',
+         ;; and this `let' has made that a dynamic binding -- which is how the
+         ;; command is read back out below without duplicating the prompt.
+         (compile-command (or (gethash root table) default "")))
+    (call-interactively #'compile)
+    (puthash root compile-command table)))
 
 (defun +fate/project-compile ()
   "Like `project-compile', but remembers the compile command per project."
   (interactive)
-  (let* ((root (project-root (project-current t)))
-         (default-directory root)
-         (saved (gethash root +fate--project-compile-commands))
-         (compile-command (or saved compile-command)))
-    (call-interactively #'compile)
-    (puthash root compile-command +fate--project-compile-commands)))
+  (+fate--project-compile-with +fate--project-compile-commands compile-command))
 
-(add-to-list 'savehist-additional-variables '+fate--project-compile-commands)
+(defun +fate/project-test ()
+  "Run this project's test command, remembering it per project."
+  (interactive)
+  (+fate--project-compile-with +fate--project-test-commands))
+
+(defun +fate/project-run ()
+  "Run this project's run command, remembering it per project."
+  (interactive)
+  (+fate--project-compile-with +fate--project-run-commands))
+
+(dolist (var '(+fate--project-compile-commands
+               +fate--project-test-commands
+               +fate--project-run-commands))
+  (add-to-list 'savehist-additional-variables var))
 
 
 ;;; Session marks (per-project, in-memory only) --------------------------

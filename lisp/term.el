@@ -207,3 +207,21 @@ failing inside `module-load'."
     ;; live and starts one otherwise, so this also repairs a terminal tab
     ;; whose buffer was killed out from under it.
     (ghostel)))
+
+(defun +fate/project-term ()
+  "Open a ghostel terminal rooted in the current project.
+One terminal per project, named after it and reused on re-invocation --
+`ghostel-project' from the vendored ghostel-project.el does the work. Unlike
+`+fate/term' this stays in the current tab: it is a tool for the project you
+are looking at, not the standalone terminal.
+
+Same guard as `+fate/term': reports what to build when the native module is
+missing, rather than failing inside `module-load'."
+  (interactive)
+  (unless (+fate/term-available-p)
+    (user-error
+     "No terminal module: run ./scripts/build-term.sh (needs zig)"))
+  ;; No autoloads are generated for vendored packages, so the project
+  ;; extension has to be pulled in by hand; it requires ghostel itself.
+  (require 'ghostel-project)
+  (call-interactively #'ghostel-project))

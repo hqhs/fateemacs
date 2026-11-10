@@ -54,6 +54,17 @@ inside `module-load'."
     (let ((err (should-error (+fate/term) :type 'user-error)))
       (should (string-match-p "build-term\\.sh" (error-message-string err))))))
 
+(ert-deftest test-fate/project-term-signals-user-error-without-module ()
+  "`+fate/project-term' carries the same guard as `+fate/term'.
+Without it, `SPC p s' would fail inside `module-load' on a clone that has
+never run build-term.sh."
+  (let ((+fate-ghostel-module (expand-file-name "definitely-absent.so"
+                                                temporary-file-directory)))
+    (let ((err (should-error (+fate/project-term) :type 'user-error)))
+      (should (string-match-p "build-term\\.sh" (error-message-string err))))
+    ;; ...and it must bail out *before* reaching for ghostel.
+    (should-not (featurep 'ghostel-project))))
+
 ;;; Evil wiring. Both of these regressed once: requiring evil-ghostel does not
 ;;; enable it, and the global `jk' escape shadows j/k in every insert state --
 ;;; including a terminal buffer, where the handler's `insert' writes into

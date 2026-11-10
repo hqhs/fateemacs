@@ -134,12 +134,16 @@
   ;; project
   (kbd "<leader>SPC") #'project-find-file
   (kbd "<leader>pp")  #'project-switch-project
+  ;; build / test / run: one remembered command each, per project
   (kbd "<leader>pc")  #'+fate/project-compile
+  (kbd "<leader>pt")  #'+fate/project-test
+  (kbd "<leader>pr")  #'+fate/project-run
   (kbd "<leader>pk")  #'project-kill-buffers
   (kbd "<leader>pd")  #'project-dired
-  (kbd "<leader>ps")  #'project-shell
+  (kbd "<leader>ps")  #'+fate/project-term   ;; ghostel, rooted in the project
   (kbd "<leader>pg")  #'project-find-regexp ;; NOTE(hqhs): produces new buffer with results
-  (kbd "<leader>pr")  #'project-query-replace-regexp
+  ;; `r' went to +fate/project-run; query-replace moves up a case.
+  (kbd "<leader>pR")  #'project-query-replace-regexp
   (kbd "<leader>p!")  #'project-shell-command
   (kbd "<leader>p&")  #'project-async-shell-command
 
