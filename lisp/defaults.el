@@ -13,10 +13,48 @@
     t))
 (setq confirm-kill-emacs #'+fate-quit-p)
 
-;; set PATH from shell
-(setq-default exec-path
-              (append (split-string (getenv "PATH") path-separator t)
-                      (list exec-directory)))
+;;; PATH
+;;
+;; This used to be `(split-string (getenv "PATH") ...)', which despite the "set
+;; PATH from shell" comment only copied whatever PATH Emacs happened to
+;; inherit. Started from a terminal that is the shell's PATH and everything
+;; works. Started from the Dock or via `open -a', launchd hands over a bare
+;; /usr/bin:/bin:/usr/sbin:/sbin -- so no rg, no clangd, no cargo, and
+;; `executable-find' says they aren't installed.
+;;
+;; So ask the login shell instead. `-i' as well as `-l', because PATH
+;; additions conventionally live in .zshrc rather than .zprofile (ours do:
+;; ~/.local/bin is only on the interactive PATH). Measured at ~40ms, and only
+;; paid when there is no shell environment to inherit in the first place.
+
+(defun +fate--login-shell-path ()
+  "Return PATH as the user's login shell sees it, or nil if it can't be read."
+  (let* ((shell (or (getenv "SHELL") shell-file-name))
+         (marker "__fate_path__=")
+         ;; DESTINATION discards stderr: a chatty rc file is not our problem.
+         (output (with-output-to-string
+                   (call-process shell nil (list standard-output nil) nil
+                                 "-lic"
+                                 (concat "printf '" marker "%s' \"$PATH\"")))))
+    ;; An interactive shell may print a banner first; the marker is how we find
+    ;; our own output again.
+    (when (string-match (concat (regexp-quote marker) "\\(.+\\)") output)
+      (match-string 1 output))))
+
+(defun +fate--set-exec-path ()
+  "Set `exec-path' and $PATH, consulting the login shell when there is no
+shell environment to inherit (a GUI app launch, or a daemon)."
+  (let ((path (or (and (eq system-type 'darwin)
+                       (or (daemonp) (display-graphic-p))
+                       (+fate--login-shell-path))
+                  (getenv "PATH"))))
+    ;; Both: `exec-path' is what `executable-find' and `call-process' use,
+    ;; $PATH is what anything spawned through a shell uses (compile, eglot).
+    (setenv "PATH" path)
+    (setq-default exec-path (append (split-string path path-separator t)
+                                    (list exec-directory)))))
+
+(+fate--set-exec-path)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; security:
